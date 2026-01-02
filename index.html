@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Seasons Serials</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body onload="autoRedirectFromLogin()">
+
+<header>
+    <h2 class="logo">Seasons Serials</h2>
+    <nav class="navigation">
+      <a href="#">Home</a>
+      <a href="https://about-seasons-serials.netlify.app/">About</a>
+      <a href="#">Services</a>
+      <a href="#">Contacts</a>
+      <button class="btnLogin-popup" id="loginBtn">Login</button>
+  </nav>  
+</header>
+
+<div class="wrapper">
+  <span class="icon-close"><ion-icon name="close"></ion-icon></span>
+    <div class="form-box login">
+        <h2>Login</h2>
+
+        <form onsubmit="login(); return false;">
+            <div class="input-box">
+                <span class="icon"><ion-icon name="mail"></ion-icon></span>
+                <input type="email" id="email" required>
+                <label>Email</label>
+            </div>
+
+            <div class="input-box">
+                <span class="icon"><ion-icon name="lock-closed"></ion-icon></span>
+                <input type="password" id="password" required>
+                <label>Password</label>
+            </div>
+
+            <div class="remember-forgot">
+                <label>
+                    <input type="checkbox" id="rememberMe"> Remember me
+                </label>
+            </div>
+
+            <button type="submit" class="btn">Login</button>
+            <p class="invalid" id="error"></p>
+        </form>
+    </div>
+</div>
+
+<script src="script.js"></script>
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+</body>
+</html>

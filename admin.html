@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Admin</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="page-margaryta" data-page="protected" onload="protectPage('admin')">
+    
+<header>
+    <h2 class="logo">Seasons Serials</h2>
+    <nav class="navigation">
+        <button class="nav-admin-products">Manage store products</button>
+        <button class="btnLogin-popup" onclick="logout()">Logout</button>
+    </nav>
+</header>
+
+<div class="wrapper-admin-products">
+    <div class="admin-product-list">
+        <p class="discount-title">Sale Product 1</p>
+        <button class="cancel-confirm" id="prod1AvailableBtn">Product 1 Available</button>
+        <button class="cancel-confirm" id="prod1SoldBtn">Product 1 Sold</button>
+        <p id="prod1Msg" class="discount-message"></p>
+        
+        <p class="discount-title">Sale Product 2</p>
+        <button class="cancel-confirm" id="prod2AvailableBtn">Product 2 Available</button>
+        <button class="cancel-confirm" id="prod2SoldBtn">Product 2 Sold</button>
+        <p id="prod2Msg" class="discount-message"></p>
+        
+        <p class="discount-title">Sale Product 3</p>
+        <button class="cancel-confirm" id="prod3AvailableBtn">Product 3 Available</button>
+        <button class="cancel-confirm" id="prod3SoldBtn">Product 3 Sold</button>
+        <p id="prod3Msg" class="discount-message"></p>
+    </div>
+</div>
+
+<script src="script.js"></script>
+<script type="module" src="store-system/admin.js"></script>
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+</body>
+</html>

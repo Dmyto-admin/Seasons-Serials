@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Seasons Serials online store</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+
+<body onload="autoRedirectFromLogin()">
+
+    <div id="screenOverlay"></div>
+
+<header>
+    <h2 class="logo">Seasons Serials</h2>
+    <nav class="navigation">
+      <a href="home" class="nav-me"><ion-icon name="home"></ion-icon></a>
+      <a href="https://about-seasons-serials.netlify.app/" target="_blank">About</a>
+      <a href="services">Services</a>
+      <a href="contacts">Contacts</a>
+      <a href="seasons-serials-store" id="saleBtn">Sale</a>
+      <button class="btnLogin-popup" id="loginBtn">Login</button>
+  </nav>  
+</header>
+
+<div class="wrapper-sale">
+
+    <div class="store-content-box">
+        <h2>Seasons Serials online store</h2>
+        <div class="filters-wrapper">
+            <div class="filters-box">
+                <ion-icon class="filter-icon" name="filter"></ion-icon>
+                <span class="filter" id="filterBtn">All products<span class="dropdown-sign">▾</span></span>
+            </div>
+        
+            <div class="filters-menu" id="filtersMenu">
+                <span class="filter-type-all-products">Pictures</span>
+                <span class="filter-type-all-products">Handcrafts</span>
+                <span class="filter-type-all-products">Stories Seasons Serials</span>
+            </div>
+        </div>        
+
+            <div class="products-holder">
+                <span class="products-type" id="productsTypeP">PICTURES</span>
+                <div class="products-row">
+                    <div class="sale-product-box" id="saleProductOne">
+                        <img
+                            src="img-sale/img-sale-1-thumb.png"
+                            alt="IMG-SALE-1-'THE-BAMBOO"
+                            data-full="img-sale/fullscreen/img-sale-1.png"
+                            class="store-img"
+                            id="storeImgOne"
+                        >
+                        <div>
+                            <span class="product-name">"THE BAMBOO"</span>
+                            <p>
+                                <span class="product-price">1.20€</span>
+                            </p>
+                            <p>
+                                <a href="the-bamboo/more-information" class="more-info-product" data-wrapper="wrapperInfoTheBamboo">Click here for details</a>
+                            </p>
+                        </div>
+                        <button class="buyBtn" id="buyBtnOne">Buy!</button>
+                    </div>
+                    <div class="sale-product-box" id="saleProductTwo">
+                        <img
+                            src="img-sale/img-sale-2-thumb.png"
+                            alt="IMG-SALE-2-'THE-SUMMER-GOODS'"
+                            data-full="img-sale/fullscreen/img-sale-2.png"
+                            class="store-img-t2"
+                            id="storeImgTwo"
+                        >
+                        <div>
+                            <span class="product-name">"HEALTHY LIFE"</span>
+                            <p>
+                                <span class="product-price">2.50€</span>
+                            </p>
+                            <p>
+                                <a href="summer-goods/more-information" class="more-info-product" data-wrapper="wrapperInfoSummerGoods">Click here for details</a>
+                            </p>
+                        </div>
+                        <button class="buyBtn" id="buyBtnTwo">Buy!</button>
+                    </div>
+                    <div class="sale-product-box" id="saleProductThree">
+                        <img
+                        src="img-sale/img-sale-3-thumb.png"
+                        alt="IMG-SALE-3-'MY-LOVELY-MOUNTAINS'"
+                        data-full="img-sale/fullscreen/img-sale-3.png"
+                        class="store-img-t2"
+                        id="storeImgThree"
+                        >
+                        <div>
+                            <span class="product-name">"MY LOVELY MOUNTAINS"</span>
+                            <p>
+                                <span class="product-price">0.90€</span>
+                            </p>
+                            <p>
+                                <a href="my-lovely-mountains/more-information" class="more-info-product" data-wrapper="wrapperInfoMyLovelyMountains">Click here for details</a>
+                            </p>
+                        </div>
+                        <button class="buyBtn" id="buyBtnThree">Buy!</button>
+                    </div>
+
+                    <div class="sale-product-box" id="saleProductFour">
+                        <img
+                        src="img-sale/img-sale-4-thumb.jpg"
+                        alt="IMG-SALE-4-'SUMMER-GOLD'"
+                        data-full="img-sale/fullscreen/img-sale-4.jpg"
+                        class="store-img-t2"
+                        id="storeImgFour"
+                        >
+                        <div>
+                            <span class="product-name">"SUMMER GOLD"</span>
+                            <p>
+                                <span class="product-price">2.50€</span>
+                            </p>
+                            <p>
+                                <a href="summer-gold/more-information" class="more-info-product" data-wrapper="wrapperInfoSummerGold">Click here for details</a>
+                            </p>
+                        </div>
+                        <button class="buyBtn" id="buyBtnFour">Buy!</button>
+                    </div>
+                </div> 
+            </div>
+            <div class="profile-info" style="display: none;">
+                <span class="products-type" id="productsTypeH">HANDCRAFTS</span>
+                <div class="sale-product-box" id="saleProductHandcraftOne">
+                    <img class="store-img" src="img-sale/img-sale-1.png" alt="IMG-SALE-1">
+                    <button class="buyBtn">Buy!</button>
+                </div>
+            </div>
+
+            <div class="sale-timer" data-sale-id="winter-sale-1" style="display: none;"></div>
+
+    </div>
+</div>
+<div class="sale-info-wrapper" id="wrapperInfoTheBamboo">
+    <h2>Product information</h2>
+    <span class="icon-close"><ion-icon name="close"></ion-icon></span>
+    <div class="form-box-scroll">
+    <div class="profile-info">
+        <p>
+            <span class="profile-info-cat">Product name:</span>
+            <span class="discount-info">"THE BAMBOO"</span>
+        </p>
+        <p>
+            <span class="profile-info-cat">Product type:</span>
+            <span class="discount-info">Picture</span>
+        </p>
+        <p>
+            <span class="profile-info-cat">Description:</span>
+            <span class="discount-info">
+                “The Bamboo” is a refined artwork that blends modern painting techniques with the calm elegance of nature. Created on A4 paper using high-quality gouache paint, the composition features five overlapping bamboo stalks, symbolizing balance, growth, and harmony.
+            </span>
+            <br>
+            <span>
+                The use of rich green and soft yellow tones evokes the peaceful beauty of the outdoors, making this piece a timeless addition to any space. Original and exclusively designed by Seasons Serials LLC artists, The Bamboo is carefully crafted with attention to every detail, ensuring a unique and thoughtfully executed work of art.
+            </span>
+        </p>
+    </div>
+    </div>
+</div>
+<div class="sale-info-wrapper" id="wrapperInfoSummerGoods">
+    <h2>Product information</h2>
+    <span class="icon-close"><ion-icon name="close"></ion-icon></span>
+    <div class="form-box-scroll">
+    <div class="profile-info">
+        <p>
+            <span class="profile-info-cat">Product name:</span>
+            <span class="discount-info">"HEALTHY LIFE"</span>
+        </p>
+        <p>
+            <span class="profile-info-cat">Product type:</span>
+            <span class="discount-info">Picture</span>
+        </p>
+        <p>
+            <span class="profile-info-cat">Description:</span>
+            <span class="discount-info">
+                “Healthy Life” is a vibrant artwork that celebrates the freshness and vitality of a healthy lifestyle. Created on a square-format paper, the composition features a slice of fresh watermelon and a juicy cabbage — symbols of natural summer harvest and wholesome living.
+            </span>
+            <br>
+            <span>
+                The rich reds, lively greens, and refreshing blue accents evoke warm summer days and the simple joy of seasonal abundance. Crafted using the distinctive pointillism technique, Healthy Life is original and exclusively designed by Seasons Serials LLC artists, with every detail carefully placed to create a unique and thoughtfully executed work of art.
+            </span>
+        </p>
+    </div>
+    </div>
+</div>
+<div class="sale-info-wrapper" id="wrapperInfoMyLovelyMountains">
+    <h2>Product information</h2>
+    <span class="icon-close"><ion-icon name="close"></ion-icon></span>
+    <div class="form-box-scroll">
+    <div class="profile-info">
+        <p>
+            <span class="profile-info-cat">Product name:</span>
+            <span class="discount-info">"MY LOVELY MOUNTAINS"</span>
+        </p>
+        <p>
+            <span class="profile-info-cat">Product type:</span>
+            <span class="discount-info">Picture</span>
+        </p>
+        <p>
+            <span class="profile-info-cat">Description:</span>
+            <span class="discount-info">
+                “My Lovely Mountains” is a striking artwork that captures the beauty and strength of a natural mountain landscape. Created on a square-format canvas, the composition features bold mountain peaks surrounded by flowing hills, open skies, and vibrant fields — symbolizing freedom, harmony, and the power of nature.
+            </span>
+            <br>
+            <span>
+                The combination of fresh greens, deep grays, warm yellows, and soft blues evokes the serenity of highlands and the calm of open horizons. Designed with expressive line work and intricate patterns, My Lovely Mountains is original and exclusively created by Seasons Serials LLC artists, with every detail carefully crafted to form a unique and thoughtfully executed work of art.
+            </span>
+        </p>
+    </div>
+    </div>
+</div>
+
+<div class="sale-info-wrapper" id="wrapperInfoSummerGold">
+    <h2>Product information</h2>
+    <span class="icon-close"><ion-icon name="close"></ion-icon></span>
+    <div class="form-box-scroll">
+    <div class="profile-info">
+        <p>
+            <span class="profile-info-cat">Product name:</span>
+            <span class="discount-info">"SUMMER GOLD"</span>
+        </p>
+        <p>
+            <span class="profile-info-cat">Product type:</span>
+            <span class="discount-info">Picture</span>
+        </p>
+        <p>
+            <span class="profile-info-cat">Description:</span>
+            <span class="discount-info">
+                “Summer Gold” is a bright and cheerful artwork that celebrates the richness and sweetness of summer fruits. Created on a square-format canvas, the composition features a vibrant pineapple surrounded by a banana, a slice of watermelon, an apple, cherries, and a strawberry — symbolizing freshness, abundance, and the joyful colors of the summer season.
+            </span>
+            <br>
+            <span>
+                The warm yellows, vivid reds, and fresh greens evoke the lively energy of sun-filled days and the natural beauty of ripe fruit. Carefully drawn using colored pencils, Summer Gold is original and exclusively created by Seasons Serials LLC artists, with every detail thoughtfully shaded and crafted to produce a unique and beautifully executed work of art.
+            </span>
+        </p>
+    </div>
+    </div>
+</div>
+
+
+
+<!-- FULLSCREEN IMAGE VIEWER -->
+<div id="imageViewer">
+    <span class="image-viewer-close">
+        <ion-icon name="close"></ion-icon>
+    </span>
+
+    <img
+        src=""
+        id="imageViewerImg"
+        alt="IMAGE VIEWER FULLSCREEN"
+        data-full=""
+    >
+</div>
+
+<!-- CHECKOUT MODAL -->
+<div id="checkoutModal" class="checkout-modal">
+    <div class="checkout-box">
+      <h2>Checkout</h2>
+
+      <p><strong>Product:</strong> <span id="checkoutProductName"></span></p>
+      <p><strong>Price:</strong> <span id="checkoutProductPrice"></span></p>
+  
+      <input type="text" id="checkoutName" placeholder="Your name" required>
+      <input type="email" id="checkoutEmail" placeholder="Your email" required>
+      <p class="discount-title"><strong>Apply Promocodes:</strong></p>
+
+      <div class="discount-row">
+        <div class="checkout-input-box">
+            <input type="text" id="promoCodeInput" placeholder=" ">
+            <label>Enter a promocode</label>
+          </div>
+          <button type="button" class="cancel-confirm" id="applyDiscountBtn">Apply</button>
+      </div>
+
+      <p id="discountMessage" class="discount-message"></p>
+
+      <button class="cancel-confirm" id="confirmCheckoutBtn">Confirm Reservation</button>
+      <button class="cancel-confirm" id="cancelCheckoutBtn">Cancel</button>
+    </div>
+</div>
+
+<script src="script.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script type="module" src="store-system/store-system.js"></script>
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+</body>
+</html>
+
+

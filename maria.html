@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Maria</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="page-margaryta" data-page="protected" onload="protectPage('maria')">
+    
+<header>
+    <h2 class="logo">Seasons Serials</h2>
+    <nav class="navigation">
+        <a href="https://sites.google.com/view/virtual-pictures-folder-05/home" target="_blank">My pictures</a>
+        <a href="pyments-maria" class="nav-myp">My payments</a>
+        <a href="more-content" id="moreBtn">More</a>
+        
+        <div class="nav-menu" id="moreMenu">
+            <a href="upcoming-events" id="eventsBtn">Events</a>
+            <a href="tickets-maria">Tickets</a>
+            <a href="https://sites.google.com/view/stories-seasons-serials/home" target="_blank">Stories</a>
+            <a href="https://drive.google.com/drive/folders/1qO5FgOxY-Es0FBd9fwt94JIbXnvMxjA1?usp=drive_link" target="_blank">Perfomances</a>
+            <a href="discounts-maria">Discounts</a>
+        </div>
+
+        <a href="preofile-maria" class="nav-me">Me <ion-icon name="person-circle"></ion-icon></a>
+        <button class="btnLogin-popup" onclick="logout()">Logout</button>
+    </nav>
+</header>
+
+<div class="wrapper">
+    <span class="icon-close">
+        <ion-icon name="close"></ion-icon>
+    </span>
+
+    <div class="form-box login">
+        <h2>My profile</h2>
+
+        <div class="form-box-scroll">
+            <img class="M-margaryta" src="M-maria.png" alt="M-maria">
+        <div class="profile-info">
+            <p>
+                <span class="profile-info-cat">Name/username:</span> <span class="profile-info-data"> Maria</span>
+            </p>
+            <p>
+                <span class="profile-info-cat">Email:</span> <a class="contacts-link" href="mailto:mari.pashchenko@gmail.com">mari.pashchenko@gmail.com</a>
+            </p>
+            <p>
+                <span class="profile-info-cat">Email:</span> <a class="contacts-link" href="mailto:flavuskeen@gmail.com">flavuskeen@gmail.com</a>
+            </p>
+            <p>
+                <span class="profile-info-cat">Phone:</span> <a class="contacts-link" href="tel:+48733398331">+48 733 398 331</a>
+            </p>
+            <p>
+                <span class="profile-info-cat">Password:</span> <span class="profile-info-data">Not avalible</span>
+            </p>
+            <br>
+            <p>
+                <span class="profile-info-cat">Strories Seasons Serials subscription:</span> <span class="profile-info-data">Common subscription</span>
+            </p>
+            <p>
+                <span class="profile-info-cat"></span> <a class="contacts-link" href="https://sites.google.com/view/stories-seasons-serials/home">Strories Seasons Serials</a>
+            </p>
+        </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="wrapper-payments">
+    <span class="icon-close">
+        <ion-icon name="close"></ion-icon>
+    </span>
+
+    <div class="form-box login">
+        <h2>My payments</h2>
+
+        <div class="profile-info">
+            <p>
+                <span class="payments-notice">All the payments you realised in Seasons Serials in 2026 will be shown here</span>
+            </p>
+            <img src="no-payment-yet.png" alt="no-payments-yet">
+            <p>
+                <span class="no-payment-yet-text">No payments yet</span>
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="wrapper-discounts">
+    <span class="icon-close">
+        <ion-icon name="close"></ion-icon>
+    </span>
+
+    <div class="form-box login">
+        <h2>Discounts</h2>
+
+        <div class="form-box-scroll">
+        <div class="profile-info">
+            <p>
+                <span class="profile-info-cat">Promocode:</span> <span class="discount-info">05-112600</span>
+            </p>
+            <p>
+                <span class="profile-info-cat">Name:</span> <span class="discount-info">Maria</span>
+            </p>
+            <p>
+                <span class="profile-info-cat">Discount value:</span> <span class="discount-info">20%</span>
+            </p>
+            <p>
+                <span class="profile-info-cat">Aplied on products:</span> <span class="discount-info">All</span>
+            </p>
+            <p>
+                <span class="profile-info-cat">Vailid from-to:</span> <span class="discount-info">01/01/26 - 01/06/2026</span>
+            </p>
+            <br><br>
+            <p>
+                <span class="profile-info-cat">Sharing this voucher with others is prohibited</span>
+            </p>
+            <p>
+                <span class="profile-info-data">New discouns autogenerate every 3 months</span>
+            </p>
+        </div>
+        </div>
+    </div>
+</div>
+
+<div class="wrapper-events">
+    <span class="icon-close">
+        <ion-icon name="close"></ion-icon>
+    </span>
+
+    <div class="form-box login">
+        <h2>Upcoming events</h2>
+
+        <div class="form-box-scroll">
+        <div class="profile-info">
+            <p>
+                <span class="profile-info-cat">Event:</span> <span class="discount-info">Spring Art Exposition</span>
+            </p>
+            <p>
+                <span class="profile-info-cat">Start date:</span> <span class="discount-info">01/03/2026</span>
+            </p>
+            <p>
+                <span class="profile-info-cat">End date:</span> <span class="discount-info">01/03/2026</span>
+            </p>
+            <p>
+                <span class="profile-info-cat">Time:</span> <span class="discount-info">11:00-12:00 GTM</span>
+            </p>
+            <p>
+                <span class="profile-info-cat">Place:</span> <span class="discount-info">14 C/ G. Trevilla 3D, Santander</span>
+            </p>
+            <p>
+                <span class="profile-info-cat">Live stream:</span> <span class="discount-info">Avalible</span>
+            </p>
+            <p>
+                <span class="profile-info-cat">Tickets:</span> <span class="discount-info">Required</span>
+            </p>
+            <p>
+                <span class="profile-info-cat">Vailid from-to:</span> <span class="discount-info">01/01/26 - 01/03/2026</span>
+            </p>
+            <p>
+                <span class="profile-info-cat">Ticket coast:</span> <span class="discount-info">Not set yet</span>
+            </p>
+            <br>
+            <p>
+                <span class="profile-info-data">You'll be informed with more detail several weeks before the event</span>
+            </p>
+            <p>
+                <span class="profile-info-data">Ticket purchase will be avalible on the 01/02/2026</span>
+            </p>
+        </div>
+        </div>
+    </div>
+</div>
+
+<div class="wrapper-tickets">
+    <span class="icon-close">
+        <ion-icon name="close"></ion-icon>
+    </span>
+
+    <div class="form-box login">
+        <h2>Events tickets</h2>
+
+        <div class="profile-info">
+            <p>
+                <span class="payments-notice">All your tickets for the upcoming events will apear here</span>
+            </p>
+            <img src="no-payment-yet.png" alt="no-tickets-yet">
+            <p>
+                <span class="no-payment-yet-text">You have no tickets</span>
+            </p>
+    </div>
+</div>
+
+<script src="script.js"></script>
+<script type="module" src="store-system/store-system.js"></script>
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+</body>
+</html>

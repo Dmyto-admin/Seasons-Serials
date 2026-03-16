@@ -837,7 +837,7 @@ header {
 
 .filter {
     height: 25px;
-    width: 95px;
+    width: 135px;
     cursor: pointer;
     user-select: none;
     background: #c4c6c5;
@@ -849,6 +849,7 @@ header {
 
 .dropdown-sign {
     font-size: 17px;
+    padding: 8px;
 }
 
 /* FILTERS DROPDOWN — SAME STYLE AS MORE MENU */

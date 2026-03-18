@@ -3,3 +3,6 @@ Disallow: /admin
 Disallow: /store-system
 Disallow: /firebase-config
 Crawl-delay: 10
+Allow: /
+
+Sitemap: https://seasons-serials.pages.dev/sitemap.xml

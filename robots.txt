@@ -5,4 +5,4 @@ Disallow: /firebase-config
 Crawl-delay: 10
 Allow: /
 
-Sitemap: https://seasons-serials.pages.dev/sitemap.xml
+Sitemap: https://seasons-serials.vercel.app/sitemap.xml

@@ -385,25 +385,16 @@ document.addEventListener("DOMContentLoaded", () => {
           discountText = "-" + (discountPercent * 100) + "%";
         }
 
-        emailjs.send("service_newemail1", "template_tan46u4", {
-  to_email: email,
-  customer_name: name,
-  product_name: productName,
-  original_price: formattedOriginalPrice,
-  discount: discountText,
-  final_price: formattedFinalPrice,
-  order_id: orderId,
-  invoice_id: invoiceId
-}).then(
-  function(response) {
-    console.log("✅ EMAILJS SUCCESS:", response);
-    alert("EMAIL SENT SUCCESS");
-  },
-  function(error) {
-    console.error("❌ EMAILJS ERROR:", error);
-    alert("EMAIL ERROR: " + JSON.stringify(error));
-  }
-);
+        await emailjs.send("service_newemail1", "template_tan46u4", {
+          to_email: email,
+          customer_name: name,
+          product_name: productName,
+          original_price: formattedOriginalPrice,
+          discount: discountText,
+          final_price: formattedFinalPrice,
+          order_id: orderId,
+          invoice_id: invoiceId
+        });
     
         const now = Date.now();
         const reservedUntil = now + (24 * 60 * 60 * 1000);

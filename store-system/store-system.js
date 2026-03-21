@@ -369,11 +369,32 @@ document.addEventListener("DOMContentLoaded", () => {
     
       try {
     
+        // Generate IDs
+        const orderId = "ORD-" + Date.now();
+        const invoiceId = "INV-" + Math.floor(100000 + Math.random() * 900000);
+
+        // Prices
+        const discountPercent = currentDiscountValue || 0;
+        const finalPriceNumber = originalPrice - (originalPrice * discountPercent);
+
+        const formattedOriginalPrice = originalPrice.toFixed(2) + "€";
+        const formattedFinalPrice = finalPriceNumber.toFixed(2) + "€";
+
+        let discountText = "";
+        if (discountPercent > 0) {
+          discountText = "-" + (discountPercent * 100) + "%";
+        }
+
         await emailjs.send("service_tqfdtof", "template_tan46u4", {
           to_email: email,
           customer_name: name,
           product_name: productName,
-          product_price: productPrice
+          original_price: formattedOriginalPrice,
+          discount: discountText,
+          final_price: formattedFinalPrice,
+          order_id: orderId,
+          invoice_id: invoiceId
+});
         });
     
         const now = Date.now();

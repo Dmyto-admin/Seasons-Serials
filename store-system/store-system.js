@@ -416,7 +416,6 @@ document.addEventListener("DOMContentLoaded", () => {
     "ERROR:\n" +
     JSON.stringify(error, null, 2)
   );
-      }
     
         // Rollback UI if something fails
         selectedProduct.button.innerText = "Buy!";

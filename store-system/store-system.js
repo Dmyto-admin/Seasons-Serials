@@ -394,7 +394,6 @@ document.addEventListener("DOMContentLoaded", () => {
           final_price: formattedFinalPrice,
           order_id: orderId,
           invoice_id: invoiceId
-});
         });
     
         const now = Date.now();

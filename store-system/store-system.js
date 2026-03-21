@@ -410,8 +410,13 @@ document.addEventListener("DOMContentLoaded", () => {
         emailInput.value = "";
     
       } catch (error) {
-        console.error("Email or Firestore failed:", error);
-        alert("Email failed to send due to an unknown error. Please try agin, and if the error continues to appear, contact our support team.");
+  console.error("FULL EMAIL ERROR:", error);
+
+  alert(
+    "ERROR:\n" +
+    JSON.stringify(error, null, 2)
+  );
+      }
     
         // Rollback UI if something fails
         selectedProduct.button.innerText = "Buy!";

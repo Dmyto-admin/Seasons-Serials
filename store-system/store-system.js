@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function sendDiscountEmail(email, code, product){
 
-    emailjs.send("service_tqfdtof","template_5hyjmbt",{
+    emailjs.send("service_newemail1","template_5hyjmbt",{
     
     to_email: email,
     promo_code: code,
@@ -385,7 +385,7 @@ document.addEventListener("DOMContentLoaded", () => {
           discountText = "-" + (discountPercent * 100) + "%";
         }
 
-        await emailjs.send("service_tqfdtof", "template_tan46u4", {
+        await emailjs.send("service_newemail1", "template_tan46u4", {
           to_email: email,
           customer_name: name,
           product_name: productName,

@@ -1,17 +1,15 @@
 import { db } from "./firebase-config.js";
 import { doc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-const userEmail = "margaryta.pu@gmail.com"; // ⚠️ change per page
+const userEmail = "margaryta.pu@gmail.com";
 
-const paymentsContainer = document.querySelector(".wrapper-payments .profile-info");
+const container = document.querySelector(".wrapper-payments .profile-info");
 
 const invoicesRef = collection(doc(db, "users", userEmail), "invoices");
 
 onSnapshot(invoicesRef, (snapshot) => {
 
-  if (snapshot.empty) return;
-
-  paymentsContainer.innerHTML = "<h3>My Payments</h3>";
+  container.innerHTML = "";
 
   snapshot.forEach(docSnap => {
     const data = docSnap.data();
@@ -19,24 +17,21 @@ onSnapshot(invoicesRef, (snapshot) => {
     const date = new Date(data.date).toLocaleString();
 
     const div = document.createElement("div");
-    div.classList.add("invoice-box");
 
     div.innerHTML = `
-      <div class="invoice-line"></div>
+      <div style="border-top:1px solid #ddd; border-bottom:1px solid #ddd; padding:10px; margin:15px 0;">
+        <p><strong>Product:</strong> ${data.productName}</p>
+        <p><strong>Total:</strong> ${data.finalPrice}</p>
+        <p><strong>Date:</strong> ${date}</p>
+        <p><strong>Invoice:</strong> ${data.invoiceId}</p>
 
-      <p><strong>Product:</strong> ${data.productName}</p>
-      <p><strong>Total:</strong> ${data.finalPrice}</p>
-      <p><strong>Date:</strong> ${date}</p>
-      <p><strong>Invoice ID:</strong> ${data.invoiceId}</p>
-
-      <button onclick="downloadInvoice('${data.invoiceId}')">
-        Download PDF
-      </button>
-
-      <div class="invoice-line"></div>
+        <button onclick='downloadInvoice(${JSON.stringify(data)})'>
+          Download PDF
+        </button>
+      </div>
     `;
 
-    paymentsContainer.appendChild(div);
+    container.appendChild(div);
   });
 
 });

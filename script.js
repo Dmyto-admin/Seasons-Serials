@@ -104,7 +104,6 @@ function protectPage(allowedRole) {
 /* ---------- LOGIN POPUP ---------- */
 
 document.addEventListener("DOMContentLoaded", () => {
-document.addEventListener("DOMContentLoaded", () => {
     const wrapper = document.querySelector(".wrapper");
     const closeIcon = document.querySelector(".icon-close");
     const loginBtn = document.querySelector("#loginBtn");
@@ -125,8 +124,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (params.get("login") === "open") {
         wrapper?.classList.add("active-popup");
-
-        // clean URL
         window.history.replaceState({}, document.title, "index.html");
     }
 

@@ -1,37 +1,47 @@
 import { db } from "./firebase-config.js";
-import { doc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { onSnapshot, collection } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-const userEmail = "margaryta.pu@gmail.com";
+function loadUserInvoices(userEmail) {
+  const container = document.querySelector(".wrapper-payments .profile-info");
 
-const container = document.querySelector(".wrapper-payments .profile-info");
+  const invoicesRef = collection(db, "users", userEmail, "invoices");
 
-const invoicesRef = collection(doc(db, "users", userEmail), "invoices");
+  onSnapshot(invoicesRef, (snapshot) => {
 
-onSnapshot(invoicesRef, (snapshot) => {
+    container.innerHTML = ""; // clear old
 
-  container.innerHTML = "";
+    if (snapshot.empty) {
+      container.innerHTML = `
+        <img src="no-payment-yet.png">
+        <p class="no-payment-yet-text">No payments yet</p>
+      `;
+      return;
+    }
 
-  snapshot.forEach(docSnap => {
-    const data = docSnap.data();
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
 
-    const date = new Date(data.date).toLocaleString();
+      const block = document.createElement("div");
+      block.classList.add("invoice-block");
 
-    const div = document.createElement("div");
+      block.innerHTML = `
+        <div class="invoice-line"></div>
 
-    div.innerHTML = `
-      <div style="border-top:1px solid #ddd; border-bottom:1px solid #ddd; padding:10px; margin:15px 0;">
+        <p><strong>Invoice ID:</strong> ${data.invoiceId}</p>
+        <p><strong>Order ID:</strong> ${data.orderId}</p>
         <p><strong>Product:</strong> ${data.productName}</p>
         <p><strong>Total:</strong> ${data.finalPrice}</p>
-        <p><strong>Date:</strong> ${date}</p>
-        <p><strong>Invoice:</strong> ${data.invoiceId}</p>
+        <p><strong>Date:</strong> ${data.date} ${data.time}</p>
 
-        <button onclick='downloadInvoice(${JSON.stringify(data)})'>
+        <button onclick="downloadInvoice('${data.invoiceId}')">
           Download PDF
         </button>
-      </div>
-    `;
 
-    container.appendChild(div);
+        <div class="invoice-line"></div>
+      `;
+
+      container.appendChild(block);
+    });
+
   });
-
-});
+             }

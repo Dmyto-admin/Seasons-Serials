@@ -241,11 +241,13 @@ document.addEventListener("DOMContentLoaded", () => {
         productBox.style.display = "block";
         btn.disabled = false;
         btn.innerText = "Buy!";
+        btn.classList.remove("reserved-state"); // 🔥 ADD THIS
       }
 
       if (data.status === "reserved") {
         btn.disabled = true;
         btn.innerText = "Reserved";
+        btn.classList.add("reserved-state"); // 🔥 ADD THIS
       }
 
       if (data.status === "sold") {
@@ -329,14 +331,20 @@ document.addEventListener("DOMContentLoaded", () => {
       function generateInvoicePDF(data) {
           const { jsPDF } = window.jspdf;
           const doc = new jsPDF();
+          const logo = new Image();
+        
+          logo.src = "logo.png"; // add your logo file
+          doc.addImage(logo, "PNG", 20, 10, 30, 10);
 
           // ===== HEADER =====
           doc.setFont("helvetica", "bold");
           doc.setFontSize(20);
           doc.text("Seasons Serials", 20, 20);
 
+
           doc.setFontSize(10);
           doc.setFont("helvetica", "normal");
+          doc.text("Date: " + new Date().toLocaleString(), 140, 53);
           doc.text("Invoice", 160, 20, { align: "right" });
 
           // Line

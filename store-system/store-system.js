@@ -486,6 +486,28 @@ document.addEventListener("DOMContentLoaded", () => {
           order_id: orderId,
           invoice_id: invoiceId
         });
+
+        // 🔥 SAVE INVOICE TO FIRESTORE
+        const userRef = doc(db, "users", email);
+
+        // check if user exists
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+
+          const invoiceRef = doc(collection(userRef, "invoices"), invoiceId);
+
+          await setDoc(invoiceRef, {
+            invoiceId: invoiceId,
+            orderId: orderId,
+            productName: productName,
+            originalPrice: formattedOriginalPrice,
+            discount: discountText,
+            finalPrice: formattedFinalPrice,
+            date: new Date().toISOString()
+          });
+
+        }
     
         const now = Date.now();
         const reservedUntil = now + (24 * 60 * 60 * 1000);

@@ -241,13 +241,11 @@ document.addEventListener("DOMContentLoaded", () => {
         productBox.style.display = "block";
         btn.disabled = false;
         btn.innerText = "Buy!";
-        btn.classList.remove("reserved-state"); // 🔥 ADD THIS
       }
 
       if (data.status === "reserved") {
         btn.disabled = true;
         btn.innerText = "Reserved";
-        btn.classList.add("reserved-state"); // 🔥 ADD THIS
       }
 
       if (data.status === "sold") {
@@ -331,20 +329,14 @@ document.addEventListener("DOMContentLoaded", () => {
       function generateInvoicePDF(data) {
           const { jsPDF } = window.jspdf;
           const doc = new jsPDF();
-          const logo = new Image();
-        
-          logo.src = "logo.png"; // add your logo file
-          doc.addImage(logo, "PNG", 20, 10, 30, 10);
 
           // ===== HEADER =====
           doc.setFont("helvetica", "bold");
           doc.setFontSize(20);
           doc.text("Seasons Serials", 20, 20);
 
-
           doc.setFontSize(10);
           doc.setFont("helvetica", "normal");
-          doc.text("Date: " + new Date().toLocaleString(), 140, 53);
           doc.text("Invoice", 160, 20, { align: "right" });
 
           // Line
@@ -507,8 +499,9 @@ document.addEventListener("DOMContentLoaded", () => {
         emailInput.value = "";
     
       } catch (error) {
-        console.error("EmailJS error:", err);
-
+        console.error("Email or Firestore failed:", error);
+        alert("Email failed to send due to an unknown error. Please try agin, and if the error continues to appear, contact our support team.");
+    
         // Rollback UI if something fails
         selectedProduct.button.innerText = "Buy!";
         selectedProduct.button.disabled = false;

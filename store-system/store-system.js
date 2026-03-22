@@ -465,7 +465,7 @@ document.addEventListener("DOMContentLoaded", () => {
           discountText = "-" + (discountPercent * 100) + "%";
         }
 
-        const now = new Date();
+        const DateNow = new Date();
 
         const invoiceData = {
           orderId: orderId,
@@ -476,8 +476,8 @@ document.addEventListener("DOMContentLoaded", () => {
           originalPrice: formattedOriginalPrice,
           discount: discountText,
           finalPrice: formattedFinalPrice,
-          date: now.toLocaleDateString(),
-          time: now.toLocaleTimeString()
+          date: DateNow.toLocaleDateString(),
+          time: DateNow.toLocaleTimeString()
         };
 
         // ✅ Generate PDF

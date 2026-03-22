@@ -326,46 +326,83 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  function generateInvoicePDF(data) {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+      function generateInvoicePDF(data) {
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF();
 
-    // Title
-    doc.setFontSize(18);
-    doc.text("Seasons Serials - Invoice", 20, 20);
-  
-    // IDs
-    doc.setFontSize(10);
-    doc.text("Order ID: " + data.orderId, 20, 30);
-    doc.text("Invoice ID: " + data.invoiceId, 20, 36);
+          // ===== HEADER =====
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(20);
+          doc.text("Seasons Serials", 20, 20);
 
-    // Customer
-    doc.text("Customer: " + data.name, 20, 46);
-    doc.text("Email: " + data.email, 20, 52);
+          doc.setFontSize(10);
+          doc.setFont("helvetica", "normal");
+          doc.text("Invoice", 160, 20, { align: "right" });
 
-    // Product
-    doc.text("Product: " + data.productName, 20, 62);
+          // Line
+          doc.setDrawColor(200);
+          doc.line(20, 25, 190, 25);
 
-    // Prices
-    doc.text("Original Price: " + data.originalPrice, 20, 72);
-  
-    if (data.discount) {
-      doc.text("Discount: " + data.discount, 20, 78);
-    }
+          // ===== CUSTOMER + INVOICE INFO =====
+          doc.setFontSize(10);
 
-    doc.setFontSize(12);
-    doc.text("Final Price: " + data.finalPrice, 20, 88);
+          doc.text("BILL TO:", 20, 35);
+          doc.text(data.name, 20, 41);
+          doc.text(data.email, 20, 47);
 
-    // Bank details
-    doc.setFontSize(10);
-    doc.text("Payment Method: Bank Transfer", 20, 105);
-    doc.text("Card Number: 4149 6293 5475 4285", 20, 111);
+          doc.text("INVOICE DETAILS:", 140, 35);
+          doc.text("Invoice ID: " + data.invoiceId, 140, 41);
+          doc.text("Order ID: " + data.orderId, 140, 47);
 
-    doc.text("Please complete payment within 24 hours.", 20, 125);
+          // ===== PRODUCT TABLE HEADER =====
+          doc.setFillColor(245, 245, 245);
+          doc.rect(20, 60, 170, 10, "F");
 
-    // Save
-    doc.save("Invoice_" + data.invoiceId + ".pdf");
-  }
+          doc.setFont("helvetica", "bold");
+          doc.text("Product", 22, 67);
+          doc.text("Price", 180, 67, { align: "right" });
+
+          // ===== PRODUCT ROW =====
+          doc.setFont("helvetica", "normal");
+          doc.text(data.productName, 22, 77);
+          doc.text(data.originalPrice, 180, 77, { align: "right" });
+
+          let y = 85;
+
+          // ===== DISCOUNT (IF EXISTS) =====
+          if (data.discount) {
+          doc.text("Discount (" + data.discount + ")", 22, y);
+          doc.text("-" + data.discount, 180, y, { align: "right" });
+          y += 8;
+          }
+
+          // ===== TOTAL BOX =====
+          doc.setDrawColor(0);
+          doc.rect(120, y, 70, 15);
+
+          doc.setFont("helvetica", "bold");
+          doc.text("Total", 125, y + 6);
+          doc.text(data.finalPrice, 185, y + 6, { align: "right" });
+
+          // ===== PAYMENT INFO =====
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(10);
+
+          doc.text("Payment Method: Bank Transfer", 20, y + 30);
+          doc.text("Card Number: 4149 6293 5475 4285", 20, y + 36);
+
+          // ===== FOOTER =====
+          doc.setTextColor(120);
+          doc.setFontSize(9);
+          doc.text(
+              "Please complete the payment within 24 hours to secure your order.",
+          20,
+          y + 50
+          );
+
+          // ===== SAVE =====
+          doc.save("Invoice_" + data.invoiceId + ".pdf");
+        }
   
   if (confirmBtn) {
     confirmBtn.addEventListener("click", async () => {

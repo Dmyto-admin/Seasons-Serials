@@ -326,6 +326,47 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  function generateInvoicePDF(data) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // Title
+    doc.setFontSize(18);
+    doc.text("Seasons Serials - Invoice", 20, 20);
+  
+    // IDs
+    doc.setFontSize(10);
+    doc.text("Order ID: " + data.orderId, 20, 30);
+    doc.text("Invoice ID: " + data.invoiceId, 20, 36);
+
+    // Customer
+    doc.text("Customer: " + data.name, 20, 46);
+    doc.text("Email: " + data.email, 20, 52);
+
+    // Product
+    doc.text("Product: " + data.productName, 20, 62);
+
+    // Prices
+    doc.text("Original Price: " + data.originalPrice, 20, 72);
+  
+    if (data.discount) {
+      doc.text("Discount: " + data.discount, 20, 78);
+    }
+
+    doc.setFontSize(12);
+    doc.text("Final Price: " + data.finalPrice, 20, 88);
+
+    // Bank details
+    doc.setFontSize(10);
+    doc.text("Payment Method: Bank Transfer", 20, 105);
+    doc.text("Card Number: 4149 6293 5475 4285", 20, 111);
+
+    doc.text("Please complete payment within 24 hours.", 20, 125);
+
+    // Save
+    doc.save("Invoice_" + data.invoiceId + ".pdf");
+  }
+  
   if (confirmBtn) {
     confirmBtn.addEventListener("click", async () => {
 

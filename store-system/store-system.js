@@ -241,11 +241,13 @@ document.addEventListener("DOMContentLoaded", () => {
         productBox.style.display = "block";
         btn.disabled = false;
         btn.innerText = "Buy!";
+          btn.classList.remove("reserved-state");
       }
 
       if (data.status === "reserved") {
         btn.disabled = true;
         btn.innerText = "Reserved";
+        btn.classList.add("reserved-state");
       }
 
       if (data.status === "sold") {

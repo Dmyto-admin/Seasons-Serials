@@ -426,6 +426,17 @@ document.addEventListener("DOMContentLoaded", () => {
           discountText = "-" + (discountPercent * 100) + "%";
         }
 
+        generateInvoicePDF({
+          orderId: orderId,
+          invoiceId: invoiceId,
+          name: name,
+          email: email,
+          productName: productName,
+          originalPrice: formattedOriginalPrice,
+          discount: discountText,
+          finalPrice: formattedFinalPrice
+        });
+
         await emailjs.send("service_newemail1", "template_tan46u4", {
           to_email: email,
           customer_name: name,

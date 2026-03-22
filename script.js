@@ -104,32 +104,33 @@ function protectPage(allowedRole) {
 /* ---------- LOGIN POPUP ---------- */
 
 document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => {
     const wrapper = document.querySelector(".wrapper");
     const closeIcon = document.querySelector(".icon-close");
-
     const loginBtn = document.querySelector("#loginBtn");
 
+    // ✅ LOGIN BUTTON
     if (loginBtn) {
         loginBtn.addEventListener("click", () => {
-        // If NOT on index.html → redirect with flag
-        if (!window.location.pathname.includes("index.html")) {
-            window.location.href = "index.html?login=open";
-        } else {
-            // Already on index → just open popup
-            document.querySelector(".wrapper")?.classList.add("active-popup");
-        }
+            if (!window.location.pathname.includes("index.html")) {
+                window.location.href = "index.html?login=open";
+            } else {
+                wrapper?.classList.add("active-popup");
+            }
+        });
     }
+
     // ✅ CHECK URL PARAM
     const params = new URLSearchParams(window.location.search);
 
     if (params.get("login") === "open") {
         wrapper?.classList.add("active-popup");
 
-        // OPTIONAL: clean URL (removes ?login=open)
+        // clean URL
         window.history.replaceState({}, document.title, "index.html");
     }
 
-    // CLOSE BUTTON
+    // ✅ CLOSE BUTTON
     if (closeIcon && wrapper) {
         closeIcon.onclick = () => wrapper.classList.remove("active-popup");
     }

@@ -485,9 +485,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // ✅ SAVE TO FIREBASE
         async function saveInvoiceToUser(email, invoiceData) {
-          const userRef = doc(db, "users", email);
-          const invoiceRef = doc(collection(userRef, "invoices"), invoiceData.invoiceId);
-          await setDoc(invoiceRef, invoiceData);
+          try {
+            const userRef = doc(db, "users", email);
+            const invoiceRef = doc(collection(userRef, "invoices"), invoiceData.invoiceId);
+            await setDoc(invoiceRef, invoiceData);
+          } catch (err) {
+            console.error("Invoice save failed:", err);
+            // Don’t throw—just log, so EmailJS can still send
+          }
         }
        
         await saveInvoiceToUser(email, invoiceData);

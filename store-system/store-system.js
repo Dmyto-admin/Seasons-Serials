@@ -484,6 +484,12 @@ document.addEventListener("DOMContentLoaded", () => {
         generateInvoicePDF(invoiceData);
 
         // ✅ SAVE TO FIREBASE
+        async function saveInvoiceToUser(email, invoiceData) {
+          const userRef = doc(db, "users", email);
+          const invoiceRef = doc(collection(userRef, "invoices"), invoiceData.invoiceId);
+          await setDoc(invoiceRef, invoiceData);
+        }
+       
         await saveInvoiceToUser(email, invoiceData);
         
         await emailjs.send("service_newemail1", "template_tan46u4", {

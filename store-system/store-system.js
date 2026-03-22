@@ -465,7 +465,9 @@ document.addEventListener("DOMContentLoaded", () => {
           discountText = "-" + (discountPercent * 100) + "%";
         }
 
-        generateInvoicePDF({
+        const now = new Date();
+
+        const invoiceData = {
           orderId: orderId,
           invoiceId: invoiceId,
           name: name,
@@ -473,9 +475,17 @@ document.addEventListener("DOMContentLoaded", () => {
           productName: productName,
           originalPrice: formattedOriginalPrice,
           discount: discountText,
-          finalPrice: formattedFinalPrice
-        });
+          finalPrice: formattedFinalPrice,
+          date: now.toLocaleDateString(),
+          time: now.toLocaleTimeString()
+        };
 
+        // ✅ Generate PDF
+        generateInvoicePDF(invoiceData);
+
+        // ✅ SAVE TO FIREBASE
+        await saveInvoiceToUser(email, invoiceData);
+        
         await emailjs.send("service_newemail1", "template_tan46u4", {
           to_email: email,
           customer_name: name,

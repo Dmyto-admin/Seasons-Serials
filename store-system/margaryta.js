@@ -33,12 +33,21 @@ function loadUserInvoices(userEmail) {
         <p><strong>Total:</strong> ${data.finalPrice}</p>
         <p><strong>Date:</strong> ${data.date} ${data.time}</p>
 
-        <button onclick="downloadInvoice('${data.invoiceId}')">
+        <button class="download-btn">
           Download PDF
         </button>
 
         <div class="invoice-line"></div>
       `;
+
+      const btn = block.querySelector(".download-btn");
+
+      btn.addEventListener("click", () => {
+        const link = document.createElement("a");
+        link.href = data.pdf;
+        link.download = "Invoice_" + data.invoiceId + ".pdf";
+        link.click();
+      });
 
       container.appendChild(block);
     });

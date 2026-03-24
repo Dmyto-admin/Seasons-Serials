@@ -512,14 +512,13 @@ document.addEventListener("DOMContentLoaded", () => {
         generateInvoicePDF(invoiceData);
 
         // 🔥 SAVE INVOICE (independent)
-        saveInvoiceToFirestore({
-          invoiceId,
-          orderId,
-          email,
-          productName,
-          originalPrice: formattedOriginalPrice,
-          finalPrice: formattedFinalPrice,
-          discount: discountText
+        saveInvoiceToUser(email, {
+        invoiceId: invoiceId,
+        orderId: orderId,
+        productName: productName,
+        originalPrice: formattedOriginalPrice,
+        finalPrice: formattedFinalPrice,
+        discount: discountText
         });
         
         await emailjs.send("service_newemail1", "template_tan46u4", {

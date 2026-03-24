@@ -2,6 +2,34 @@ import { db } from "./firebase-config.js";
 import { doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
+
+async function saveInvoiceToUser(email, invoiceData) {
+  try {
+    const userRef = doc(db, "users", email);
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+      console.log("User does not exist → skipping save");
+      return false;
+    }
+
+    const invoiceRef = doc(collection(db, "users", email, "invoices"), invoiceData.invoiceId);
+
+    await setDoc(invoiceRef, {
+      ...invoiceData,
+      createdAt: Date.now()
+    });
+
+    console.log("✅ Invoice saved correctly");
+    return true;
+
+  } catch (error) {
+    console.error("❌ FIRESTORE SAVE FAILED:", error);
+    return false;
+  }
+}
+
+
 document.addEventListener("DOMContentLoaded", () => {
   let selectedProduct = null;
   let appliedDiscount = null;
@@ -483,19 +511,16 @@ document.addEventListener("DOMContentLoaded", () => {
         // ✅ Generate PDF
         generateInvoicePDF(invoiceData);
 
-        // ✅ SAVE TO FIREBASE
-        async function saveInvoiceToUser(email, invoiceData) {
-          try {
-            const userRef = doc(db, "users", email);
-            const invoiceRef = doc(collection(userRef, "invoices"), invoiceData.invoiceId);
-            await setDoc(invoiceRef, invoiceData);
-          } catch (err) {
-            console.error("Invoice save failed:", err);
-            // Don’t throw—just log, so EmailJS can still send
-          }
-        }
-       
-        await saveInvoiceToUser(email, invoiceData);
+        // 🔥 SAVE INVOICE (independent)
+        saveInvoiceToFirestore({
+          invoiceId,
+          orderId,
+          email,
+          productName,
+          originalPrice: formattedOriginalPrice,
+          finalPrice: formattedFinalPrice,
+          discount: discountText
+        });
         
         await emailjs.send("service_newemail1", "template_tan46u4", {
           to_email: email,
@@ -507,28 +532,6 @@ document.addEventListener("DOMContentLoaded", () => {
           order_id: orderId,
           invoice_id: invoiceId
         });
-
-        // 🔥 SAVE INVOICE TO FIRESTORE
-        const userRef = doc(db, "users", email);
-
-        // check if user exists
-        const userSnap = await getDoc(userRef);
-
-        if (userSnap.exists()) {
-
-          const invoiceRef = doc(collection(userRef, "invoices"), invoiceId);
-
-          await setDoc(invoiceRef, {
-            invoiceId: invoiceId,
-            orderId: orderId,
-            productName: productName,
-            originalPrice: formattedOriginalPrice,
-            discount: discountText,
-            finalPrice: formattedFinalPrice,
-            date: new Date().toISOString()
-          });
-
-        }
     
         const now = Date.now();
         const reservedUntil = now + (24 * 60 * 60 * 1000);

@@ -432,7 +432,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
           // ===== SAVE =====
           doc.save("Invoice_" + data.invoiceId + ".pdf");
-        }
+        
+         // ===== RETURN BASE64 ✅
+          return doc.output("datauristring");
+       }
   
   if (confirmBtn) {
     confirmBtn.addEventListener("click", async () => {
@@ -509,17 +512,20 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         // ✅ Generate PDF
-        generateInvoicePDF(invoiceData);
+        const pdfBase64 = generateInvoicePDF(invoiceData);
 
-        // 🔥 SAVE INVOICE (independent)
+        // 🔥 SAVE TO FIRESTORE (independent)
         saveInvoiceToUser(email, {
         invoiceId: invoiceId,
         orderId: orderId,
         productName: productName,
         originalPrice: formattedOriginalPrice,
         finalPrice: formattedFinalPrice,
-        discount: discountText
-        });
+        discount: discountText,
+        date: invoiceData.date,
+        time: invoiceData.time,
+        pdf: pdfBase64
+      });
         
         await emailjs.send("service_newemail1", "template_tan46u4", {
           to_email: email,

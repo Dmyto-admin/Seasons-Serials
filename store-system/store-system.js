@@ -5,20 +5,11 @@ import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/f
 
 async function saveInvoiceToUser(email, invoiceData) {
   try {
+    console.log("🔥 START SAVING", email, invoiceData);
+
     const userRef = doc(db, "users", email);
 
-    // ✅ ALWAYS create user document if missing
-    await setDoc(userRef, {
-      email: email
-    }, { merge: true });
-
-    const userSnap = await getDoc(userRef);
-
-    // ❌ If user not registered → STOP (as you requested)
-    if (!userSnap.exists()) {
-      console.log("⛔ User not registered → NOT saving invoice");
-      return;
-    }
+    await setDoc(userRef, { email: email }, { merge: true });
 
     const invoiceRef = doc(
       db,
@@ -36,7 +27,8 @@ async function saveInvoiceToUser(email, invoiceData) {
     console.log("✅ Invoice saved to Firestore");
 
   } catch (error) {
-    console.error("❌ SAVE FAILED (ignored):", error);
+    console.error("❌ REAL FIRESTORE ERROR:", error);
+    alert(error.message); // 👈 YOU NEED THIS
   }
 }
 
@@ -525,7 +517,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const pdfBase64 = generateInvoicePDF(invoiceData);
 
         // 🔥 SAVE (completely independent)
-        saveInvoiceToUser(email, {
+        await saveInvoiceToUser(email, {
           invoiceId,
           orderId,
           productName,

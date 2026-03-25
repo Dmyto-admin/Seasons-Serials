@@ -678,18 +678,18 @@ header {
 .download-btn {
   margin-top: 12px;
   width: 100%;
-  padding: 8px;
+  padding: 9px;
   border: none;
   border-radius: 6px;
-  background: linear-gradient(135deg, #2196f3, #21cbf3);
+  background: linear-gradient(135deg, #0045bc, #007bff);
   color: white;
   font-weight: 500;
   cursor: pointer;
-  transition: 0.3s ease;
+  transition: 0.25s ease;
 }
 
 .download-btn:hover {
-  background: linear-gradient(135deg, #1e88e5, #00bcd4);
+  background: linear-gradient(135deg, #003399, #005ce6);
   transform: scale(1.03);
 }
 

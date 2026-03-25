@@ -25,19 +25,24 @@ function loadUserInvoices(userEmail) {
       block.classList.add("invoice-block");
 
       block.innerHTML = `
-        <div class="invoice-line"></div>
+        <div class="invoice-card">
 
-        <p><strong>Invoice ID:</strong> ${data.invoiceId}</p>
-        <p><strong>Order ID:</strong> ${data.orderId}</p>
-        <p><strong>Product:</strong> ${data.productName}</p>
-        <p><strong>Total:</strong> ${data.finalPrice}</p>
-        <p><strong>Date:</strong> ${data.date} ${data.time}</p>
+          <div class="invoice-header">
+            <span class="invoice-id">#${data.invoiceId}</span>
+            <span class="invoice-date">${data.date}</span>
+          </div>
 
-        <button class="download-btn">
-          Download PDF
-        </button>
+          <div class="invoice-body">
+            <p><strong>Product:</strong> ${data.productName}</p>
+            <p><strong>Order:</strong> ${data.orderId}</p>
+            <p class="invoice-price">${data.finalPrice}</p>
+          </div>
 
-        <div class="invoice-line"></div>
+          <button class="download-btn">
+            ⬇ Download Invoice
+          </button>
+
+        </div>
       `;
 
       const btn = block.querySelector(".download-btn");

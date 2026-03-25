@@ -53,4 +53,10 @@ function loadUserInvoices(userEmail) {
     });
 
   });
-             }
+}
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  const email = "dmytromoroz2023@gmail.com"; // 👈 THIS PAGE USER
+  loadUserInvoices(email);
+});

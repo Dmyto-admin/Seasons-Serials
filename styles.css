@@ -651,25 +651,26 @@ header {
   justify-content: space-between;
   margin-bottom: 10px;
   font-size: 13px;
-  opacity: 0.8;
+  color: rgba(255,255,255,0.75);
 }
 
 .invoice-id {
   font-weight: 600;
-  color: #4fc3f7;
+  color: #0045bc; /* darker blue */
 }
 
 /* BODY */
 .invoice-body p {
   margin: 4px 0;
   font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 /* PRICE */
 .invoice-price {
   font-size: 18px;
-  font-weight: bold;
-  color: #4caf50;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9); /* clean white */
   margin-top: 8px;
 }
 

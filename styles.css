@@ -625,6 +625,73 @@ header {
     box-shadow: none;
 }
 
+.invoice-block {
+  margin-bottom: 20px;
+}
+
+/* GLASS CARD */
+.invoice-card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  border-radius: 10px;
+  padding: 18px;
+  border: 1px solid rgba(255,255,255,0.15);
+  transition: 0.3s ease;
+  color: #fff;
+}
+
+.invoice-card:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* HEADER */
+.invoice-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.invoice-id {
+  font-weight: 600;
+  color: #4fc3f7;
+}
+
+/* BODY */
+.invoice-body p {
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+/* PRICE */
+.invoice-price {
+  font-size: 18px;
+  font-weight: bold;
+  color: #4caf50;
+  margin-top: 8px;
+}
+
+/* BUTTON */
+.download-btn {
+  margin-top: 12px;
+  width: 100%;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #2196f3, #21cbf3);
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.download-btn:hover {
+  background: linear-gradient(135deg, #1e88e5, #00bcd4);
+  transform: scale(1.03);
+}
+
 .discount-row {
     display: flex;
     align-items: center;

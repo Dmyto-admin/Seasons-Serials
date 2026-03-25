@@ -8,27 +8,31 @@ async function saveInvoiceToUser(email, invoiceData) {
     const userRef = doc(db, "users", email);
     const userSnap = await getDoc(userRef);
 
+    // ❌ If user not registered → STOP (as you requested)
     if (!userSnap.exists()) {
-      console.log("User does not exist → skipping save");
-      return false;
+      console.log("⛔ User not registered → NOT saving invoice");
+      return;
     }
 
-    const invoiceRef = doc(collection(db, "users", email, "invoices"), invoiceData.invoiceId);
+    const invoiceRef = doc(
+      db,
+      "users",
+      email,
+      "invoices",
+      invoiceData.invoiceId
+    );
 
     await setDoc(invoiceRef, {
       ...invoiceData,
       createdAt: Date.now()
     });
 
-    console.log("✅ Invoice saved correctly");
-    return true;
+    console.log("✅ Invoice saved to Firestore");
 
   } catch (error) {
-    console.error("❌ FIRESTORE SAVE FAILED:", error);
-    return false;
+    console.error("❌ SAVE FAILED (ignored):", error);
   }
 }
-
 
 document.addEventListener("DOMContentLoaded", () => {
   let selectedProduct = null;
@@ -514,18 +518,18 @@ document.addEventListener("DOMContentLoaded", () => {
         // ✅ Generate PDF
         const pdfBase64 = generateInvoicePDF(invoiceData);
 
-        // 🔥 SAVE TO FIRESTORE (independent)
+        // 🔥 SAVE (completely independent)
         saveInvoiceToUser(email, {
-        invoiceId: invoiceId,
-        orderId: orderId,
-        productName: productName,
-        originalPrice: formattedOriginalPrice,
-        finalPrice: formattedFinalPrice,
-        discount: discountText,
-        date: invoiceData.date,
-        time: invoiceData.time,
-        pdf: pdfBase64
-      });
+          invoiceId,
+          orderId,
+          productName,
+          originalPrice: formattedOriginalPrice,
+          finalPrice: formattedFinalPrice,
+          discount: discountText,
+          date: invoiceData.date,
+          time: invoiceData.time,
+          pdf: pdfBase64
+        }).catch(err => console.error("Save error:", err));
         
         await emailjs.send("service_newemail1", "template_tan46u4", {
           to_email: email,

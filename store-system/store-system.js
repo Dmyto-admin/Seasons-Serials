@@ -6,6 +6,12 @@ import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/f
 async function saveInvoiceToUser(email, invoiceData) {
   try {
     const userRef = doc(db, "users", email);
+
+    // ✅ ALWAYS create user document if missing
+    await setDoc(userRef, {
+      email: email
+    }, { merge: true });
+
     const userSnap = await getDoc(userRef);
 
     // ❌ If user not registered → STOP (as you requested)

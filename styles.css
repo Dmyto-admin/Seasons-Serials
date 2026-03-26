@@ -629,18 +629,6 @@ header {
   margin-bottom: 20px;
 }
 
-.invoice-block {
-  background: rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(20px);
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 15px;
-
-  /* 🔥 contrast */
-  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-  border: 1px solid rgba(255,255,255,0.2);
-}
-
 .invoice-block p {
   color: #1e2a38;
   font-size: 14px;
@@ -686,13 +674,14 @@ header {
   margin: 4px 0;
   font-size: 14px;
   color: rgba(255, 255, 255, 0.85);
+  color: #4AB2FF;
 }
 
 /* PRICE */
 .invoice-price {
   font-size: 18px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9); /* clean white */
+  color: #4AB2FF;
   margin-top: 8px;
 }
 

@@ -39,7 +39,7 @@ function loadUserInvoices(userEmail) {
           </div>
 
           <button class="download-btn">
-            ⬇ Download Invoice
+            Download Invoice
           </button>
 
         </div>

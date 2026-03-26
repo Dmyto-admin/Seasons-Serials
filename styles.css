@@ -647,7 +647,7 @@ header {
   padding: 18px;
   border: 1px solid rgba(255,255,255,0.15);
   transition: 0.3s ease;
-  color: #fff;
+  color: #0045bc;
 }
 
 .invoice-card:hover {
@@ -674,14 +674,14 @@ header {
   margin: 4px 0;
   font-size: 14px;
   color: rgba(255, 255, 255, 0.85);
-  color: #4AB2FF;
+  color: #0045bc;
 }
 
 /* PRICE */
 .invoice-price {
   font-size: 18px;
   font-weight: 600;
-  color: #4AB2FF;
+  color: #0045bc;
   margin-top: 8px;
 }
 

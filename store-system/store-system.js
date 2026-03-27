@@ -455,7 +455,7 @@ document.addEventListener("DOMContentLoaded", () => {
        }
   
   if (confirmBtn) {
-    confirmBtn.addEventListener("click", async () => {
+confirmBtn.addEventListener("click", async () => {
 
   const name = document.getElementById("checkoutName").value.trim();
   const email = document.getElementById("checkoutEmail").value.trim();
@@ -469,7 +469,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   try {
 
-    // 🟢 STEP 1 — RESERVE PRODUCT FIRST (CRITICAL)
+    // 🟢 STEP 1 — RESERVE PRODUCT FIRST
     const productSnap = await getDoc(productRef);
 
     if (!productSnap.exists() || productSnap.data().status !== "available") {
@@ -482,7 +482,7 @@ document.addEventListener("DOMContentLoaded", () => {
       reservedBy: email
     }, { merge: true });
 
-    // 🟡 STEP 2 — APPLY DISCOUNT (AUTO if not clicked)
+    // 🟡 STEP 2 — APPLY DISCOUNT (AUTO)
     if (matchedDiscountDoc && matchedDiscountDoc.data().status === "available") {
       await updateDoc(doc(db, "discounts", matchedDiscountDoc.id), {
         status: "used"
@@ -492,11 +492,17 @@ document.addEventListener("DOMContentLoaded", () => {
       discountApplied = true;
     }
 
-    // 🔵 STEP 3 — GENERATE DATA
+    // 🔵 STEP 3 — PREPARE DATA
     const orderId = "ORD-" + Date.now();
     const invoiceId = "INV-" + Math.floor(100000 + Math.random() * 900000);
 
     const finalPriceNumber = originalPrice - (originalPrice * currentDiscountValue);
+
+    const formattedOriginalPrice = originalPrice.toFixed(2) + "€";
+    const formattedFinalPrice = finalPriceNumber.toFixed(2) + "€";
+    const discountText = currentDiscountValue
+      ? "-" + (currentDiscountValue * 100) + "%"
+      : "";
 
     const invoiceData = {
       orderId,
@@ -504,59 +510,49 @@ document.addEventListener("DOMContentLoaded", () => {
       name,
       email,
       productName: selectedProduct.name,
-      originalPrice: originalPrice.toFixed(2) + "€",
-      finalPrice: finalPriceNumber.toFixed(2) + "€",
-      discount: currentDiscountValue ? "-" + (currentDiscountValue * 100) + "%" : "",
+      originalPrice: formattedOriginalPrice,
+      finalPrice: formattedFinalPrice,
+      discount: discountText,
       date: new Date().toLocaleDateString(),
       time: new Date().toLocaleTimeString()
     };
 
-    // 🔵 STEP 4 — GENERATE PDF
+    // 🔵 STEP 4 — GENERATE PDF (NO AUTO DOWNLOAD)
     const pdfBase64 = generateInvoicePDF(invoiceData);
 
-    // 🔵 STEP 5 — SAVE
+    // 🔵 STEP 5 — SAVE TO FIREBASE
     await saveInvoiceToUser(email, {
-      invoiceId,
-      orderId,
-      productName,
-      originalPrice: originalPrice,
-      finalPrice: finalPriceNumber,
-      discount: discountText,
-      date: invoiceData.date,
-      time: invoiceData.time,
+      ...invoiceData,
       pdf: pdfBase64
     });
-    // 🔵 STEP 6 — EMAIL
+
+    // 🔵 STEP 6 — SEND EMAIL
     await emailjs.send("service_newemail1", "template_tan46u4", {
-          to_email: email,
-          customer_name: name,
-          product_name: productName,
-          original_price: formattedOriginalPrice,
-          discount: discountText,
-          final_price: formattedFinalPrice,
-          order_id: orderId,
-          invoice_id: invoiceId
+      to_email: email,
+      customer_name: name,
+      product_name: selectedProduct.name,
+      original_price: formattedOriginalPrice,
+      discount: discountText,
+      final_price: formattedFinalPrice,
+      order_id: orderId,
+      invoice_id: invoiceId
     });
 
-    // ✅ SUCCESS
-    document.getElementById("checkoutName").value = "";
-    document.getElementById("checkoutEmail").value = "";
+    // ✅ SUCCESS UI
+    closeModal();
 
   } catch (error) {
 
     console.error("❌ FULL FAILURE:", error);
 
-    // 🔴 ROLLBACK EVERYTHING
-
+    // 🔴 ROLLBACK
     try {
-      // Restore product
       await setDoc(productRef, {
         status: "available",
         reservedUntil: 0,
         reservedBy: ""
       }, { merge: true });
 
-      // Restore discount
       if (discountApplied && matchedDiscountDoc) {
         await updateDoc(doc(db, "discounts", matchedDiscountDoc.id), {
           status: "available"
@@ -571,12 +567,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   } finally {
 
-    // UI restore
     confirmBtn.disabled = false;
 
     selectedProduct.button.innerText = "Buy!";
     selectedProduct.button.disabled = false;
     selectedProduct.button.classList.remove("reserved-state");
+
+    closeModal(); // ✅ ALWAYS CLOSE
   }
 });
   }

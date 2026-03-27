@@ -1,14 +1,14 @@
 import { db } from "./firebase-config.js";
 import { onSnapshot, collection } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-function loadUserInvoices(userEmail) {
+function loadUserInvoices(userEmail, secret) {
   const container = document.querySelector(".wrapper-payments .profile-info");
 
   const invoicesRef = collection(db, "users", userEmail, "invoices");
 
   onSnapshot(invoicesRef, (snapshot) => {
 
-    container.innerHTML = ""; // clear old
+    container.innerHTML = "";
 
     if (snapshot.empty) {
       container.innerHTML = `
@@ -21,28 +21,26 @@ function loadUserInvoices(userEmail) {
     snapshot.forEach(docSnap => {
       const data = docSnap.data();
 
+      // 🔐 FILTER (IMPORTANT)
+      if (data.secret !== secret) return;
+
       const block = document.createElement("div");
       block.classList.add("invoice-block");
 
       block.innerHTML = `
-        <div class="invoice-card">
+        <div class="invoice-line"></div>
 
-          <div class="invoice-header">
-            <span class="invoice-id">#${data.invoiceId}</span>
-            <span class="invoice-date">${data.date}</span>
-          </div>
+        <p><strong>Invoice ID:</strong> ${data.invoiceId}</p>
+        <p><strong>Order ID:</strong> ${data.orderId}</p>
+        <p><strong>Product:</strong> ${data.productName}</p>
+        <p><strong>Total:</strong> ${data.finalPrice}</p>
+        <p><strong>Date:</strong> ${data.date} ${data.time}</p>
 
-          <div class="invoice-body">
-            <p><strong>Product:</strong> ${data.productName}</p>
-            <p><strong>Order:</strong> ${data.orderId}</p>
-            <p class="invoice-price">${data.finalPrice}</p>
-          </div>
+        <button class="download-btn">
+          ⬇ Download PDF
+        </button>
 
-          <button class="download-btn">
-            Download Invoice
-          </button>
-
-        </div>
+        <div class="invoice-line"></div>
       `;
 
       const btn = block.querySelector(".download-btn");

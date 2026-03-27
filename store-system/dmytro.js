@@ -60,6 +60,8 @@ function loadUserInvoices(userEmail, secret) {
 
 
 document.addEventListener("DOMContentLoaded", () => {
-  const email = "dmytromoroz2023@gmail.com"; // 👈 THIS PAGE USER
-  loadUserInvoices(email);
+  const email = "dmytromoroz2023@gmail.com";
+  const secret = localStorage.getItem("userSecret");
+
+  loadUserInvoices(email, secret);
 });

@@ -457,94 +457,77 @@ document.addEventListener("DOMContentLoaded", () => {
   if (confirmBtn) {
     confirmBtn.addEventListener("click", async () => {
 
-      
-    if (currentDiscountId) {
+  const name = document.getElementById("checkoutName").value.trim();
+  const email = document.getElementById("checkoutEmail").value.trim();
 
-      const docRef = doc(db, "discounts", promoInput.value.trim());
+  if (!name || !email || !selectedProduct) return;
 
-      await updateDoc(docRef, {
-          status: "used"
-      });
+  confirmBtn.disabled = true;
 
-      // Remove from discounts wrapper
-      const discountDiv = document.getElementById(currentDiscountId);
-      if (discountDiv) discountDiv.remove();
+  const productRef = selectedProduct.ref;
+  let discountApplied = false;
+
+  try {
+
+    // 🟢 STEP 1 — RESERVE PRODUCT FIRST (CRITICAL)
+    const productSnap = await getDoc(productRef);
+
+    if (!productSnap.exists() || productSnap.data().status !== "available") {
+      throw new Error("Product is no longer available");
     }
 
-      const nameInput = document.getElementById("checkoutName");
-      const emailInput = document.getElementById("checkoutEmail");
-    
-      const name = nameInput.value.trim();
-      const email = emailInput.value.trim();
-      const productName = document.getElementById("checkoutProductName").innerText;
-      const productPrice = document.getElementById("checkoutProductPrice").innerText;
-    
-      if (!name || !email || !selectedProduct) {
-        return;
-      }
-    
-      // ✅ PREVENT DOUBLE CLICKING IMMEDIATELY
-      confirmBtn.disabled = true;
-      confirmBtn.style.pointerEvents = "none";
-    
-      // ✅ CLOSE MODAL INSTANTLY
-      checkoutModal.classList.remove("show");
-    
-      // ✅ Update product button instantly
-      selectedProduct.button.innerText = "Reserved";
-      selectedProduct.button.disabled = true;
-      selectedProduct.button.classList.add("reserved-state");
-    
-      try {
-    
-        // Generate IDs
-        const orderId = "ORD-" + Date.now();
-        const invoiceId = "INV-" + Math.floor(100000 + Math.random() * 900000);
+    await setDoc(productRef, {
+      status: "reserved",
+      reservedUntil: Date.now() + (24 * 60 * 60 * 1000),
+      reservedBy: email
+    }, { merge: true });
 
-        // Prices
-        const discountPercent = currentDiscountValue || 0;
-        const finalPriceNumber = originalPrice - (originalPrice * discountPercent);
+    // 🟡 STEP 2 — APPLY DISCOUNT (AUTO if not clicked)
+    if (matchedDiscountDoc && matchedDiscountDoc.data().status === "available") {
+      await updateDoc(doc(db, "discounts", matchedDiscountDoc.id), {
+        status: "used"
+      });
 
-        const formattedOriginalPrice = originalPrice.toFixed(2) + "€";
-        const formattedFinalPrice = finalPriceNumber.toFixed(2) + "€";
+      currentDiscountValue = parseFloat(matchedDiscountDoc.data().value);
+      discountApplied = true;
+    }
 
-        let discountText = "";
-        if (discountPercent > 0) {
-          discountText = "-" + (discountPercent * 100) + "%";
-        }
+    // 🔵 STEP 3 — GENERATE DATA
+    const orderId = "ORD-" + Date.now();
+    const invoiceId = "INV-" + Math.floor(100000 + Math.random() * 900000);
 
-        const DateNow = new Date();
+    const finalPriceNumber = originalPrice - (originalPrice * currentDiscountValue);
 
-        const invoiceData = {
-          orderId: orderId,
-          invoiceId: invoiceId,
-          name: name,
-          email: email,
-          productName: productName,
-          originalPrice: formattedOriginalPrice,
-          discount: discountText,
-          finalPrice: formattedFinalPrice,
-          date: DateNow.toLocaleDateString(),
-          time: DateNow.toLocaleTimeString()
-        };
+    const invoiceData = {
+      orderId,
+      invoiceId,
+      name,
+      email,
+      productName: selectedProduct.name,
+      originalPrice: originalPrice.toFixed(2) + "€",
+      finalPrice: finalPriceNumber.toFixed(2) + "€",
+      discount: currentDiscountValue ? "-" + (currentDiscountValue * 100) + "%" : "",
+      date: new Date().toLocaleDateString(),
+      time: new Date().toLocaleTimeString()
+    };
 
-        // ✅ Generate PDF
-        const pdfBase64 = generateInvoicePDF(invoiceData);
+    // 🔵 STEP 4 — GENERATE PDF
+    const pdfBase64 = generateInvoicePDF(invoiceData);
 
-        // 🔥 SAVE (completely independent)
-        await saveInvoiceToUser(email, {
-          invoiceId,
-          orderId,
-          productName,
-          originalPrice: formattedOriginalPrice,
-          finalPrice: formattedFinalPrice,
-          discount: discountText,
-          date: invoiceData.date,
-          time: invoiceData.time,
-          pdf: pdfBase64
-        }).catch(err => console.error("Save error:", err));
-        
-        await emailjs.send("service_newemail1", "template_tan46u4", {
+    // 🔵 STEP 5 — SAVE
+    await saveInvoiceToUser(email, {
+      invoiceId,
+      orderId,
+      productName,
+      originalPrice: originalPrice,
+      finalPrice: finalPriceNumber,
+      discount: discountText,
+      date: invoiceData.date,
+      time: invoiceData.time,
+      pdf: pdfBase64
+    });
+    // 🔵 STEP 6 — EMAIL
+    await emailjs.send("service_newemail1", "template_tan46u4", {
           to_email: email,
           customer_name: name,
           product_name: productName,
@@ -553,33 +536,49 @@ document.addEventListener("DOMContentLoaded", () => {
           final_price: formattedFinalPrice,
           order_id: orderId,
           invoice_id: invoiceId
-        });
-    
-        const now = Date.now();
-        const reservedUntil = now + (24 * 60 * 60 * 1000);
-    
-        await setDoc(selectedProduct.ref, {
-          status: "reserved",
-          reservedUntil: reservedUntil,
-          reservedBy: email
-        }, { merge: true });
-    
-        // ✅ RESET INPUT FIELDS AFTER SUCCESS
-        nameInput.value = "";
-        emailInput.value = "";
-    
-      } catch (error) {
-        console.error("Email or Firestore failed:", error);
-        alert("Email failed to send due to an unknown error. Please try agin, and if the error continues to appear, contact our support team.");
-    
-        // Rollback UI if something fails
-        selectedProduct.button.innerText = "Buy!";
-        selectedProduct.button.disabled = false;
-        selectedProduct.button.classList.remove("reserved-state");
-      }
-      
-    
     });
+
+    // ✅ SUCCESS
+    document.getElementById("checkoutName").value = "";
+    document.getElementById("checkoutEmail").value = "";
+
+  } catch (error) {
+
+    console.error("❌ FULL FAILURE:", error);
+
+    // 🔴 ROLLBACK EVERYTHING
+
+    try {
+      // Restore product
+      await setDoc(productRef, {
+        status: "available",
+        reservedUntil: 0,
+        reservedBy: ""
+      }, { merge: true });
+
+      // Restore discount
+      if (discountApplied && matchedDiscountDoc) {
+        await updateDoc(doc(db, "discounts", matchedDiscountDoc.id), {
+          status: "available"
+        });
+      }
+
+    } catch (rollbackError) {
+      console.error("Rollback failed:", rollbackError);
+    }
+
+    alert("Error completing purchase: " + error.message);
+
+  } finally {
+
+    // UI restore
+    confirmBtn.disabled = false;
+
+    selectedProduct.button.innerText = "Buy!";
+    selectedProduct.button.disabled = false;
+    selectedProduct.button.classList.remove("reserved-state");
+  }
+});
   }
 
 });

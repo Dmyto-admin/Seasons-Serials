@@ -5,30 +5,45 @@ import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/f
 
 async function saveInvoiceToUser(email, invoiceData) {
   try {
-    console.log("🔥 START SAVING", email, invoiceData);
-
     const userRef = doc(db, "users", email);
+    let userSnap = await getDoc(userRef);
 
-    await setDoc(userRef, { email: email }, { merge: true });
+    let secret;
 
-    const invoiceRef = doc(
-      db,
-      "users",
-      email,
-      "invoices",
-      invoiceData.invoiceId
-    );
+    // 🆕 If user does NOT exist → create it
+    if (!userSnap.exists()) {
+      secret = Math.random().toString(36).substring(2) + Date.now();
+
+      await setDoc(userRef, {
+        email: email,
+        secret: secret,
+        createdAt: Date.now()
+      });
+
+      // Save secret locally (IMPORTANT)
+      localStorage.setItem("userSecret", secret);
+
+      console.log("🆕 New user created");
+    } else {
+      secret = userSnap.data().secret;
+
+      // Save again to localStorage (in case missing)
+      localStorage.setItem("userSecret", secret);
+    }
+
+    // 🧾 Save invoice
+    const invoiceRef = doc(db, "users", email, "invoices", invoiceData.invoiceId);
 
     await setDoc(invoiceRef, {
       ...invoiceData,
+      secret: secret, // 🔐 important
       createdAt: Date.now()
     });
 
-    console.log("✅ Invoice saved to Firestore");
+    console.log("✅ Invoice saved correctly");
 
   } catch (error) {
-    console.error("❌ REAL FIRESTORE ERROR:", error);
-    alert(error.message); // 👈 YOU NEED THIS
+    console.error("❌ SAVE FAILED:", error);
   }
 }
 

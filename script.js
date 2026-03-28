@@ -73,6 +73,14 @@ function autoRedirectFromLogin() {
     redirectUser(user.role);
 }
 
+function autoRedirectToLogin() {
+  if (localStorage.getItem("redirectToLogin") === "true") {
+    document.getElementById("storeLoginWrapper").classList.add("active");
+
+    localStorage.removeItem("redirectToLogin");
+  }
+}
+
 /* ---------- REDIRECT ---------- */
 
 function redirectUser(role) {

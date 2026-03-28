@@ -30,9 +30,6 @@ async function loginOrCreateUser(email) {
 async function saveInvoiceToUser(email, invoiceData) {
   try {
 
-    // 🔥 WAIT FOR AUTH 100%
-    await authReady;
-
     const user = auth.currentUser;
 
     if (!user) {

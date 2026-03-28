@@ -493,9 +493,7 @@ confirmBtn.addEventListener("click", async () => {
     alert("Please fill all fields");
     return;
   }
-
-  // ✅ CLOSE IMMEDIATELY
-  closeModal();
+  
 
   confirmBtn.disabled = true;
 
@@ -612,6 +610,8 @@ confirmBtn.addEventListener("click", async () => {
       selectedProduct.button.innerText = "Buy!";
       selectedProduct.button.disabled = false;
       selectedProduct.button.classList.remove("reserved-state");
+
+      closeModal();
     }
   });
 }

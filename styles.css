@@ -279,6 +279,32 @@ header {
     transform: translateX(0);
 }
 
+1);
+}
+
+/* WRAPPER */
+.store-login-wrapper {
+    position: relative;
+    width: 400px;
+    height: 385px;
+    background: transparent;
+    border: 2px solid rgba(225, 225, 225, .5);
+    border-radius: 20px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 0 30px rgba(0, 0, 0, .5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    transform: scale(0);
+    transition: transform .5s ease, height .2s ease;
+}
+
+.store-login-wrapper.active-popup {
+    transform: scale(1);
+}
+
+
 .icon-close {
     position: absolute;
     top: 0;

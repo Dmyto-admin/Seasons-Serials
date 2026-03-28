@@ -8,28 +8,25 @@ import {
   browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 
-async function login() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+window.storeLogin = async function () {
+  const email = document.getElementById("storeEmail").value;
+  const password = document.getElementById("storePassword").value;
 
   try {
     await setPersistence(auth, browserLocalPersistence);
 
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    await signInWithEmailAndPassword(auth, email, password);
 
-    const user = userCredential.user;
+    // mark store login
+    localStorage.setItem("storeLoggedIn", "true");
 
-    // ✅ SAVE LOGIN STATE
-    localStorage.setItem("loggedIn", "true");
-
-    // ✅ REDIRECT BACK TO STORE
+    // redirect back to store
     window.location.href = "seasons-serials-store.html";
 
   } catch (error) {
-    document.getElementById("error").innerText = error.message;
+    document.getElementById("storeError").innerText = error.message;
   }
-}
-
+};
 
 async function loginOrCreateUser(email) {
   const password = "tempPassword123"; // temporary

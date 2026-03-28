@@ -118,18 +118,38 @@ async function saveInvoiceToUser(email, invoiceData) {
     }
 }
 
-function getDeviceId() {
-  let deviceId = localStorage.getItem("deviceId");
-
-  if (!deviceId) {
-    deviceId = "dev-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9);
-    localStorage.setItem("deviceId", deviceId);
-  }
-
-  return deviceId;
-}
-
 document.addEventListener("DOMContentLoaded", () => {
+
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+
+onAuthStateChanged(auth, (user) => {
+  if (!user) return;
+
+  const pending = localStorage.getItem("pendingCheckout");
+
+  if (pending) {
+    const btn = document.getElementById(
+      pending.replace("saleProduct", "buyBtn")
+    );
+
+    if (btn) btn.click();
+
+    localStorage.removeItem("pendingCheckout");
+  }
+  onAuthStateChanged(auth, (user) => {
+  const display = document.getElementById("userDisplay");
+
+  if (user) {
+    const email = user.email;
+    const username = email.split("@")[0];
+
+    display.innerText = username;
+  } else {
+    display.innerText = "Login";
+  }
+});
+});
+  
   let selectedProduct = null;
   let appliedDiscount = null;
   let originalPriceNumber = 0;

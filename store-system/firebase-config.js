@@ -15,6 +15,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+// ✅ THIS IS THE FIX
 const authReady = signInAnonymously(auth);
 
 export { db, auth, authReady };

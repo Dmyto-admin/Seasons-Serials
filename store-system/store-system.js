@@ -8,19 +8,31 @@ import { authReady } from "./firebase-config.js";
 
 async function saveInvoiceToUser(email, invoiceData) {
   try {
-    await authReady; // 🔥 WAIT for login FIRST
-    const uid = auth.currentUser.uid;
 
-    const userRef = doc(db, "users", uid);
-    let userSnap = await getDoc(userRef);
+    // 🔥 WAIT FOR AUTH 100%
+    await authReady;
 
-    if (!userSnap.exists()) {
-      await setDoc(userRef, {
-        email: email,
-        createdAt: Date.now()
-      });
+    const user = auth.currentUser;
+
+    if (!user) {
+      throw new Error("User is STILL null after authReady");
     }
 
+    const uid = user.uid;
+
+    alert("UID: " + uid); // 👈 SEE IF USER EXISTS
+
+    // 🔥 CREATE USER DOCUMENT
+    const userRef = doc(db, "users", uid);
+
+    await setDoc(userRef, {
+      email: email,
+      createdAt: Date.now()
+    }, { merge: true });
+
+    alert("User document OK");
+
+    // 🔥 CREATE INVOICE
     const invoiceRef = doc(db, "users", uid, "invoices", invoiceData.invoiceId);
 
     await setDoc(invoiceRef, {
@@ -28,11 +40,18 @@ async function saveInvoiceToUser(email, invoiceData) {
       createdAt: Date.now()
     });
 
-    console.log("✅ Invoice saved");
+    alert("✅ INVOICE SAVED SUCCESSFULLY");
 
   } catch (error) {
-    console.error("❌ SAVE FAILED:", error);
-    alert(error.message);
+
+    console.error("❌ FULL FIREBASE ERROR:", error);
+
+    alert(
+      "🔥 FIREBASE ERROR 🔥\n\n" +
+      "Code: " + error.code + "\n" +
+      "Message: " + error.message + "\n\n" +
+      JSON.stringify(error)
+    );
   }
 }
 

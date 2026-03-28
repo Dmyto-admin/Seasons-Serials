@@ -61,6 +61,31 @@
     </div>
 </div>
 
+<div class="store-login-wrapper" id="storeLoginWrapper">
+  <span class="icon-close"><ion-icon name="close"></ion-icon></span>
+
+  <div class="form-box login">
+    <h2>Store Login</h2>
+
+    <form onsubmit="login(); return false;">
+      <div class="input-box">
+        <span class="icon"><ion-icon name="mail"></ion-icon></span>
+        <input type="email" id="email" required>
+        <label>Email</label>
+      </div>
+
+      <div class="input-box">
+        <span class="icon"><ion-icon name="lock-closed"></ion-icon></span>
+        <input type="password" id="password" required>
+        <label>Password</label>
+      </div>
+
+      <button type="submit" class="store-login-btn">Login</button>
+      <p class="invalid" id="error"></p>
+    </form>
+  </div>
+</div>
+
 <div class="wrapper-home" id="wrapperHome" style="display: none">
     <span class="icon-close">
         <ion-icon name="close"></ion-icon>

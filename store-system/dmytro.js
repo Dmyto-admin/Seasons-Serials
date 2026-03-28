@@ -1,5 +1,8 @@
 import { db } from "./firebase-config.js";
 import { onSnapshot, collection } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { auth } from "./firebase-config.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+
 
 function loadUserInvoices(userEmail) {
   const container = document.querySelector(".wrapper-payments .profile-info");
@@ -57,7 +60,10 @@ function loadUserInvoices(userEmail) {
 
 
 document.addEventListener("DOMContentLoaded", () => {
-  const email = "dmytromoroz2023@gmail.com";
+  onAuthStateChanged(auth, (user) => {
+  if (!user) return;
 
-  loadUserInvoices(email);
+  const uid = user.uid;
+  loadUserInvoices(uid);
+  });
 });

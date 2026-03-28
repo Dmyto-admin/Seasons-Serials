@@ -4,7 +4,28 @@ import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/f
 import { auth } from "./firebase-config.js";
 import { setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 import { authReady } from "./firebase-config.js";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 
+
+async function loginOrCreateUser(email) {
+  const password = "tempPassword123"; // temporary
+
+  try {
+    // Try login
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    return userCredential.user;
+
+  } catch (error) {
+
+    if (error.code === "auth/user-not-found") {
+      // Create account
+      const newUser = await createUserWithEmailAndPassword(auth, email, password);
+      return newUser.user;
+    }
+
+    throw error;
+  }
+}
 
 async function saveInvoiceToUser(email, invoiceData) {
   try {
@@ -499,6 +520,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const name = document.getElementById("checkoutName").value.trim();
   const email = document.getElementById("checkoutEmail").value.trim();
+  // 🔥 LOGIN USER HERE
+  const user = await loginOrCreateUser(email);
+
+  if (!user) {
+    throw new Error("User login failed");
+  }
 
   if (!name || !email || !selectedProduct) {
     alert("Please fill all fields");

@@ -6,9 +6,6 @@ import { setPersistence, browserLocalPersistence } from "https://www.gstatic.com
 import { authReady } from "./firebase-config.js";
 
 
-setPersistence(auth, browserLocalPersistence);
-
-
 async function saveInvoiceToUser(email, invoiceData) {
   try {
     await authReady; // 🔥 WAIT for login FIRST

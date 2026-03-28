@@ -284,6 +284,7 @@ header {
 
 /* WRAPPER */
 .store-login-wrapper {
+    display: none;
     position: relative;
     width: 400px;
     height: 385px;
@@ -301,6 +302,7 @@ header {
 }
 
 .store-login-wrapper.active-popup {
+    display: flex;
     transform: scale(1);
 }
 

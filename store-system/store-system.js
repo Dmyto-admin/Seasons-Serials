@@ -2,9 +2,33 @@ import { db } from "./firebase-config.js";
 import { doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 import { auth } from "./firebase-config.js";
-import { setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { authReady } from "./firebase-config.js";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import {
+  signInWithEmailAndPassword,
+  setPersistence,
+  browserLocalPersistence
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+
+async function login() {
+  const email = document.getElementById("email-login-store").value;
+  const password = document.getElementById("password-login-store").value;
+
+  try {
+    await setPersistence(auth, browserLocalPersistence);
+
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+
+    const user = userCredential.user;
+
+    // ✅ SAVE LOGIN STATE
+    localStorage.setItem("loggedIn", "true");
+
+    // ✅ REDIRECT BACK TO STORE
+    window.location.href = "seasons-serials-store.html";
+
+  } catch (error) {
+    document.getElementById("error").innerText = error.message;
+  }
+}
 
 
 async function loginOrCreateUser(email) {

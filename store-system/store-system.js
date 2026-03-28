@@ -10,7 +10,6 @@ async function saveInvoiceToUser(email, invoiceData) {
 
     // 🆕 If user does NOT exist → create it
     if (!userSnap.exists()) {
-      secret = Math.random().toString(36).substring(2) + Date.now();
 
       await setDoc(userRef, {
         email: email,

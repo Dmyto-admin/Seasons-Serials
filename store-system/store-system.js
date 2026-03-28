@@ -33,12 +33,35 @@ async function saveInvoiceToUser(email, invoiceData) {
     alert("User document OK");
 
     // 🔥 CREATE INVOICE
-    const invoiceRef = doc(db, "users", uid, "invoices", invoiceData.invoiceId);
+    alert("Trying to save invoice...");
+console.log("INVOICE DATA:", invoiceData);
 
-    await setDoc(invoiceRef, {
-      ...invoiceData,
-      createdAt: Date.now()
-    });
+if (!invoiceData.invoiceId) {
+  alert("❌ invoiceId is UNDEFINED");
+  throw new Error("invoiceId missing");
+}
+
+const invoiceRef = doc(db, "users", uid, "invoices", invoiceData.invoiceId);
+
+console.log("Invoice path:", "users/" + uid + "/invoices/" + invoiceData.invoiceId);
+
+try {
+  await setDoc(invoiceRef, {
+    ...invoiceData,
+    createdAt: Date.now()
+  });
+
+  alert("✅ INVOICE WRITE SUCCESS");
+
+} catch (err) {
+  console.error("❌ INVOICE WRITE ERROR:", err);
+
+  alert(
+    "❌ INVOICE ERROR\n\n" +
+    "Code: " + err.code + "\n" +
+    "Message: " + err.message
+  );
+}
 
     alert("✅ INVOICE SAVED SUCCESSFULLY");
 

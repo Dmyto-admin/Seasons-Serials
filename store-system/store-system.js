@@ -8,27 +8,16 @@ async function saveInvoiceToUser(email, invoiceData) {
     const userRef = doc(db, "users", email);
     let userSnap = await getDoc(userRef);
 
-    let secret;
-
     // 🆕 If user does NOT exist → create it
     if (!userSnap.exists()) {
       secret = Math.random().toString(36).substring(2) + Date.now();
 
       await setDoc(userRef, {
         email: email,
-        secret: secret,
         createdAt: Date.now()
       });
 
-      // Save secret locally (IMPORTANT)
-      localStorage.setItem("userSecret", secret);
-
       console.log("🆕 New user created");
-    } else {
-      secret = userSnap.data().secret;
-
-      // Save again to localStorage (in case missing)
-      localStorage.setItem("userSecret", secret);
     }
 
     // 🧾 Save invoice
@@ -36,7 +25,6 @@ async function saveInvoiceToUser(email, invoiceData) {
 
     await setDoc(invoiceRef, {
       ...invoiceData,
-      secret: secret, // 🔐 important
       createdAt: Date.now()
     });
 

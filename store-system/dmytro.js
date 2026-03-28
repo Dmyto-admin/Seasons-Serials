@@ -4,10 +4,10 @@ import { auth } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 
 
-function loadUserInvoices(userEmail) {
+function loadUserInvoices(uid) {
   const container = document.querySelector(".wrapper-payments .profile-info");
 
-  const invoicesRef = collection(db, "users", userEmail, "invoices");
+  const invoicesRef = collection(db, "users", uid, "invoices");
 
   onSnapshot(invoicesRef, (snapshot) => {
 

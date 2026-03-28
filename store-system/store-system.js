@@ -1,7 +1,7 @@
 import { db } from "./firebase-config.js";
 import { doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
-
+import { auth } from "./firebase-config.js";
 
 async function saveInvoiceToUser(email, invoiceData) {
   try {
@@ -21,7 +21,7 @@ async function saveInvoiceToUser(email, invoiceData) {
     }
 
     // 🧾 Save invoice
-    const invoiceRef = doc(db, "users", email, "invoices", invoiceData.invoiceId);
+    const invoiceRef = doc(db, "users", uid, "invoices", invoiceData.invoiceId);
 
     await setDoc(invoiceRef, {
       ...invoiceData,

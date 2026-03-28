@@ -76,6 +76,17 @@ async function saveInvoiceToUser(email, invoiceData) {
     }
 }
 
+function getDeviceId() {
+  let deviceId = localStorage.getItem("deviceId");
+
+  if (!deviceId) {
+    deviceId = "dev-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem("deviceId", deviceId);
+  }
+
+  return deviceId;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   let selectedProduct = null;
   let appliedDiscount = null;
@@ -484,7 +495,7 @@ document.addEventListener("DOMContentLoaded", () => {
        }
   
   if (confirmBtn) {
-confirmBtn.addEventListener("click", async () => {
+  confirmBtn.addEventListener("click", async () => {
 
   const name = document.getElementById("checkoutName").value.trim();
   const email = document.getElementById("checkoutEmail").value.trim();

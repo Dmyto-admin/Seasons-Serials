@@ -7,6 +7,7 @@ import {
   setPersistence,
   browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 
 window.storeLogin = async function () {
   const email = document.getElementById("storeEmail").value;
@@ -116,8 +117,6 @@ async function saveInvoiceToUser(email, invoiceData) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 
 onAuthStateChanged(auth, (user) => {
   if (!user) return;

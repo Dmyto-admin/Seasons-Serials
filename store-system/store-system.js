@@ -30,7 +30,7 @@ async function saveInvoiceToUser(email, invoiceData) {
       createdAt: Date.now()
     }, { merge: true });
 
-    alert("User document OK");
+    console.log("User document OK");
 
     // 🔥 CREATE INVOICE
     console.log("Trying to save invoice...");

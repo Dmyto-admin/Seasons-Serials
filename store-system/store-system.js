@@ -4,11 +4,17 @@ import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/f
 import { auth } from "./firebase-config.js";
 import { setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import { authReady } from "./firebase-config.js";
 
-function waitForUser() {
+async function getUser() {
+  await authReady; // 🔥 WAIT until anonymous login is DONE
+
   return new Promise((resolve) => {
-    onAuthStateChanged(auth, (user) => {
-      if (user) resolve(user);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        unsubscribe(); // stop listening
+        resolve(user);
+      }
     });
   });
 }
@@ -18,7 +24,7 @@ setPersistence(auth, browserLocalPersistence);
 
 async function saveInvoiceToUser(email, invoiceData) {
   try {
-    const user = await waitForUser(); // ✅ WAIT HERE
+    const user = await getUser();
     const uid = user.uid;
 
     const userRef = doc(db, "users", uid);

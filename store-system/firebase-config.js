@@ -1,6 +1,13 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  setPersistence,
+  browserLocalPersistence
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyAs2sXfHY3IRrss_TLiVBLmuKF7daWFFGA",
@@ -15,24 +22,4 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-let authReadyResolve;
-const authReady = new Promise((resolve) => {
-  authReadyResolve = resolve;
-});
-
-signInAnonymously(auth)
-  .then(() => {
-    console.log("✅ Anonymous login started");
-  })
-  .catch((error) => {
-    alert("AUTH ERROR: " + error.message);
-  });
-
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    console.log("✅ AUTH READY UID:", user.uid);
-    authReadyResolve();
-  }
-});
-
-export { db, auth, authReady };
+export { db, auth };

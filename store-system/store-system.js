@@ -539,6 +539,16 @@ document.addEventListener("DOMContentLoaded", () => {
   if (confirmBtn) {
   confirmBtn.addEventListener("click", async () => {
 
+    if (!auth.currentUser) {
+      alert("You must login first before buying anything");
+
+      localStorage.setItem("redirectToLogin", "true");
+      localStorage.setItem("pendingCheckout", product.id);
+
+      window.location.href = "index.html";
+      return;
+    }
+
   const name = document.getElementById("checkoutName").value.trim();
   const email = document.getElementById("checkoutEmail").value.trim();
   // 🔥 LOGIN USER HERE

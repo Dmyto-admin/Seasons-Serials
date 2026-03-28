@@ -15,12 +15,6 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-signInAnonymously(auth)
-  .then((userCredential) => {
-    console.log("✅ Anonymous user:", userCredential.user.uid);
-  })
-  .catch((error) => {
-    console.error("❌ Auth error:", error);
-  });
+const authReady = signInAnonymously(auth);
 
-export { db, auth };
+export { db, auth, authReady };

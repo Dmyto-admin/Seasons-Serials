@@ -489,7 +489,13 @@ confirmBtn.addEventListener("click", async () => {
   const name = document.getElementById("checkoutName").value.trim();
   const email = document.getElementById("checkoutEmail").value.trim();
 
-  if (!name || !email || !selectedProduct) return;
+  if (!name || !email || !selectedProduct) {
+    alert("Please fill all fields");
+    return;
+  }
+
+  // ✅ CLOSE IMMEDIATELY
+  closeModal();
 
   confirmBtn.disabled = true;
 
@@ -593,23 +599,21 @@ confirmBtn.addEventListener("click", async () => {
         });
       }
 
-    } catch (rollbackError) {
-      console.error("Rollback failed:", rollbackError);
+      } catch (rollbackError) {
+        console.error("Rollback failed:", rollbackError);
+      }
+
+      alert("Error completing purchase: " + error.message);
+
+    } finally {
+
+      confirmBtn.disabled = false;
+
+      selectedProduct.button.innerText = "Buy!";
+      selectedProduct.button.disabled = false;
+      selectedProduct.button.classList.remove("reserved-state");
     }
-
-    alert("Error completing purchase: " + error.message);
-
-  } finally {
-
-    confirmBtn.disabled = false;
-
-    selectedProduct.button.innerText = "Buy!";
-    selectedProduct.button.disabled = false;
-    selectedProduct.button.classList.remove("reserved-state");
-
-    closeModal(); // ✅ ALWAYS CLOSE
-  }
-});
-  }
+  });
+}
 
 });

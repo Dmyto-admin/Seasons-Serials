@@ -20,7 +20,7 @@ async function saveInvoiceToUser(email, invoiceData) {
 
     const uid = user.uid;
 
-    alert("UID: " + uid); // 👈 SEE IF USER EXISTS
+    console.log("UID: " + uid); // 👈 SEE IF USER EXISTS
 
     // 🔥 CREATE USER DOCUMENT
     const userRef = doc(db, "users", uid);
@@ -33,49 +33,47 @@ async function saveInvoiceToUser(email, invoiceData) {
     alert("User document OK");
 
     // 🔥 CREATE INVOICE
-    alert("Trying to save invoice...");
-console.log("INVOICE DATA:", invoiceData);
+    console.log("Trying to save invoice...");
+    console.log("INVOICE DATA:", invoiceData);
 
-if (!invoiceData.invoiceId) {
-  alert("❌ invoiceId is UNDEFINED");
-  throw new Error("invoiceId missing");
-}
+    if (!invoiceData.invoiceId) {
+      alert("❌ invoiceId is UNDEFINED");
+      throw new Error("invoiceId missing");
+    }
 
-const invoiceRef = doc(db, "users", uid, "invoices", invoiceData.invoiceId);
+    const invoiceRef = doc(db, "users", uid, "invoices", invoiceData.invoiceId);
 
-console.log("Invoice path:", "users/" + uid + "/invoices/" + invoiceData.invoiceId);
+    console.log("Invoice path:", "users/" + uid + "/invoices/" + invoiceData.invoiceId);
 
-try {
-  await setDoc(invoiceRef, {
-    ...invoiceData,
-    createdAt: Date.now()
-  });
+    try {
+      await setDoc(invoiceRef, {
+        ...invoiceData,
+        createdAt: Date.now()
+      });
 
-  alert("✅ INVOICE WRITE SUCCESS");
+    console.log("✅ INVOICE WRITE SUCCESS");
 
-} catch (err) {
-  console.error("❌ INVOICE WRITE ERROR:", err);
+    } catch (err) {
+      console.error("❌ INVOICE WRITE ERROR:", err);
 
-  alert(
-    "❌ INVOICE ERROR\n\n" +
-    "Code: " + err.code + "\n" +
-    "Message: " + err.message
-  );
-}
+      alert(
+        "❌ INVOICE ERROR\n\n" +
+        "Code: " + err.code + "\n" +
+        "Message: " + err.message
+      );
+    }
 
-    alert("✅ INVOICE SAVED SUCCESSFULLY");
+    console.log("✅ INVOICE SAVED SUCCESSFULLY");
 
-  } catch (error) {
-
-    console.error("❌ FULL FIREBASE ERROR:", error);
-
-    alert(
-      "🔥 FIREBASE ERROR 🔥\n\n" +
-      "Code: " + error.code + "\n" +
-      "Message: " + error.message + "\n\n" +
-      JSON.stringify(error)
-    );
-  }
+    } catch (error) {
+      console.error("❌ FULL FIREBASE ERROR:", error);
+      alert(
+        "🔥 FIREBASE ERROR 🔥\n\n" +
+        "Code: " + error.code + "\n" +
+        "Message: " + error.message + "\n\n" +
+        JSON.stringify(error)
+      );
+    }
 }
 
 document.addEventListener("DOMContentLoaded", () => {

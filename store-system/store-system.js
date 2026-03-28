@@ -560,7 +560,6 @@ onAuthStateChanged(auth, (user) => {
       alert("You must login first before buying anything");
 
       localStorage.setItem("redirectToLogin", "true");
-      localStorage.setItem("pendingCheckout", product.id);
 
       window.location.href = "index.html";
       return;

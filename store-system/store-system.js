@@ -5,7 +5,8 @@ import { auth } from "./firebase-config.js";
 
 async function saveInvoiceToUser(email, invoiceData) {
   try {
-    const userRef = doc(db, "users", email);
+    const uid = auth.currentUser.uid;
+    const userRef = doc(db, "users", uid);
     let userSnap = await getDoc(userRef);
 
     // 🆕 If user does NOT exist → create it

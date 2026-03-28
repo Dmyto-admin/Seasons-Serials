@@ -73,11 +73,16 @@ function autoRedirectFromLogin() {
     redirectUser(user.role);
 }
 
-function autoRedirectToLogin() {
-  if (localStorage.getItem("redirectToLogin") === "true") {
-    document.getElementById("storeLoginWrapper").classList.add("active");
+function autoRedirectToStoreLogin() {
+  const shouldOpen = localStorage.getItem("redirectToLogin");
 
+  if (shouldOpen === "true") {
     localStorage.removeItem("redirectToLogin");
+
+    const wrapper = document.getElementById("storeLoginWrapper");
+    if (wrapper) {
+      wrapper.classList.add("active-popup");
+    }
   }
 }
 

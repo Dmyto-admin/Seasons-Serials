@@ -2,6 +2,10 @@ import { db } from "./firebase-config.js";
 import { doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 import { auth } from "./firebase-config.js";
+import { setPersistence, browserLocalPersistence } from "firebase/auth";
+
+setPersistence(auth, browserLocalPersistence);
+
 
 async function saveInvoiceToUser(email, invoiceData) {
   try {

@@ -1,7 +1,7 @@
 import { db } from "./firebase-config.js";
 import { onSnapshot, collection } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-function loadUserInvoices(userEmail, secret) {
+function loadUserInvoices(userEmail) {
   const container = document.querySelector(".wrapper-payments .profile-info");
 
   const invoicesRef = collection(db, "users", userEmail, "invoices");
@@ -20,10 +20,7 @@ function loadUserInvoices(userEmail, secret) {
 
     snapshot.forEach(docSnap => {
       const data = docSnap.data();
-
-      // 🔐 FILTER (IMPORTANT)
-      if (data.secret !== secret) return;
-
+      
       const block = document.createElement("div");
       block.classList.add("invoice-block");
 
@@ -61,7 +58,6 @@ function loadUserInvoices(userEmail, secret) {
 
 document.addEventListener("DOMContentLoaded", () => {
   const email = "dmytromoroz2023@gmail.com";
-  const secret = localStorage.getItem("userSecret");
 
-  loadUserInvoices(email, secret);
+  loadUserInvoices(email);
 });

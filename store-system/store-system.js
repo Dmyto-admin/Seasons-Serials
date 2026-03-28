@@ -2,29 +2,35 @@ import { db } from "./firebase-config.js";
 import { doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 import { auth } from "./firebase-config.js";
-import { setPersistence, browserLocalPersistence } from "firebase/auth";
+import { setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+
+function waitForUser() {
+  return new Promise((resolve) => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) resolve(user);
+    });
+  });
+}
 
 setPersistence(auth, browserLocalPersistence);
 
 
 async function saveInvoiceToUser(email, invoiceData) {
   try {
-    const uid = auth.currentUser.uid;
+    const user = await waitForUser(); // ✅ WAIT HERE
+    const uid = user.uid;
+
     const userRef = doc(db, "users", uid);
     let userSnap = await getDoc(userRef);
 
-    // 🆕 If user does NOT exist → create it
     if (!userSnap.exists()) {
-
       await setDoc(userRef, {
         email: email,
         createdAt: Date.now()
       });
-
-      console.log("🆕 New user created");
     }
 
-    // 🧾 Save invoice
     const invoiceRef = doc(db, "users", uid, "invoices", invoiceData.invoiceId);
 
     await setDoc(invoiceRef, {
@@ -32,11 +38,11 @@ async function saveInvoiceToUser(email, invoiceData) {
       createdAt: Date.now()
     });
 
-    console.log("✅ Invoice saved correctly");
+    console.log("✅ Invoice saved");
 
   } catch (error) {
     console.error("❌ SAVE FAILED:", error);
-    alert(error.message); // 👈 YOU NEED THIS
+    alert(error.message);
   }
 }
 

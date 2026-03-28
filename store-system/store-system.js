@@ -475,7 +475,12 @@ confirmBtn.addEventListener("click", async () => {
     if (!productSnap.exists() || productSnap.data().status !== "available") {
       throw new Error("Product is no longer available");
     }
-
+    
+    // ⚡ INSTANT UI UPDATE
+    selectedProduct.button.innerText = "Reserved";
+    selectedProduct.button.disabled = true;
+    selectedProduct.button.classList.add("reserved-state");
+    
     await setDoc(productRef, {
       status: "reserved",
       reservedUntil: Date.now() + (24 * 60 * 60 * 1000),

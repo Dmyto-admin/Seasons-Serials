@@ -9,8 +9,8 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 
 async function login() {
-  const email = document.getElementById("email-login-store").value;
-  const password = document.getElementById("password-login-store").value;
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
   try {
     await setPersistence(auth, browserLocalPersistence);

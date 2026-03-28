@@ -44,6 +44,7 @@ async function saveInvoiceToUser(email, invoiceData) {
 
   } catch (error) {
     console.error("❌ SAVE FAILED:", error);
+    alert(error.message); // 👈 YOU NEED THIS
   }
 }
 

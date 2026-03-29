@@ -340,11 +340,11 @@ document.addEventListener("DOMContentLoaded", () => {
         clearInterval(reservationInterval);
       }
 
-      // CLOSE RESERVATION ON CLICK
+      // Close on Cancel button
       if (closeReservationBtn) {
         closeReservationBtn.addEventListener("click", closeReservation);
       }
-      
+
       // Close on ESC key
       document.addEventListener("keydown", function (e) {
         if (e.key === "Escape" && reservationBox.classList.contains("show")) {

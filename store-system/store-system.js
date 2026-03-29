@@ -10,7 +10,13 @@ async function saveInvoiceToUser(email, invoiceData) {
 
     const userRef = doc(db, "users", email);
     
-    await setDoc(userRef, { email: email }, { merge: true });
+    await setDoc(userRef, { email: email }, { merge: true })
+      .then(() => {
+        alert("WRITE SUCCESS");
+      })
+      .catch((err) => {
+        alert("WRITE FAILED: " + err.message);
+      });
 
     alert("DOCUMENT OKAY");
     

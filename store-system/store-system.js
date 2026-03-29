@@ -5,12 +5,15 @@ import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/f
 
 async function saveInvoiceToUser(email, invoiceData) {
   try {
+    alert("START SAVING");
     console.log("🔥 START SAVING", email, invoiceData);
 
     const userRef = doc(db, "users", email);
-
+    
     await setDoc(userRef, { email: email }, { merge: true });
 
+    alert("DOCUMENT OKAY");
+    
     const invoiceRef = doc(
       db,
       "users",
@@ -19,12 +22,15 @@ async function saveInvoiceToUser(email, invoiceData) {
       invoiceData.invoiceId
     );
 
+    alert("CREATING DOC...");
+
     await setDoc(invoiceRef, {
       ...invoiceData,
       createdAt: Date.now()
     });
 
     console.log("✅ Invoice saved to Firestore");
+    alert("INVOICE SAVED SUCCESSFULLY");
 
   } catch (error) {
     console.error("❌ REAL FIRESTORE ERROR:", error);

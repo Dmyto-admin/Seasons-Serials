@@ -1398,7 +1398,8 @@ input:-webkit-autofill:focus {
 
 /* SCROLLBAR */
 
-   .page-margaryta .form-box-scroll {
+   .page-margaryta .form-box-scroll,
+   .page-admin .form-box-scroll {
     max-height: 260px;
     overflow-y: auto;
     overflow-x: hidden;
@@ -1412,11 +1413,24 @@ input:-webkit-autofill:focus {
     width: 4px;
 }
 
+.page-admin .form-box-scroll ::-webkit-scrollbar {
+    width: 4px;
+}
+
 .page-margaryta .form-box-scroll::-webkit-scrollbar-track {
     background: transparent;
 }
 
+.page-admin .form-box-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
 .page-margaryta .form-box-scroll::-webkit-scrollbar-thumb {
+    background-color: rgba(22, 41, 56, 0.85);
+    border-radius: 10px;
+}
+
+.page-admin .form-box-scroll::-webkit-scrollbar-thumb {
     background-color: rgba(22, 41, 56, 0.85);
     border-radius: 10px;
 }
@@ -1427,6 +1441,10 @@ input:-webkit-autofill:focus {
     scrollbar-color: rgba(22, 41, 56, 0.85) transparent;
 }
 
+.page-admin .form-box-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(22, 41, 56, 0.85) transparent;
+}
 
 .wrapper-admin-products{
     position: fixed;
@@ -1467,26 +1485,4 @@ input:-webkit-autofill:focus {
     display:flex;
     flex-direction:column;
     gap:15px;
-}
-
-.admin-products-scroll{
-    max-height:320px;
-    overflow-y:auto;
-    overflow-x:hidden;
-
-    padding-right:36px;
-    margin-right:-30px;
-}
-
-.admin-products-scroll::-webkit-scrollbar{
-    width:4px;
-}
-
-.admin-products-scroll::-webkit-scrollbar-track{
-    background:transparent;
-}
-
-.admin-products-scroll::-webkit-scrollbar-thumb{
-    background-color:rgba(22,41,56,0.85);
-    border-radius:10px;
 }

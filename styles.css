@@ -1398,8 +1398,7 @@ input:-webkit-autofill:focus {
 
 /* SCROLLBAR */
 
-   .page-margaryta .form-box-scroll,
-   .page-admin .form-box-scroll {
+   .page-margaryta .form-box-scroll {
     max-height: 260px;
     overflow-y: auto;
     overflow-x: hidden;
@@ -1413,15 +1412,7 @@ input:-webkit-autofill:focus {
     width: 4px;
 }
 
-.page-admin .form-box-scroll ::-webkit-scrollbar {
-    width: 4px;
-}
-
 .page-margaryta .form-box-scroll::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.page-admin .form-box-scroll::-webkit-scrollbar-track {
     background: transparent;
 }
 
@@ -1430,18 +1421,8 @@ input:-webkit-autofill:focus {
     border-radius: 10px;
 }
 
-.page-admin .form-box-scroll::-webkit-scrollbar-thumb {
-    background-color: rgba(22, 41, 56, 0.85);
-    border-radius: 10px;
-}
-
 /* Firefox */
 .page-margaryta .form-box-scroll {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(22, 41, 56, 0.85) transparent;
-}
-
-.page-admin .form-box-scroll {
     scrollbar-width: thin;
     scrollbar-color: rgba(22, 41, 56, 0.85) transparent;
 }

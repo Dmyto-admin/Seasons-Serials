@@ -282,11 +282,11 @@ document.addEventListener("DOMContentLoaded", () => {
         productBox.style.display = "block";
         btn.disabled = false;
         btn.innerText = "Buy!";
-          btn.classList.remove("reserved-state");
+        btn.classList.remove("reserved-state");
       }
 
       if (data.status === "reserved") {
-        btn.disabled = true;
+        btn.disabled = false;
         btn.innerText = "Reserved";
         btn.classList.add("reserved-state");
       }
@@ -299,7 +299,47 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", async () => {
+
+      const snap = await getDoc(productRef);
+      const data = snap.data();
+
+      if(data.status === "reserved"){
+        openReservation(data);
+        return;
+      }
+
+      function openReservation(data){
+  const box = document.getElementById("reservationBox");
+  const timerEl = document.getElementById("reservationTimer");
+
+  box.classList.add("show");
+
+  function updateTimer(){
+    const remaining = data.reservedUntil - Date.now();
+
+    if(remaining <= 0){
+      timerEl.innerText = "Reservation expired";
+      clearInterval(reservationInterval);
+      return;
+    }
+
+    const hours = Math.floor(remaining / (1000 * 60 * 60));
+    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+
+    timerEl.innerText = `THIS PRODUCT IS RESERVED FOR: ${hours}h ${minutes}m`;
+  }
+
+  updateTimer();
+  reservationInterval = setInterval(updateTimer, 1000);
+}
+
+function closeReservation(){
+  document.getElementById("reservationBox").classList.remove("show");
+  clearInterval(reservationInterval);
+}
+
+      // NORMAL FLOW 
 
       const productName = productBox.querySelector(".product-name").innerText;
       const productPrice = productBox.querySelector(".product-price").innerText;
@@ -368,6 +408,9 @@ document.addEventListener("DOMContentLoaded", () => {
       closeModal();
     }
   });
+
+  let reservationInterval = null;
+
 
       function generateInvoicePDF(data) {
           const { jsPDF } = window.jspdf;
@@ -473,7 +516,7 @@ confirmBtn.addEventListener("click", async () => {
 
     // ⚡ INSTANT UI UPDATE
     selectedProduct.button.innerText = "Reserved";
-    selectedProduct.button.disabled = true;
+    selectedProduct.button.disabled = false;
     selectedProduct.button.classList.add("reserved-state");
 
     await setDoc(productRef, {

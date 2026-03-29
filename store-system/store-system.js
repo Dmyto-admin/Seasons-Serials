@@ -312,6 +312,7 @@ document.addEventListener("DOMContentLoaded", () => {
       function openReservation(data){
         const reservationBox = document.getElementById("reservationBox");
         const timerEl = document.getElementById("reservationTimer");
+        const closeReservationBtn = document.getElementById("closeReservationBtn");
 
         reservationBox.classList.add("show");
 

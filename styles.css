@@ -704,6 +704,15 @@ header {
   transform: scale(1.03);
 }
 
+/* Close reservation panel */
+#closeReservationBtn {
+    background: #e0e3e8;
+}
+
+#closeReservationBtn:hover {
+    background: #cfd4db;
+}
+
 .discount-row {
     display: flex;
     align-items: center;

@@ -1,136 +1,38 @@
 import { db } from "./firebase-config.js";
 import { doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
-import { auth } from "./firebase-config.js";
-import {
-  signInWithEmailAndPassword,
-  setPersistence,
-  browserLocalPersistence
-} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 
-window.storeLogin = async function () {
-  const email = document.getElementById("storeEmail").value;
-  const password = document.getElementById("storePassword").value;
-
-  try {
-    await setPersistence(auth, browserLocalPersistence);
-
-    await signInWithEmailAndPassword(auth, email, password);
-
-    // mark store login
-    localStorage.setItem("storeLoggedIn", "true");
-
-    // redirect back to store
-    window.location.href = "seasons-serials-store.html";
-
-  } catch (error) {
-    document.getElementById("storeError").innerText = error.message;
-  }
-};
-
-async function loginOrCreateUser(email) {
-  const password = "tempPassword123"; // temporary
-
-  try {
-    // Try login
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    return userCredential.user;
-
-  } catch (error) {
-
-    if (error.code === "auth/user-not-found") {
-      // Create account
-      const newUser = await createUserWithEmailAndPassword(auth, email, password);
-      return newUser.user;
-    }
-
-    throw error;
-  }
-}
 
 async function saveInvoiceToUser(email, invoiceData) {
   try {
+    console.log("🔥 START SAVING", email, invoiceData);
 
-    const user = auth.currentUser;
+    const userRef = doc(db, "users", email);
 
-    if (!user) {
-      throw new Error("User is STILL null after authReady");
-    }
+    await setDoc(userRef, { email: email }, { merge: true });
 
-    const uid = user.uid;
+    const invoiceRef = doc(
+      db,
+      "users",
+      email,
+      "invoices",
+      invoiceData.invoiceId
+    );
 
-    console.log("UID: " + uid); // 👈 SEE IF USER EXISTS
-
-    // 🔥 CREATE USER DOCUMENT
-    const userRef = doc(db, "users", uid);
-
-    await setDoc(userRef, {
-      email: email,
+    await setDoc(invoiceRef, {
+      ...invoiceData,
       createdAt: Date.now()
-    }, { merge: true });
+    });
 
-    console.log("User document OK");
+    console.log("✅ Invoice saved to Firestore");
 
-    // 🔥 CREATE INVOICE
-    console.log("Trying to save invoice...");
-    console.log("INVOICE DATA:", invoiceData);
-
-    if (!invoiceData.invoiceId) {
-      alert("❌ invoiceId is UNDEFINED");
-      throw new Error("invoiceId missing");
-    }
-
-    const invoiceRef = doc(db, "users", uid, "invoices", invoiceData.invoiceId);
-
-    console.log("Invoice path:", "users/" + uid + "/invoices/" + invoiceData.invoiceId);
-
-    try {
-      await setDoc(invoiceRef, {
-        ...invoiceData,
-        createdAt: Date.now()
-      });
-
-    console.log("✅ INVOICE WRITE SUCCESS");
-
-    } catch (err) {
-      console.error("❌ INVOICE WRITE ERROR:", err);
-
-      alert(
-        "❌ INVOICE ERROR\n\n" +
-        "Code: " + err.code + "\n" +
-        "Message: " + err.message
-      );
-    }
-
-    console.log("✅ INVOICE SAVED SUCCESSFULLY");
-
-    } catch (error) {
-      console.error("❌ FULL FIREBASE ERROR:", error);
-      alert(
-        "🔥 FIREBASE ERROR 🔥\n\n" +
-        "Code: " + error.code + "\n" +
-        "Message: " + error.message + "\n\n" +
-        JSON.stringify(error)
-      );
-    }
+  } catch (error) {
+    console.error("❌ REAL FIRESTORE ERROR:", error);
+    alert(error.message); // 👈 YOU NEED THIS
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-
-onAuthStateChanged(auth, (user) => {
-  const display = document.getElementById("userDisplay");
-
-  if (!display) return;
-
-  if (user) {
-    const username = user.email.split("@")[0];
-    display.innerText = username;
-  } else {
-    display.innerText = "Login";
-  }
-});
-  
   let selectedProduct = null;
   let appliedDiscount = null;
   let originalPriceNumber = 0;
@@ -537,32 +439,13 @@ onAuthStateChanged(auth, (user) => {
           return doc.output("datauristring");
        }
   
-  if (confirmBtn) {
-  confirmBtn.addEventListener("click", async () => {
-
-    if (!auth.currentUser) {
-      alert("You must login first before buying anything");
-
-      localStorage.setItem("redirectToLogin", "true");
-
-      window.location.href = "index.html";
-      return;
-    }
+if (confirmBtn) {
+confirmBtn.addEventListener("click", async () => {
 
   const name = document.getElementById("checkoutName").value.trim();
   const email = document.getElementById("checkoutEmail").value.trim();
-  // 🔥 LOGIN USER HERE
-  const user = await loginOrCreateUser(email);
 
-  if (!user) {
-    throw new Error("User login failed");
-  }
-
-  if (!name || !email || !selectedProduct) {
-    alert("Please fill all fields");
-    return;
-  }
-  
+  if (!name || !email || !selectedProduct) return;
 
   confirmBtn.disabled = true;
 
@@ -577,12 +460,12 @@ onAuthStateChanged(auth, (user) => {
     if (!productSnap.exists() || productSnap.data().status !== "available") {
       throw new Error("Product is no longer available");
     }
-    
+
     // ⚡ INSTANT UI UPDATE
     selectedProduct.button.innerText = "Reserved";
     selectedProduct.button.disabled = true;
     selectedProduct.button.classList.add("reserved-state");
-    
+
     await setDoc(productRef, {
       status: "reserved",
       reservedUntil: Date.now() + (24 * 60 * 60 * 1000),
@@ -666,23 +549,23 @@ onAuthStateChanged(auth, (user) => {
         });
       }
 
-      } catch (rollbackError) {
-        console.error("Rollback failed:", rollbackError);
-      }
-
-      alert("Error completing purchase: " + error.message);
-
-    } finally {
-
-      confirmBtn.disabled = false;
-
-      selectedProduct.button.innerText = "Buy!";
-      selectedProduct.button.disabled = false;
-      selectedProduct.button.classList.remove("reserved-state");
-
-      closeModal();
+    } catch (rollbackError) {
+      console.error("Rollback failed:", rollbackError);
     }
-  });
-}
+
+    alert("Error completing purchase: " + error.message);
+
+  } finally {
+
+    confirmBtn.disabled = false;
+
+    selectedProduct.button.innerText = "Buy!";
+    selectedProduct.button.disabled = false;
+    selectedProduct.button.classList.remove("reserved-state");
+
+    closeModal(); // ✅ ALWAYS CLOSE
+  }
+});
+  }
 
 });

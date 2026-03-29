@@ -445,11 +445,10 @@ document.addEventListener("DOMContentLoaded", () => {
           y + 50
           );
 
-          // ===== SAVE =====
-          
+          // ===== SAVE LATER =====
         
-         // ===== RETURN BASE64 ✅
-          return doc.output("datauristring");
+         // ===== RETURN DOC, BASE64 LATER ✅
+          return doc;
        }
   
 if (confirmBtn) {
@@ -520,8 +519,11 @@ confirmBtn.addEventListener("click", async () => {
       time: new Date().toLocaleTimeString()
     };
 
-    // 🔵 STEP 4 — GENERATE PDF (NO AUTO DOWNLOAD)
-    const pdfBase64 = generateInvoicePDF(invoiceData);
+    // 🔵 STEP 4 — GENERATE PDF (NO SAVE)
+    const pdfDoc = generateInvoicePDF(invoiceData);
+
+    // optional: get base64 for Firebase
+    const pdfBase64 = pdfDoc.output("datauristring");
 
     // 🔵 STEP 5 — SAVE TO FIREBASE
     await saveInvoiceToUser(email, {
@@ -540,6 +542,10 @@ confirmBtn.addEventListener("click", async () => {
       order_id: orderId,
       invoice_id: invoiceId
     });
+
+    
+    // 🔵 STEP 7 — NOW DOWNLOAD (LAST STEP)
+    pdfDoc.save("Invoice_" + invoiceData.invoiceId + ".pdf");
 
     // ✅ SUCCESS UI
     closeModal();

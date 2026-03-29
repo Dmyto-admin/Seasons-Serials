@@ -5,20 +5,19 @@ import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/f
 
 async function saveInvoiceToUser(email, invoiceData) {
   try {
-    alert("START SAVING");
     console.log("🔥 START SAVING", email, invoiceData);
 
     const userRef = doc(db, "users", email);
     
     await setDoc(userRef, { email: email }, { merge: true })
       .then(() => {
-        alert("WRITE SUCCESS");
+        console.log("WRITE SUCCESS");
       })
       .catch((err) => {
         alert("WRITE FAILED: " + err.message);
       });
 
-    alert("DOCUMENT OKAY");
+    console.log("DOCUMENT OKAY");
     
     const invoiceRef = doc(
       db,
@@ -28,7 +27,7 @@ async function saveInvoiceToUser(email, invoiceData) {
       invoiceData.invoiceId
     );
 
-    alert("CREATING DOC...");
+    console.log("CREATING DOC...");
 
     await setDoc(invoiceRef, {
       ...invoiceData,
@@ -36,7 +35,6 @@ async function saveInvoiceToUser(email, invoiceData) {
     });
 
     console.log("✅ Invoice saved to Firestore");
-    alert("INVOICE SAVED SUCCESSFULLY");
 
   } catch (error) {
     console.error("❌ REAL FIRESTORE ERROR:", error);

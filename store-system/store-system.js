@@ -5,7 +5,7 @@ import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/f
 
 async function saveInvoiceToUser(email, invoiceData) {
   try {
-    console.log("🔥 START SAVING", email, invoiceData);
+    alert("🔥 START SAVING", email, invoiceData);
 
     const userRef = doc(db, "users", email);
 

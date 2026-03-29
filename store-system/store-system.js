@@ -544,6 +544,11 @@ confirmBtn.addEventListener("click", async () => {
     // ✅ SUCCESS UI
     closeModal();
 
+    selectedProduct.button.innerText = "Reserved";
+    selectedProduct.button.disabled = true;
+    selectedProduct.button.classList.add("reserved-state");
+
+
   } catch (error) {
 
     console.error("❌ FULL FAILURE:", error);

@@ -310,10 +310,10 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       function openReservation(data){
-        const box = document.getElementById("reservationBox");
+        const reservationBox = document.getElementById("reservationBox");
         const timerEl = document.getElementById("reservationTimer");
 
-        box.classList.add("show");
+        reservationBox.classList.add("show");
 
         function updateTimer(){
           const remaining = data.reservedUntil - Date.now();
@@ -338,6 +338,25 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("reservationBox").classList.remove("show");
         clearInterval(reservationInterval);
       }
+
+      // CLOSE RESERVATION ON CLICK
+      if (closeReservationBtn) {
+        closeReservationBtn.addEventListener("click", closeReservation);
+      }
+      
+      // Close on ESC key
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && reservationBox.classList.contains("show")) {
+          closeReservation();
+        }
+      });
+
+      // Close when clicking outside the checkout box
+      reservationBox.addEventListener("click", function (e) {
+        if (e.target === reservationBox) {
+          closeReservation();
+        }
+      });
 
       // NORMAL FLOW 
 

@@ -446,7 +446,7 @@ document.addEventListener("DOMContentLoaded", () => {
           );
 
           // ===== SAVE =====
-          doc.save("Invoice_" + data.invoiceId + ".pdf");
+          
         
          // ===== RETURN BASE64 ✅
           return doc.output("datauristring");

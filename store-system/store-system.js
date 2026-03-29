@@ -316,6 +316,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         reservationBox.classList.add("show");
 
+        if (reservationInterval) {
+          clearInterval(reservationInterval);
+        }
+
         function updateTimer(){
           const remaining = data.reservedUntil - Date.now();
 
@@ -336,8 +340,13 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       function closeReservation(){
-        document.getElementById("reservationBox").classList.remove("show");
+        const box = document.getElementById("reservationBox");
+        reservationBox.classList.remove("show");
+
         clearInterval(reservationInterval);
+
+        // 🔥 CRITICAL FIX
+        document.body.style.pointerEvents = "auto";
       }
 
       // Close on Cancel button

@@ -5,7 +5,7 @@ import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/f
 
 async function saveInvoiceToUser(email, invoiceData) {
   try {
-    alert("🔥 START SAVING", email, invoiceData);
+    console.log("🔥 START SAVING", email, invoiceData);
 
     const userRef = doc(db, "users", email);
 
@@ -24,13 +24,14 @@ async function saveInvoiceToUser(email, invoiceData) {
       createdAt: Date.now()
     });
 
-    alert("✅ Invoice saved to Firestore");
+    console.log("✅ Invoice saved to Firestore");
 
   } catch (error) {
     console.error("❌ REAL FIRESTORE ERROR:", error);
     alert(error.message); // 👈 YOU NEED THIS
   }
 }
+
 
 document.addEventListener("DOMContentLoaded", () => {
   let selectedProduct = null;

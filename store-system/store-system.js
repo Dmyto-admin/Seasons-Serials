@@ -24,7 +24,7 @@ async function saveInvoiceToUser(email, invoiceData) {
       createdAt: Date.now()
     });
 
-    console.log("✅ Invoice saved to Firestore");
+    alert("✅ Invoice saved to Firestore");
 
   } catch (error) {
     console.error("❌ REAL FIRESTORE ERROR:", error);

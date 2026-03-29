@@ -4,7 +4,8 @@ import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.9.0/fireba
 const products = [
   {id:"saleProductOne",msg:"prod1Msg",a:"prod1AvailableBtn",s:"prod1SoldBtn"},
   {id:"saleProductTwo",msg:"prod2Msg",a:"prod2AvailableBtn",s:"prod2SoldBtn"},
-  {id:"saleProductThree",msg:"prod3Msg",a:"prod3AvailableBtn",s:"prod3SoldBtn"}
+  {id:"saleProductThree",msg:"prod3Msg",a:"prod3AvailableBtn",s:"prod3SoldBtn"},
+  {id:"saleProductFour",msg:"prod4Msg",a:"prod4AvailableBtn",s:"prod4SoldBtn"}
 ];
 
 products.forEach(p=>{

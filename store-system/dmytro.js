@@ -48,11 +48,37 @@ function loadUserInvoices(userEmail) {
       const btn = block.querySelector(".download-btn");
 
       btn.addEventListener("click", () => {
+
+      const base64 = data.pdf;
+
+      const byteString = atob(base64.split(',')[1]);
+      const mimeString = base64.split(',')[0].split(':')[1].split(';')[0];
+
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+
+      const blob = new Blob([ab], { type: mimeString });
+      const url = URL.createObjectURL(blob);
+
+      // 🔥 CROSS-BROWSER FIX
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+      if (isSafari) {
+    window.open(url, "_blank"); // Safari
+      } else {
         const link = document.createElement("a");
-        link.href = data.pdf;
+        link.href = url;
         link.download = "Invoice_" + data.invoiceId + ".pdf";
+        document.body.appendChild(link);
         link.click();
-      });
+        document.body.removeChild(link);
+      }
+
+    });
 
       container.appendChild(block);
     });

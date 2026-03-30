@@ -312,7 +312,6 @@ document.addEventListener("DOMContentLoaded", () => {
       function openReservation(data){
         const reservationBox = document.getElementById("reservationBox");
         const timerEl = document.getElementById("reservationTimer");
-        const closeReservationBtn = document.getElementById("closeReservationBtn");
 
         reservationBox.classList.add("show");
 
@@ -340,7 +339,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       function closeReservation(){
-        const box = document.getElementById("reservationBox");
+        const closeReservationBtn = document.getElementById("closeReservationBtn");
         reservationBox.classList.remove("show");
 
         clearInterval(reservationInterval);

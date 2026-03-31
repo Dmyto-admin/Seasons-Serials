@@ -95,15 +95,17 @@ async function loadAllInvoices() {
           <div class="invoice-card">
 
             <div class="invoice-header">
-              <span>#${data.invoiceId}</span>
-              <span>${data.date}</span>
+              <span class="invoice-id">#${data.invoiceId}</span>
+              <span class="invoice-date">${data.date}</span>
             </div>
-
-            <p><strong>User:</strong> ${userEmail}</p>
-            <p>${data.productName}</p>
-            <p>${data.finalPrice}</p>
-            <p class="status">Status: ${data.status || "pending"}</p>
-
+            
+            <div class="invoice-body">
+              <p><strong>User:</strong> ${userEmail}</p>
+              <p><strong>Product:</strong> ${data.productName}</p>
+              <p class="invoice-price">${data.finalPrice}</p>
+              <p><strong>Order status:</strong> ${data.status || "pending"}</p>
+            </div>
+            
             <button class="download-btn">Download</button>
 
             <div class="admin-actions">
@@ -113,6 +115,41 @@ async function loadAllInvoices() {
 
           </div>
         `;
+        
+      const btn = block.querySelector(".download-btn");
+
+      btn.addEventListener("click", () => {
+
+        const base64 = data.pdf;
+
+        const byteString = atob(base64.split(',')[1]);
+        const mimeString = base64.split(',')[0].split(':')[1].split(';')[0];
+
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+
+        for (let i = 0; i < byteString.length; i++) {
+          ia[i] = byteString.charCodeAt(i);
+        }
+
+        const blob = new Blob([ab], { type: mimeString });
+        const url = URL.createObjectURL(blob);
+
+        // 🔥 CROSS-BROWSER FIX
+        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+        if (isSafari) {
+          window.open(url, "_blank"); // Safari
+        } else {
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = "Invoice_" + data.invoiceId + ".pdf";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+
+       });
 
         // 🔥 PAYED
         block.querySelector(".pay-btn").onclick = async () => {

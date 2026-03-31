@@ -551,7 +551,9 @@ confirmBtn.addEventListener("click", async () => {
       throw new Error("Product is no longer available");
     }
 
-    // ⚡ INSTANT UI UPDATE
+    // ⚡ INSTANT SUCCESS UI UPDATE
+    closeModal(); // ALWAYS close
+
     selectedProduct.button.innerText = "Reserved";
     selectedProduct.button.disabled = false;
     selectedProduct.button.classList.add("reserved-state");
@@ -625,14 +627,6 @@ confirmBtn.addEventListener("click", async () => {
     // 🔵 STEP 7 — NOW DOWNLOAD (LAST STEP)
     pdfDoc.save("Invoice_" + invoiceData.invoiceId + ".pdf");
 
-    // ✅ SUCCESS UI
-    closeModal();
-
-    selectedProduct.button.innerText = "Reserved";
-    selectedProduct.button.disabled = false;
-    selectedProduct.button.classList.add("reserved-state");
-
-
   } catch (error) {
 
     console.error("❌ FULL FAILURE:", error);
@@ -653,6 +647,7 @@ confirmBtn.addEventListener("click", async () => {
 
     } catch (rollbackError) {
       console.error("Rollback failed:", rollbackError);
+      alert("Your purchase failed to be completed due to an unknown error. Please contact our support team via this email: seasonsserials.info@gmail.com")
     }
 
     alert("Error completing purchase: " + error.message);

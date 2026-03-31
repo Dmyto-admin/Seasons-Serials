@@ -63,7 +63,7 @@ async function loadAllInvoices() {
 
     const usersSnap = await getDocs(collection(db, "users"));
 
-    alert("👥 USERS FOUND: " + usersSnap.size);
+    console.log("👥 USERS FOUND: " + usersSnap.size);
 
     for (const userDoc of usersSnap.docs) {
 
@@ -74,7 +74,7 @@ async function loadAllInvoices() {
         collection(db, "users", userEmail, "invoices")
       );
 
-      alert("📄 INVOICES FOUND: " + invoicesSnap.size);
+      console.log("📄 INVOICES FOUND: " + invoicesSnap.size);
 
       invoicesSnap.forEach((invoiceDoc) => {
 

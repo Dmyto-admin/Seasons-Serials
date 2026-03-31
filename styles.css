@@ -1461,8 +1461,8 @@ input:-webkit-autofill:focus {
     top: 50%;
     left: 50%;
     transform: translate(-50%,-50%) scale(0);
-    width: 600px;
-    height: 420px;
+    width: 400px;
+    height: 385px;
     background: transparent;
     border: 2px solid rgba(225,225,225,.5);
     border-radius: 20px;
@@ -1496,8 +1496,8 @@ input:-webkit-autofill:focus {
     top: 50%;
     left: 50%;
     transform: translate(-50%,-50%) scale(0);
-    width: 600px;
-    height: 420px;
+    width: 400px;
+    height: 385px;
     background: transparent;
     border: 2px solid rgba(225,225,225,.5);
     border-radius: 20px;
@@ -1513,21 +1513,4 @@ input:-webkit-autofill:focus {
 
 .wrapper-admin-payments.active-popup{
     transform: translate(-50%,-50%) scale(1);
-}
-
-.admin-btn{
-    width: 120px;
-    padding: 10px;
-    margin-top: 10px;
-    border-radius: 8px;
-    border: none;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    background: #e0e3e8;
-    color: #162938;
-}
-
-.admin-btn:hover {
-    background: #cfd4db;
 }

@@ -44,6 +44,8 @@ products.forEach(p=>{
 
 });
 
+alert(container);
+
 const container = document.querySelector(".admin-invoices-container");
 
 async function loadAllInvoices() {

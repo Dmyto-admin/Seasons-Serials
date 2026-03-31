@@ -1514,3 +1514,11 @@ input:-webkit-autofill:focus {
 .wrapper-admin-payments.active-popup{
     transform: translate(-50%,-50%) scale(1);
 }
+
+.pay-btn {
+    width: 100%
+}
+
+.cancel-btn {
+    width: 100%
+}

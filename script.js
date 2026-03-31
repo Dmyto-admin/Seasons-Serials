@@ -172,11 +172,7 @@ if (filterBtn && filtersMenu) {
     });
 }
 
-/* ---------- ADMIN INVOICES DATABASE ---------- */
-document.getElementById("openPayments").addEventListener("click", () => {
-  closeAllWrappers();
-  document.querySelector(".wrapper-admin-payments").classList.add("active");
-});
+/* ---------- XXXXX ---------- */
 
 
 /* ---------- WRAPPERS ---------- */
@@ -187,7 +183,8 @@ const wrappers = {
     events:    document.querySelector(".wrapper-events"),
     discounts: document.querySelector(".wrapper-discounts"),
     tickets:   document.querySelector(".wrapper-tickets"),
-    products:  document.querySelector(".wrapper-admin-products")
+    products:  document.querySelector(".wrapper-admin-products"),
+    invoices:  document.querySelector(".wrapper-admin-payments"),
 };
 
 
@@ -198,7 +195,13 @@ function closeAllWrappers() {
 
 /* ---------- NAV LINKS ---------- */
 
-document.querySelector(".nav-admin-products")?.addEventListener("click", e => {
+document.getElementById("products-btn")?.addEventListener("click", e => {
+    e.preventDefault();
+    closeAllWrappers();
+    wrappers.products?.classList.add("active-popup");
+});
+
+document.getElementById("openPayments")?.addEventListener("click", e => {
     e.preventDefault();
     closeAllWrappers();
     wrappers.products?.classList.add("active-popup");

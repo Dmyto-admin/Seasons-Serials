@@ -1511,7 +1511,7 @@ input:-webkit-autofill:focus {
     z-index: 1000;
 }
 
-.wrapper-admin-payments.active{
+.wrapper-admin-payments.active-popup{
     transform: translate(-50%,-50%) scale(1);
 }
 

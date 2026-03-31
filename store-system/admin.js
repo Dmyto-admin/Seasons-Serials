@@ -105,14 +105,14 @@ async function loadAllInvoices() {
               <p class="invoice-price">${data.finalPrice}</p>
               <p><strong>Order status:</strong> ${data.status || "pending"}</p>
             </div>
-            
-            <button class="download-btn">Download</button>
 
             <div class="admin-actions">
               <button class="pay-btn">Payed</button>
               <button class="cancel-btn">Cancel</button>
             </div>
-
+            
+            <button class="download-btn">Download</button>
+            
           </div>
         `;
         

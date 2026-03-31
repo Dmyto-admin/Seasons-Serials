@@ -21,6 +21,8 @@ function loadUserInvoices(userEmail) {
     snapshot.forEach(docSnap => {
       const data = docSnap.data();
 
+      if (data.status === "cancelled") return;
+
       const block = document.createElement("div");
       block.classList.add("invoice-block");
 
@@ -69,7 +71,7 @@ function loadUserInvoices(userEmail) {
       const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
       if (isSafari) {
-    window.open(url, "_blank"); // Safari
+        window.open(url, "_blank"); // Safari
       } else {
         const link = document.createElement("a");
         link.href = url;

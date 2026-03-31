@@ -204,7 +204,7 @@ document.getElementById("products-btn")?.addEventListener("click", e => {
 document.getElementById("openPayments")?.addEventListener("click", e => {
     e.preventDefault();
     closeAllWrappers();
-    wrappers.products?.classList.add("active-popup");
+    wrappers.invoices?.classList.add("active-popup");
 });
 
 document.querySelector(".nav-me")?.addEventListener("click", e => {

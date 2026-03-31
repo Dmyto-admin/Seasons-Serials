@@ -44,78 +44,110 @@ products.forEach(p=>{
 
 });
 
-alert("GOING TO INVOICE LOAD...");
-
 const container = document.querySelector(".admin-invoices-container");
 
 async function loadAllInvoices() {
+
+  alert("🔥 FUNCTION STARTED");
+
+  if (!container) {
+    alert("❌ CONTAINER NOT FOUND");
+    return;
+  }
+
   container.innerHTML = "";
 
-  const usersSnap = await getDocs(collection(db, "users"));
+  try {
 
-  for (const userDoc of usersSnap.docs) {
-    const userEmail = userDoc.id;
+    alert("📡 GETTING USERS...");
 
-    const invoicesSnap = await getDocs(
-      collection(db, "users", userEmail, "invoices")
-    );
+    const usersSnap = await getDocs(collection(db, "users"));
 
-    invoicesSnap.forEach((invoiceDoc) => {
-      const data = invoiceDoc.data();
+    alert("👥 USERS FOUND: " + usersSnap.size);
 
-      // 🔥 HIDE CANCELLED
-      if (data.status === "cancelled") return;
+    for (const userDoc of usersSnap.docs) {
 
-      const block = document.createElement("div");
-      block.classList.add("invoice-block");
+      const userEmail = userDoc.id;
+      alert("➡️ USER: " + userEmail);
 
-      block.innerHTML = `
-        <div class="invoice-card">
+      const invoicesSnap = await getDocs(
+        collection(db, "users", userEmail, "invoices")
+      );
 
-          <div class="invoice-header">
-            <span>#${data.invoiceId}</span>
-            <span>${data.date}</span>
+      alert("📄 INVOICES FOUND: " + invoicesSnap.size);
+
+      invoicesSnap.forEach((invoiceDoc) => {
+
+        const data = invoiceDoc.data();
+
+        // 🔥 HIDE CANCELLED
+        if (data.status === "cancelled") {
+          alert("⛔ CANCELLED SKIPPED");
+          return;
+        }
+
+        alert("✅ CREATING BLOCK");
+
+        const block = document.createElement("div");
+        block.classList.add("invoice-block");
+
+        block.innerHTML = `
+          <div class="invoice-card">
+
+            <div class="invoice-header">
+              <span>#${data.invoiceId}</span>
+              <span>${data.date}</span>
+            </div>
+
+            <p><strong>User:</strong> ${userEmail}</p>
+            <p>${data.productName}</p>
+            <p>${data.finalPrice}</p>
+            <p class="status">Status: ${data.status || "pending"}</p>
+
+            <button class="download-btn">Download</button>
+
+            <div class="admin-actions">
+              <button class="pay-btn">Payed</button>
+              <button class="cancel-btn">Cancel</button>
+            </div>
+
           </div>
+        `;
 
-          <p><strong>User:</strong> ${userEmail}</p>
-          <p>${data.productName}</p>
-          <p>${data.finalPrice}</p>
-          <p class="status">Status: ${data.status || "pending"}</p>
+        // 🔥 PAYED
+        block.querySelector(".pay-btn").onclick = async () => {
+          alert("💰 PAY CLICKED");
 
-          <button class="download-btn">Download</button>
+          await updateDoc(
+            doc(db, "users", userEmail, "invoices", invoiceDoc.id),
+            { status: "payed" }
+          );
 
-          <div class="admin-actions">
-            <button class="pay-btn">Payed</button>
-            <button class="cancel-btn">Cancel</button>
-          </div>
+          loadAllInvoices();
+        };
 
-        </div>
-      `;
+        // 🔥 CANCEL
+        block.querySelector(".cancel-btn").onclick = async () => {
+          alert("❌ DELETE CLICKED");
 
-      // 🔥 PAYED BUTTON
-      block.querySelector(".pay-btn").onclick = async () => {
-        await updateDoc(
-          doc(db, "users", userEmail, "invoices", invoiceDoc.id),
-          { status: "payed" }
-        );
-        loadAllInvoices();
-      };
+          await deleteDoc(
+            doc(db, "users", userEmail, "invoices", invoiceDoc.id)
+          );
 
-      // 🔥 CANCEL BUTTON
-      block.querySelector(".cancel-btn").onclick = async () => {
-        await deleteDoc(
-          doc(db, "users", userEmail, "invoices", invoiceDoc.id)
-        );
+          block.style.display = "none";
+        };
 
-        // 🔥 REMOVE FROM UI
-        block.style.display = "none";
-      };
+        container.appendChild(block);
 
-      container.appendChild(block);
-    });
+      });
+    }
+
+    alert("🎉 FINISHED LOADING");
+
   } catch (error) {
     console.error("❌ REAL ERROR:", error);
-    alert(error.message); // IF FAILS
+    alert("ERROR: " + error.message);
+  }
 }
 
 document.addEventListener("DOMContentLoaded", loadAllInvoices);

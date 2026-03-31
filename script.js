@@ -172,8 +172,11 @@ if (filterBtn && filtersMenu) {
     });
 }
 
-/* ---------- SALE PRODUCT INFO WRAPPER ---------- */
-
+/* ---------- ADMIN INVOICES DATABASE ---------- */
+document.getElementById("openPayments").addEventListener("click", () => {
+  closeAllWrappers();
+  document.querySelector(".wrapper-admin-payments").classList.add("active");
+});
 
 
 /* ---------- WRAPPERS ---------- */

@@ -44,7 +44,7 @@ products.forEach(p=>{
 
 });
 
-alert(container);
+alert("GOING TO INVOICE LOAD...");
 
 const container = document.querySelector(".admin-invoices-container");
 
@@ -113,7 +113,8 @@ async function loadAllInvoices() {
 
       container.appendChild(block);
     });
-  }
+  } catch(error) {
+    alert(error.message) }
 }
 
 document.addEventListener("DOMContentLoaded", loadAllInvoices);

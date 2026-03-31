@@ -113,8 +113,9 @@ async function loadAllInvoices() {
 
       container.appendChild(block);
     });
-  } catch(error) {
-    alert(error.message) }
+  } catch (error) {
+    console.error("❌ REAL ERROR:", error);
+    alert(error.message); // IF FAILS
 }
 
 document.addEventListener("DOMContentLoaded", loadAllInvoices);

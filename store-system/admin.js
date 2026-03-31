@@ -48,7 +48,7 @@ const container = document.querySelector(".admin-invoices-container");
 
 async function loadAllInvoices() {
 
-  alert("🔥 FUNCTION STARTED");
+  console.log("🔥 FUNCTION STARTED");
 
   if (!container) {
     alert("❌ CONTAINER NOT FOUND");
@@ -59,7 +59,7 @@ async function loadAllInvoices() {
 
   try {
 
-    alert("📡 GETTING USERS...");
+    console.log("📡 GETTING USERS...");
 
     const usersSnap = await getDocs(collection(db, "users"));
 
@@ -68,7 +68,7 @@ async function loadAllInvoices() {
     for (const userDoc of usersSnap.docs) {
 
       const userEmail = userDoc.id;
-      alert("➡️ USER: " + userEmail);
+      console.log("➡️ USER: " + userEmail);
 
       const invoicesSnap = await getDocs(
         collection(db, "users", userEmail, "invoices")
@@ -86,7 +86,7 @@ async function loadAllInvoices() {
           return;
         }
 
-        alert("✅ CREATING BLOCK");
+        console.log("✅ CREATING BLOCK");
 
         const block = document.createElement("div");
         block.classList.add("invoice-block");
@@ -116,7 +116,7 @@ async function loadAllInvoices() {
 
         // 🔥 PAYED
         block.querySelector(".pay-btn").onclick = async () => {
-          alert("💰 PAY CLICKED");
+          alert("💰 PAYD CLICKED 💰");
 
           await updateDoc(
             doc(db, "users", userEmail, "invoices", invoiceDoc.id),
@@ -128,7 +128,7 @@ async function loadAllInvoices() {
 
         // 🔥 CANCEL
         block.querySelector(".cancel-btn").onclick = async () => {
-          alert("❌ DELETE CLICKED");
+          alert("🗑️ DELETE CLICKED 🗑️");
 
           await deleteDoc(
             doc(db, "users", userEmail, "invoices", invoiceDoc.id)
@@ -142,7 +142,7 @@ async function loadAllInvoices() {
       });
     }
 
-    alert("🎉 FINISHED LOADING");
+    alert("🎉 FINISHED LOADING INVOICES");
 
   } catch (error) {
     console.error("❌ REAL ERROR:", error);

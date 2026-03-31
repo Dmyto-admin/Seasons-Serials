@@ -35,6 +35,7 @@ function loadUserInvoices(userEmail) {
           <div class="invoice-body">
             <p><strong>Product:</strong> ${data.productName}</p>
             <p><strong>Order:</strong> ${data.orderId}</p>
+            <p><strong>Order status:</strong> ${data.status || "pending"}</p>
             <p class="invoice-price">${data.finalPrice}</p>
           </div>
 

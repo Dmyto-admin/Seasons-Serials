@@ -113,7 +113,7 @@ async function loadAllInvoices() {
             </div>
             
             <div class="invoice-body">
-              <p><strong>User:</strong> ${userEmail}</p>
+              <p><strong>User:</strong> ${data.userEmail}</p>
               <p><strong>Product:</strong> ${data.productName}</p>
               <p class="invoice-price">${data.finalPrice}</p>
               <p><strong>Order status:</strong> ${data.status || "pending"}</p>
@@ -169,7 +169,7 @@ async function loadAllInvoices() {
           alert("💰 PAYD CLICKED 💰");
 
           await updateDoc(
-            doc(db, "users", userEmail, "invoices", invoiceDoc.id),
+            doc(db, "users", userEmail, "invoices", data.id),
             { status: "payed" }
           );
 
@@ -181,7 +181,7 @@ async function loadAllInvoices() {
           alert("🗑️ DELETE CLICKED 🗑️");
 
           try {
-            const ref = doc(db, "users", userEmail, "invoices", invoiceDoc.id);
+            const ref = doc(db, "users", userEmail, "invoices", data.id);
 
             console.log("Deleting:", userEmail, invoiceDoc.id);
 

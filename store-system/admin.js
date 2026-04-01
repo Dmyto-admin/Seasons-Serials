@@ -165,13 +165,24 @@ async function loadAllInvoices() {
 
         // 🔥 CANCEL
         block.querySelector(".cancel-btn").onclick = async () => {
-          alert("🗑️ DELETE CLICKED 🗑️");
+          alert("🗑️ DELETE CLICKED");
 
-          await deleteDoc(
-            doc(db, "users", userEmail, "invoices", invoiceDoc.id)
-          );
+          try {
+            const ref = doc(db, "users", userEmail, "invoices", invoiceDoc.id);
 
-          block.style.display = "none";
+            console.log("Deleting:", userEmail, invoiceDoc.id);
+
+            await deleteDoc(ref);
+
+            alert("✅ DELETED FROM FIREBASE");
+
+            // 🔥 RELOAD EVERYTHING (NOT JUST UI FAKE HIDE)
+            loadAllInvoices();
+
+          } catch (err) {
+            console.error("❌ DELETE FAILED:", err);
+            alert("DELETE ERROR: " + err.message);
+          }
         };
 
         container.appendChild(block);

@@ -18,10 +18,25 @@ function loadUserInvoices(userEmail) {
       return;
     }
 
+    const invoicesArray = [];
+
     snapshot.forEach(docSnap => {
       const data = docSnap.data();
 
       if (data.status === "cancelled") return;
+
+      invoicesArray.push({
+        ...data
+      });
+    });
+
+    // 🔥 SORT BY DATE
+    invoicesArray.sort((a, b) => {
+      return new Date(a.date) - new Date(b.date);
+    });
+
+    // 🔥 RENDER
+    invoicesArray.forEach(data => {
 
       const block = document.createElement("div");
       block.classList.add("invoice-block");

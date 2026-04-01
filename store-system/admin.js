@@ -76,15 +76,21 @@ async function loadAllInvoices() {
 
       console.log("📄 INVOICES FOUND: " + invoicesSnap.size);
 
-      invoicesSnap.forEach((invoiceDoc) => {
+      const data = invoiceDoc.data();
+      
+      const invoicesArray = [];
 
-        const data = invoiceDoc.data();
+      invoicesSnap.forEach((docSnap) => {
+        invoicesArray.push({
+          id: docSnap.id,
+          ...docSnap.data()
+        });
+      });
 
-        // 🔥 HIDE CANCELLED
-        if (data.status === "cancelled") {
-          alert("⛔ CANCELLED SKIPPED");
-          return;
-        }
+      // 🔥 SORT BY TIME (REAL)
+      invoicesArray.sort((a, b) => {
+        return new Date(a.date) - new Date(b.date);
+      });
 
         console.log("✅ CREATING BLOCK");
 

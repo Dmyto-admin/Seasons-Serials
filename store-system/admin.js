@@ -76,22 +76,29 @@ async function loadAllInvoices() {
 
       console.log("📄 INVOICES FOUND: " + invoicesSnap.size);
 
-      const data = invoiceDoc.data();
       
       const invoicesArray = [];
 
       invoicesSnap.forEach((docSnap) => {
+        const data = docSnap.data();
+
+        // 🔥 SKIP CANCELLED
+        if (data.status === "cancelled") return;
+
         invoicesArray.push({
           id: docSnap.id,
-          ...docSnap.data()
+          userEmail,
+          ...data
         });
       });
 
-      // 🔥 SORT BY TIME (REAL)
+      // ✅ SORT BY DATE (OLDEST → NEWEST)
       invoicesArray.sort((a, b) => {
         return new Date(a.date) - new Date(b.date);
       });
 
+      // 🔥 NOW LOOP CORRECTLY
+      invoicesArray.forEach((data) => {
         console.log("✅ CREATING BLOCK");
 
         const block = document.createElement("div");

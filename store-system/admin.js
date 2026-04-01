@@ -92,9 +92,9 @@ async function loadAllInvoices() {
         });
       });
 
-      // ✅ SORT BY DATE (OLDEST → NEWEST)
+      // ✅ SORT BY DATE (NEWEST → OLDEST)
       invoicesArray.sort((a, b) => {
-        return new Date(a.date) - new Date(b.date);
+        return new Date(b.date) - new Date(a.date);
       });
 
       // 🔥 NOW LOOP CORRECTLY

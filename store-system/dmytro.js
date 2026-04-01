@@ -33,7 +33,7 @@ function loadUserInvoices(userEmail) {
 
     // 🔥 SORT BY DATE
     invoicesArray.sort((a, b) => {
-      return new Date(b.date) - new Date(a.date);
+      return b.parsedDate - a.parsedDate;
     });
 
     // 🔥 RENDER

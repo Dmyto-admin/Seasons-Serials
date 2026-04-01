@@ -8,82 +8,61 @@ function loadUserInvoices(userEmail) {
 
   onSnapshot(invoicesRef, (snapshot) => {
 
-    container.innerHTML = ""; // clear old
+  container.innerHTML = "";
 
-    if (snapshot.empty) {
-      container.innerHTML = `
-        <img src="no-payment-yet.png">
-        <p class="no-payment-yet-text">No payments yet</p>
-      `;
-      return;
-    }
+  if (snapshot.empty) {
+    container.innerHTML = `
+      <img src="no-payment-yet.png">
+      <p class="no-payment-yet-text">No payments yet</p>
+    `;
+    return;
+  }
 
-    const invoicesArray = [];
+  const invoicesArray = [];
 
-    snapshot.forEach(docSnap => {
-      const data = docSnap.data();
+  snapshot.forEach(docSnap => {
+    const data = docSnap.data();
 
-      if (data.status === "cancelled") return;
-
-      function parseCustomDate(dateStr) {
-        // example: "31/03/2026" OR "31-03-2026"
-  
-        if (!dateStr) return new Date(0);
-
-        const parts = dateStr.split(/[\/\-\.]/); // supports / - .
-
-        if (parts.length !== 3) return new Date(0);
-
-        const day = parts[0];
-        const month = parts[1];
-        const year = parts[2];
-
-        return new Date(`${year}-${month}-${day}`); // ✅ safe format
-      }
-    });
+    if (data.status === "cancelled") return;
 
     invoicesArray.push({
       ...data,
       parsedDate: parseCustomDate(data.date)
     });
+  });
 
-    // 🔥 SORT BY DATE
-    invoicesArray.sort((a, b) => {
-      return b.parsedDate - a.parsedDate;
-    });
+  // ✅ SORT (NEWEST FIRST)
+  invoicesArray.sort((a, b) => b.parsedDate - a.parsedDate);
 
-    // 🔥 RENDER
-    invoicesArray.forEach(data => {
+  // ✅ RENDER
+  invoicesArray.forEach(data => {
 
-      const block = document.createElement("div");
-      block.classList.add("invoice-block");
+    const block = document.createElement("div");
+    block.classList.add("invoice-block");
 
-      block.innerHTML = `
-        <div class="invoice-card">
+    block.innerHTML = `
+      <div class="invoice-card">
 
-          <div class="invoice-header">
-            <span class="invoice-id">#${data.invoiceId}</span>
-            <span class="invoice-date">${data.date}</span>
-          </div>
-
-          <div class="invoice-body">
-            <p><strong>Product:</strong> ${data.productName}</p>
-            <p><strong>Order:</strong> ${data.orderId}</p>
-            <p><strong>Order status:</strong> ${data.status || "pending"}</p>
-            <p class="invoice-price">${data.finalPrice}</p>
-          </div>
-
-          <button class="download-btn">
-             Download Invoice
-          </button>
-
+        <div class="invoice-header">
+          <span class="invoice-id">#${data.invoiceId}</span>
+          <span class="invoice-date">${data.date}</span>
         </div>
-      `;
 
-      const btn = block.querySelector(".download-btn");
+        <div class="invoice-body">
+          <p><strong>Product:</strong> ${data.productName}</p>
+          <p><strong>Order:</strong> ${data.orderId}</p>
+          <p><strong>Status:</strong> ${data.status || "pending"}</p>
+          <p class="invoice-price">${data.finalPrice}</p>
+        </div>
 
-      btn.addEventListener("click", () => {
+        <button class="download-btn">Download</button>
 
+      </div>
+    `;
+
+    const btn = block.querySelector(".download-btn");
+
+    btn.addEventListener("click", () => {
       const base64 = data.pdf;
 
       const byteString = atob(base64.split(',')[1]);
@@ -99,11 +78,10 @@ function loadUserInvoices(userEmail) {
       const blob = new Blob([ab], { type: mimeString });
       const url = URL.createObjectURL(blob);
 
-      // 🔥 CROSS-BROWSER FIX
       const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
       if (isSafari) {
-        window.open(url, "_blank"); // Safari
+        window.open(url, "_blank");
       } else {
         const link = document.createElement("a");
         link.href = url;
@@ -112,13 +90,12 @@ function loadUserInvoices(userEmail) {
         link.click();
         document.body.removeChild(link);
       }
-
     });
 
-      container.appendChild(block);
-    });
-
+    container.appendChild(block);
   });
+
+});
 }
 
 

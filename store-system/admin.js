@@ -183,7 +183,7 @@ async function loadAllInvoices() {
           try {
             const ref = doc(db, "users", userEmail, "invoices", data.id);
 
-            console.log("Deleting:", userEmail, invoiceDoc.id);
+            console.log("Deleting:", userEmail, data.id);
 
             await deleteDoc(ref);
 

@@ -165,7 +165,7 @@ async function loadAllInvoices() {
 
         // 🔥 CANCEL
         block.querySelector(".cancel-btn").onclick = async () => {
-          alert("🗑️ DELETE CLICKED");
+          alert("🗑️ DELETE CLICKED 🗑️");
 
           try {
             const ref = doc(db, "users", userEmail, "invoices", invoiceDoc.id);

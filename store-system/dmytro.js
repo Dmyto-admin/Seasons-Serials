@@ -25,10 +25,26 @@ function loadUserInvoices(userEmail) {
 
       if (data.status === "cancelled") return;
 
-      invoicesArray.push({
-        ...data,
-        parsedDate: new Date(data.date)
-      });
+      function parseCustomDate(dateStr) {
+        // example: "31/03/2026" OR "31-03-2026"
+  
+        if (!dateStr) return new Date(0);
+
+        const parts = dateStr.split(/[\/\-\.]/); // supports / - .
+
+        if (parts.length !== 3) return new Date(0);
+
+        const day = parts[0];
+        const month = parts[1];
+        const year = parts[2];
+
+        return new Date(`${year}-${month}-${day}`); // ✅ safe format
+      }
+    });
+
+    invoicesArray.push({
+      ...data,
+      parsedDate: parseCustomDate(data.date)
     });
 
     // 🔥 SORT BY DATE

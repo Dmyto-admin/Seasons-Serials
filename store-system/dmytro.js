@@ -26,7 +26,8 @@ function loadUserInvoices(userEmail) {
       if (data.status === "cancelled") return;
 
       invoicesArray.push({
-        ...data
+        ...data,
+        parsedDate: new Date(data.date)
       });
     });
 

@@ -1515,10 +1515,39 @@ input:-webkit-autofill:focus {
     transform: translate(-50%,-50%) scale(1);
 }
 
-.pay-btn {
-    width: 100%
+.admin-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
 }
 
+.pay-btn, .cancel-btn, .download-btn {
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* PAY BUTTON */
+.pay-btn {
+  background: #22c55e;
+  color: white;
+}
+
+.pay-btn:hover {
+  background: #16a34a;
+  transform: scale(1.05);
+}
+
+/* CANCEL BUTTON */
 .cancel-btn {
-    width: 100%
+  background: #ef4444;
+  color: white;
+}
+
+.cancel-btn:hover {
+  background: #dc2626;
+  transform: scale(1.05);
 }

@@ -185,7 +185,6 @@ const wrappers = {
     tickets:       document.querySelector(".wrapper-tickets"),
     products:      document.querySelector(".wrapper-admin-products"),
     invoices:      document.querySelector(".wrapper-admin-payments"),
-    paymentsAdmin: document.querySelector("wrapper-payments-admin"),
 };
 
 
@@ -226,14 +225,6 @@ document.getElementById("eventsBtn")?.addEventListener("click", e => {
     closeAllWrappers();
     moreMenu?.classList.remove("active");
     wrappers.events?.classList.add("active-popup");
-});
-
-document.getElementById("adminPayments")?.addEventListener("click", e => {
-    e.preventDefault();
-    e.stopPropagation();
-    closeAllWrappers();
-    moreMenu?.classList.remove("active");
-    wrappers.paymentsAdmin?.classList.add("active-popup");
 });
 
 document.querySelector("#moreMenu a:nth-child(2)")?.addEventListener("click", e => {

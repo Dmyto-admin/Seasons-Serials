@@ -178,13 +178,14 @@ if (filterBtn && filtersMenu) {
 /* ---------- WRAPPERS ---------- */
 
 const wrappers = {
-    profile:   document.querySelector(".wrapper"),
-    payments:  document.querySelector(".wrapper-payments"),
-    events:    document.querySelector(".wrapper-events"),
-    discounts: document.querySelector(".wrapper-discounts"),
-    tickets:   document.querySelector(".wrapper-tickets"),
-    products:  document.querySelector(".wrapper-admin-products"),
-    invoices:  document.querySelector(".wrapper-admin-payments"),
+    profile:       document.querySelector(".wrapper"),
+    payments:      document.querySelector(".wrapper-payments"),
+    events:        document.querySelector(".wrapper-events"),
+    discounts:     document.querySelector(".wrapper-discounts"),
+    tickets:       document.querySelector(".wrapper-tickets"),
+    products:      document.querySelector(".wrapper-admin-products"),
+    invoices:      document.querySelector(".wrapper-admin-payments"),
+    paymentsAdmin: document.getElementById("adminPaymentsWrapper"),
 };
 
 
@@ -232,7 +233,7 @@ document.getElementById("adminPayments")?.addEventListener("click", e => {
     e.stopPropagation();
     closeAllWrappers();
     moreMenu?.classList.remove("active");
-    wrappers.payments?.classList.add("active-popup");
+    wrappers.paymentsAdmin?.classList.add("active-popup");
 });
 
 document.querySelector("#moreMenu a:nth-child(2)")?.addEventListener("click", e => {

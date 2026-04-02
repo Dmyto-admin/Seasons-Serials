@@ -26,13 +26,11 @@ function loadUserInvoices(userEmail) {
     if (data.status === "cancelled") return;
 
     invoicesArray.push({
-      ...data,
-      parsedDate: parseCustomDate(data.date)
+      ...data
     });
+
   });
 
-  // ✅ SORT (NEWEST FIRST)
-  invoicesArray.sort((a, b) => b.parsedDate - a.parsedDate);
 
   // ✅ RENDER
   invoicesArray.forEach(data => {

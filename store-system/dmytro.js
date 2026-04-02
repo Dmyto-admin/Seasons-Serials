@@ -1,6 +1,23 @@
 import { db } from "./firebase-config.js";
 import { onSnapshot, collection } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
+function parseDate(dateStr) {
+  if (!dateStr) return new Date(0);
+
+  const parts = dateStr.split("/");
+
+  let day = parts[0];
+  let month = parts[1];
+  let year = parts[2];
+
+  // 🔥 handle 2-digit year like "26"
+  if (year.length === 2) {
+    year = "20" + year;
+  }
+
+  return new Date(`${year}-${month}-${day}`);
+}
+
 function loadUserInvoices(userEmail) {
   const container = document.querySelector(".wrapper-payments .profile-info");
 
@@ -26,10 +43,12 @@ function loadUserInvoices(userEmail) {
     if (data.status === "cancelled") return;
 
     invoicesArray.push({
-      ...data
+      ...data,
+      parsedDate: parseDate(data.date)
     });
-
   });
+
+  invoicesArray.sort((a, b) => b.parsedDate - a.parsedDate);
 
 
   // ✅ RENDER

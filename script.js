@@ -227,6 +227,14 @@ document.getElementById("eventsBtn")?.addEventListener("click", e => {
     wrappers.events?.classList.add("active-popup");
 });
 
+document.getElementById("adminPayments")?.addEventListener("click", e => {
+    e.preventDefault();
+    e.stopPropagation();
+    closeAllWrappers();
+    moreMenu?.classList.remove("active");
+    wrappers.payments?.classList.add("active-popup");
+});
+
 document.querySelector("#moreMenu a:nth-child(2)")?.addEventListener("click", e => {
     e.preventDefault();
     e.stopPropagation();

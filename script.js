@@ -185,7 +185,7 @@ const wrappers = {
     tickets:       document.querySelector(".wrapper-tickets"),
     products:      document.querySelector(".wrapper-admin-products"),
     invoices:      document.querySelector(".wrapper-admin-payments"),
-    paymentsAdmin: document.getElementById("adminPaymentsWrapper"),
+    paymentsAdmin: document.querySelector("wrapper-payments-admin"),
 };
 
 

@@ -1499,15 +1499,7 @@ input:-webkit-autofill:focus {
     display: flex;
     gap: 10px;
     margin-top: 10px;
-}
-
-.pay-btn, .cancel-btn {
-  border: none;
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
+    width: 90%;
 }
 
 /* PAY BUTTON */
@@ -1533,6 +1525,7 @@ input:-webkit-autofill:focus {
 }
 
 .pay-btn, .cancel-btn {
+    width: 40%;
     border: none;
     padding: 10px 14px;
     border-radius: 10px;
@@ -1614,4 +1607,9 @@ input:-webkit-autofill:focus {
 
 #confirmNo:hover {
     background: #cfd4db;
+}
+
+.wrapper-admin-payments .form-box{
+    width: 100%;
+    padding: 30px;
 }

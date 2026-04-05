@@ -1581,6 +1581,10 @@ input:-webkit-autofill:focus {
     box-shadow: 0 20px 60px rgba(0,0,0,0.6);
 
     display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    transition: transform .5s ease;
     flex-direction: column;
     padding: 20px;
 

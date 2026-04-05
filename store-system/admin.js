@@ -128,25 +128,23 @@ async function loadAllInvoices() {
       
       const invoicesArray = [];
 
-      invoicesSnap.forEach((docSnap) => {
+      snapshot.forEach(docSnap => {
         const data = docSnap.data();
 
-        // 🔥 SKIP CANCELLED
         if (data.status === "cancelled") return;
 
         invoicesArray.push({
           id: docSnap.id,
           userEmail,
-          ...data
+          ...data,
+          parsedDate: parseDate(data.date)
         });
       });
 
-      // ✅ SORT BY DATE (NEWEST → OLDEST)
-      invoicesArray.sort((a, b) => {
-        return new Date(b.date) - new Date(a.date);
-      });
+      invoicesArray.sort((a, b) => b.parsedDate - a.parsedDate);
 
-      // 🔥 NOW LOOP CORRECTLY
+
+      // ✅ RENDER
       invoicesArray.forEach((data) => {
         console.log("✅ CREATING BLOCK");
 

@@ -1456,6 +1456,32 @@ input:-webkit-autofill:focus {
     scrollbar-color: rgba(22, 41, 56, 0.85) transparent;
 }
 
+/* WRAPPER ADMIN PRODUCTS */
+
+.wrapper-admin-products{
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%) scale(0);
+    width: 400px;
+    height: 385px;
+    background: transparent;
+    border: 2px solid rgba(225,225,225,.5);
+    border-radius: 20px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 0 30px rgba(0,0,0,.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    transition: transform .5s ease;
+    z-index: 1000;
+}
+
+.wrapper-admin-products.active-popup{
+    transform: translate(-50%,-50%) scale(1);
+}
+
 /* ADMIN INVOICES WRAPPER */
 
 .wrapper-admin-products .form-box{

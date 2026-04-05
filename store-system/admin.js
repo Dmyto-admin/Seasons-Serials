@@ -54,10 +54,10 @@ function showConfirm(actionText, invoiceId) {
 
     text.innerText = `Are you sure you want to ${actionText} invoice #${invoiceId}?`;
 
-    modal.classList.add("active");
+    modal.classList.add("show");
 
     const cleanup = () => {
-      modal.classList.remove("active");
+      modal.classList.remove("show");
       yesBtn.onclick = null;
       noBtn.onclick = null;
     };

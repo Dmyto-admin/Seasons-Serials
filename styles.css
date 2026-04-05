@@ -1491,30 +1491,6 @@ input:-webkit-autofill:focus {
     gap: 15px;
 }
 
-.wrapper-admin-payments{
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%,-50%) scale(0);
-    width: 400px;
-    height: 385px;
-    background: transparent;
-    border: 2px solid rgba(225,225,225,.5);
-    border-radius: 20px;
-    backdrop-filter: blur(20px);
-    box-shadow: 0 0 30px rgba(0,0,0,.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-    transition: transform .5s ease;
-    z-index: 1000;
-}
-
-.wrapper-admin-payments.active-popup{
-    transform: translate(-50%,-50%) scale(1);
-}
-
 .admin-actions {
   display: flex;
   gap: 10px;
@@ -1552,27 +1528,31 @@ input:-webkit-autofill:focus {
   transform: scale(1.05);
 }
 
-/* WRAPPER PAYMENTS ADMIN */
-.wrapper-payments-admin {
+.wrapper-admin-payments {
     position: fixed;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%) scale(0);
+    transform: translate(-50%,-50%) scale(0);
+
     width: 400px;
     height: 385px;
-    background: transparent;
-    border: 2px solid rgba(225, 225, 225, .5);
+
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.2);
     border-radius: 20px;
-    backdrop-filter: blur(20px);
-    box-shadow: 0 0 30px rgba(0, 0, 0, .5);
+
+    backdrop-filter: blur(25px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+
     display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-    transition: transform .5s ease;
+    flex-direction: column;
+    padding: 20px;
+
+    overflow-y: auto;
+    transition: all 0.4s ease;
     z-index: 1000;
 }
 
-.wrapper-payments-admin.active-popup {
-    transform: translate(-50%, -50%) scale(1);
-    }
+.wrapper-admin-payments.active-popup {
+    transform: translate(-50%,-50%) scale(1);
+}

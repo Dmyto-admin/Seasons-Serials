@@ -1596,3 +1596,22 @@ input:-webkit-autofill:focus {
 .wrapper-admin-payments.active-popup {
     transform: translate(-50%,-50%) scale(1);
 }
+
+/* Confirm YES */
+#confirmYes {
+    background: #1e5ed8;
+    color: white;
+}
+
+#confirmYes:hover {
+    background: #174bb0;
+}
+
+/* Confirm NO */
+#confirmNo {
+    background: #e0e3e8;
+}
+
+#confirmNo:hover {
+    background: #cfd4db;
+}

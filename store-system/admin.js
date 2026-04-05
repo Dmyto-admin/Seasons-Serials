@@ -128,7 +128,7 @@ async function loadAllInvoices() {
       
       const invoicesArray = [];
 
-      snapshot.forEach(docSnap => {
+      invoicesSnap.forEach(docSnap => {
         const data = docSnap.data();
 
         if (data.status === "cancelled") return;

@@ -44,6 +44,37 @@ products.forEach(p=>{
 
 });
 
+function showConfirm(actionText, invoiceId) {
+  return new Promise((resolve) => {
+
+    const modal = document.getElementById("confirmModal");
+    const text = document.getElementById("confirmText");
+    const yesBtn = document.getElementById("confirmYes");
+    const noBtn = document.getElementById("confirmNo");
+
+    text.innerText = `Are you sure you want to ${actionText} invoice #${invoiceId}?`;
+
+    modal.classList.add("active");
+
+    const cleanup = () => {
+      modal.classList.remove("active");
+      yesBtn.onclick = null;
+      noBtn.onclick = null;
+    };
+
+    yesBtn.onclick = () => {
+      cleanup();
+      resolve(true);
+    };
+
+    noBtn.onclick = () => {
+      cleanup();
+      resolve(false);
+    };
+
+  });
+}
+
 const container = document.querySelector(".admin-invoices-container");
 
 async function loadAllInvoices() {
@@ -166,7 +197,11 @@ async function loadAllInvoices() {
 
         // 🔥 PAYED
         block.querySelector(".pay-btn").onclick = async () => {
-          alert("💰 PAYD CLICKED 💰");
+
+          const confirm = await showConfirm("mark as PAYED", data.invoiceId);
+          if (!confirm) return;
+
+          alert("💰 PAYED CLICKED 💰");
 
           await updateDoc(
             doc(db, "users", userEmail, "invoices", data.id),
@@ -178,18 +213,19 @@ async function loadAllInvoices() {
 
         // 🔥 CANCEL
         block.querySelector(".cancel-btn").onclick = async () => {
+
+          const confirm = await showConfirm("DELETE", data.invoiceId);
+          if (!confirm) return;
+
           alert("🗑️ DELETE CLICKED 🗑️");
 
           try {
             const ref = doc(db, "users", userEmail, "invoices", data.id);
 
-            console.log("Deleting:", userEmail, data.id);
-
             await deleteDoc(ref);
 
             alert("✅ DELETED FROM FIREBASE");
 
-            // 🔥 RELOAD EVERYTHING (NOT JUST UI FAKE HIDE)
             loadAllInvoices();
 
           } catch (err) {

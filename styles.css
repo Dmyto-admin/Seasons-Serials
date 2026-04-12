@@ -807,7 +807,7 @@ header {
   inset: 0;
   overflow: hidden;
   pointer-events: none;
-  z-index: 9998; /* behind success modal */
+  z-index: 10000; /* abowe success modal */
 }
 
 .confetti {

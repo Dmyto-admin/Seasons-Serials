@@ -802,6 +802,21 @@ header {
   display: none;
 }
 
+.confetti {
+  position: fixed;
+  top: -10px;
+  width: 8px;
+  height: 8px;
+  background: hsl(calc(360 * var(--i)), 100%, 50%);
+  animation: fall linear forwards;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(100vh) rotate(720deg);
+  }
+}
+
 .discount-row {
     display: flex;
     align-items: center;

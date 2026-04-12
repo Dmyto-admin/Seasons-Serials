@@ -481,6 +481,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 2500);
   }
 
+  function launchConfetti() {
+    for (let i = 0; i < 80; i++) {
+      const conf = document.createElement("div");
+      conf.className = "confetti";
+      conf.style.left = Math.random() * 100 + "vw";
+      conf.style.animationDuration = (Math.random() * 2 + 2) + "s";
+      document.body.appendChild(conf);
+
+      setTimeout(() => conf.remove(), 4000);
+    }
+  }
+
 
       function generateInvoicePDF(data) {
           const { jsPDF } = window.jspdf;

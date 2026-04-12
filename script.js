@@ -324,7 +324,7 @@ const imageViewerClose = document.querySelector('.image-viewer-close');
 let zoomed = false;
 
 /* OPEN ANY STORE IMAGE */
-document.querySelectorAll('.store-img, .store-img-t2').forEach(img => {
+document.querySelectorAll('.store-img, .store-img-t2, .store-img-t3').forEach(img => {
     img.addEventListener('click', () => {
         imageViewerImg.src = img.dataset.full;
 

@@ -59,7 +59,8 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "saleProductOne", btn: "buyBtnOne" },
     { id: "saleProductTwo", btn: "buyBtnTwo" },
     { id: "saleProductThree", btn: "buyBtnThree" },
-    { id: "saleProductFour", btn: "buyBtnFour" }
+    { id: "saleProductFour", btn: "buyBtnFour" },
+    { id: "saleProductFive", btn: "buyBtnFive" }
   ];
 
 

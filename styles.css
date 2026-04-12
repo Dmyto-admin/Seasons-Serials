@@ -28,6 +28,10 @@ header {
     z-index: 99;
 }
 
+.nav-gap {
+    min-width: 20px;
+}
+
 .logo {
     font-size: 2em;
     color: #fff;

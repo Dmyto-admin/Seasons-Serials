@@ -590,11 +590,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async rollback() {
 
-    if (orderSucceeded) {
-      console.warn("Rollback skipped (order already succeeded)");
-      return;
-    }
-    
     console.warn("⚠️ ROLLING BACK EVERYTHING...");
     for (let i = this.rollbackStack.length - 1; i >= 0; i--) {
       try {
@@ -761,24 +756,26 @@ confirmBtn.addEventListener("click", async () => {
       }, 800);
     
     } catch (error) {
-      console.error("❌ FULL FAILURE:", error);
+        console.error("❌ FULL FAILURE:", error);
 
-      try {
-        await tx.rollback();
-      } catch (e) {
-        console.error("rollback crashed", e);
-        alert(e);
+        try {
+          await tx.rollback();
+        } catch (e) {
+          console.error("Rollback crashed:", e);
+        }
+
+        await showResultModal(false);
+
+        confirmBtn.disabled = false;
+
+        selectedProduct.button.innerText = "Buy!";
+        selectedProduct.button.disabled = false;
+        selectedProduct.button.classList.remove("reserved-state");
+
+      } finally {
+        // 🔥 ALWAYS RUNS (this fixes stuck loading)
+        loadModal.classList.remove("show");
       }
-
-      await showResultModal(false);
-
-      confirmBtn.disabled = false;
-
-      selectedProduct.button.innerText = "Buy!";
-      selectedProduct.button.disabled = false;
-      selectedProduct.button.classList.remove("reserved-state");
-
-    } 
 });
   }
 

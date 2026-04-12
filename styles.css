@@ -402,9 +402,9 @@ header {
 .store-img-t3 {
     display: block;
     height: 110px;
-    width: 120px;
-    margin-left: 14%;
-    margin-right: 14%;
+    width: 121px;
+    margin-left: 10%;
+    margin-right: 10%;
     margin-top: 10px;
     border: 1px solid rgba(225, 225, 225, .5);
     border-radius: 20px;

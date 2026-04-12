@@ -486,30 +486,31 @@ document.addEventListener("DOMContentLoaded", () => {
 }
 
   function launchConfetti() {
-  console.log("🎊 launchConfetti ENTERED");
-  alert("🎊 launchConfetti ENTERED");
+  const layer = document.getElementById("confettiLayer");
 
-  for (let i = 0; i < 80; i++) {
+  const colors = ["#00c2ff", "#00ff88", "#ffcc00", "#ff4d6d", "#a855f7"];
+
+  const count = 140; // 👈 professional density
+
+  for (let i = 0; i < count; i++) {
     const conf = document.createElement("div");
     conf.className = "confetti";
 
     conf.style.left = Math.random() * 100 + "vw";
-    conf.style.animationDuration = (Math.random() * 2 + 2) + "s";
+    conf.style.top = "-10px";
 
-    document.body.appendChild(conf);
+    conf.style.background = colors[Math.floor(Math.random() * colors.length)];
 
-    if (i === 0) {
-      console.log("🎊 FIRST CONFETTI CREATED");
-      alert("🎊 FIRST CONFETTI CREATED");
-    }
+    conf.style.width = (6 + Math.random() * 8) + "px";
+    conf.style.height = (8 + Math.random() * 14) + "px";
 
-    setTimeout(() => {
-      conf.remove();
-    }, 4000);
+    conf.style.animationDuration = (2.5 + Math.random() * 2) + "s";
+    conf.style.opacity = (0.6 + Math.random() * 0.4);
+
+    layer.appendChild(conf);
+
+    setTimeout(() => conf.remove(), 5000);
   }
-
-  console.log("🎊 CONFETTI LOOP DONE");
-  alert("🎊 CONFETTI LOOP DONE");
 }
 
 

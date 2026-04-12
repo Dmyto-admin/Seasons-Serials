@@ -582,6 +582,7 @@ document.addEventListener("DOMContentLoaded", () => {
   class Transaction {
   constructor() {
     this.rollbackStack = [];
+    this.cancelled = false;
   }
 
   addRollback(fn) {
@@ -589,16 +590,21 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async rollback() {
+    if (this.cancelled) return;
 
     console.warn("⚠️ ROLLING BACK EVERYTHING...");
+
     for (let i = this.rollbackStack.length - 1; i >= 0; i--) {
       try {
         await this.rollbackStack[i]();
       } catch (err) {
         console.error("Rollback step failed at step:", i, err);
-        alert("Rollback failed: " + err?.message);
       }
     }
+  }
+
+  markSuccess() {
+    this.cancelled = true;
   }
 }
   
@@ -737,6 +743,7 @@ confirmBtn.addEventListener("click", async () => {
 
     
     // 🔵 STEP 7 — SHOW SUCCESS UI FIRST
+    tx.markSuccess();
     
       // 1. show success FIRST
       launchConfetti();

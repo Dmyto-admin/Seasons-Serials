@@ -463,22 +463,29 @@ document.addEventListener("DOMContentLoaded", () => {
     loadModal.classList.add("show");
   }
 
-  function showResultModal(success=true) {
-    loader.style.display = "none";
-    resultIcon.classList.remove("hidden");
+  function sleep(ms) {
+    return new Promise(res => setTimeout(res, ms));
+  }
 
-    if (success) {
-      loadTitle.innerText = "Order Successful!";
-      resultIcon.innerHTML = "✅";
-      launchConfetti();
-    } else {
-      loadTitle.innerText = "Order Failed";
-      resultIcon.innerHTML = "❌";
-    }
+  async function showResultModal(success = true) {
+  loader.style.display = "none";
+  resultIcon.classList.remove("hidden");
 
-    setTimeout(() => {
-      loadModal.classList.remove("show");
-    }, 2500);
+  if (success) {
+    loadTitle.innerText = "Order Successful!";
+    resultIcon.innerHTML = "✅";
+    launchConfetti();
+  } else {
+    loadTitle.innerText = "Order Failed";
+    resultIcon.innerHTML = "❌";
+  }
+
+  loadModal.classList.add("show");
+
+  // ⏳ SHORTER DISPLAY TIME (you asked faster closing)
+  await sleep(1500);
+
+  loadModal.classList.remove("show");
   }
 
   function launchConfetti() {
@@ -724,14 +731,21 @@ confirmBtn.addEventListener("click", async () => {
     });
 
     
-    // 🔵 STEP 7 — NOW DOWNLOAD (LAST STEP)
-    pdfDoc.save("Invoice_" + invoiceData.invoiceId + ".pdf");
+    // 🔵 STEP 7 — SHOW SUCCESS UI FIRST
+    await showResultModal(true);
 
-    // 👉 CLOSE AFTER SUCCESS (not before)
+    // 🔵 STEP 8 — CLOSE CHECKOUT MODAL TOGETHER
+    closeModal();
+    closeReservation();
+
+    // small buffer so iPad UI settles
+    await sleep(300);
+
+    // 🔵 STEP 9 — DELAY PDF DOWNLOAD (IMPORTANT FOR iPAD SAFARI)
     setTimeout(() => {
-      closeModal();
-    }, 2500);
-
+      pdfDoc.save("Invoice_" + invoiceData.invoiceId + ".pdf");
+    }, 1200);
+    
     } catch (error) {
       console.error("❌ FULL FAILURE:", error);
 

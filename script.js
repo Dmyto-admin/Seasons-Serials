@@ -2,18 +2,6 @@
 
 console.log("script.js loaded");
 
-function verifyDevice() {
-    const width = window.innerWidth;
-
-    let device = "desktop";
-
-    if (width <= 480) device = "mobile";
-    else if (width <= 768) device = "tablet";
-    else if (width <= 1200) device = "laptop";
-
-    document.body.classList.add(device);
-}
-
 /* ---------- USERS DATABASE ---------- */
 
 const USERS = [
@@ -115,7 +103,7 @@ function protectPage(allowedRole) {
 
 /* ---------- LOGIN POPUP ---------- */
 
-document.addEventListener("DOMContentLoaded", verifyDevice () => {
+document.addEventListener("DOMContentLoaded", () => {
     const wrapper = document.querySelector(".wrapper");
     const closeIcon = document.querySelector(".icon-close");
     const loginBtn = document.querySelector("#loginBtn");

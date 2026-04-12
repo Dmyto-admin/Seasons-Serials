@@ -767,6 +767,7 @@ confirmBtn.addEventListener("click", async () => {
         await tx.rollback();
       } catch (e) {
         console.error("rollback crashed", e);
+        alert(e);
       }
 
       await showResultModal(false);

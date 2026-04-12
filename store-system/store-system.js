@@ -254,17 +254,6 @@ document.addEventListener("DOMContentLoaded", () => {
       setDiscountMessage("Failed to apply promocode", "red");
     }
   });
-
-function closeReservation(){
-      reservationBox.classList.remove("show");
-
-      if (reservationInterval) {
-        clearInterval(reservationInterval);
-        reservationInterval = null;
-      }
-
-      document.body.style.pointerEvents = "auto";
-    }
   
   products.forEach(product => {
 
@@ -316,6 +305,17 @@ function closeReservation(){
     const closeReservationBtn = document.getElementById("closeReservationBtn");
 
     let reservationInterval = null;
+
+    function closeReservation(){
+      reservationBox.classList.remove("show");
+
+      if (reservationInterval) {
+        clearInterval(reservationInterval);
+        reservationInterval = null;
+      }
+
+      document.body.style.pointerEvents = "auto";
+    }
 
     if (closeReservationBtn) {
       closeReservationBtn.onclick = closeReservation;
@@ -773,7 +773,6 @@ confirmBtn.addEventListener("click", async () => {
 
       // 2. close UI immediately after
       closeModal();
-      closeReservation();
 
       // 3. wait for UI to settle (iPad fix)
       await sleep(800);

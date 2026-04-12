@@ -585,26 +585,49 @@ document.addEventListener("DOMContentLoaded", () => {
     this.cancelled = false;
   }
 
-  addRollback(fn) {
-    this.rollbackStack.push(fn);
-  }
-
-  async rollback() {
-    if (this.cancelled) return;
-
-    console.warn("⚠️ ROLLING BACK EVERYTHING...");
-
-    for (let i = this.rollbackStack.length - 1; i >= 0; i--) {
-      try {
-        await this.rollbackStack[i]();
-      } catch (err) {
-        console.error("Rollback step failed at step:", i, err);
-      }
-    }
+  addRollback(fn, label = "unknown") {
+    console.log("🟡 Adding rollback:", label, fn);
+    alert("🟡 Adding rollback:" + label + fn);
+    this.rollbackStack.push({ fn, label });
   }
 
   markSuccess() {
+    console.log("🟢 TRANSACTION MARKED SUCCESS");
+    alert("🟢 TRANSACTION MARKED SUCCESS");
     this.cancelled = true;
+  }
+
+  async rollback() {
+    console.warn("⚠️ ROLLBACK STARTED");
+    alert("⚠️ ROLLBACK STARTED");
+    console.log("Stack size:", this.rollbackStack.length);
+    alert("Stack size:" + this.rollbackStack.length);
+
+    for (let i = this.rollbackStack.length - 1; i >= 0; i--) {
+      const step = this.rollbackStack[i];
+
+      console.log(`↩️ Rolling back step ${i}:`, step.label);
+      alert(`↩️ Rolling back step ${i}:` + step.label);
+
+      try {
+        if (!step.fn) {
+          console.error("❌ Rollback function is undefined at step", i);
+          alert("❌ Rollback function is undefined at step" + i);
+          continue;
+        }
+
+        await step.fn();
+        console.log(`✅ Rollback OK: ${step.label}`);
+        alert(`✅ Rollback OK: ${step.label}`);
+
+      } catch (err) {
+        console.error("❌ Rollback FAILED:", step.label, err);
+        alert("ROLLBACK FAILED: " + step.label + " → " + (err?.message || err));
+      }
+    }
+
+    console.warn("⚠️ ROLLBACK FINISHED");
+    alert("⚠️ ROLLBACK FINISHED");
   }
 }
   
@@ -764,24 +787,19 @@ confirmBtn.addEventListener("click", async () => {
     
     } catch (error) {
         console.error("❌ FULL FAILURE:", error);
+        alert("CATCH TRIGGERED: " + (error?.message || error));
+
+        console.log("🧨 ABOUT TO ROLLBACK");
+        alert("ROLLBACK STARTING");
 
         try {
           await tx.rollback();
         } catch (e) {
-          console.error("Rollback crashed:", e);
+          console.error("rollback crashed", e);
+          alert("ROLLBACK CRASH: " + (e?.message || e));
         }
 
         await showResultModal(false);
-
-        confirmBtn.disabled = false;
-
-        selectedProduct.button.innerText = "Buy!";
-        selectedProduct.button.disabled = false;
-        selectedProduct.button.classList.remove("reserved-state");
-
-      } finally {
-        // 🔥 ALWAYS RUNS (this fixes stuck loading)
-        loadModal.classList.remove("show");
       }
 });
   }

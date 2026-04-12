@@ -487,16 +487,31 @@ document.addEventListener("DOMContentLoaded", () => {
 }
 
   function launchConfetti() {
-    for (let i = 0; i < 80; i++) {
-      const conf = document.createElement("div");
-      conf.className = "confetti";
-      conf.style.left = Math.random() * 100 + "vw";
-      conf.style.animationDuration = (Math.random() * 2 + 2) + "s";
-      document.body.appendChild(conf);
+  console.log("🎊 launchConfetti ENTERED");
+  alert("🎊 launchConfetti ENTERED");
 
-      setTimeout(() => conf.remove(), 4000);
+  for (let i = 0; i < 80; i++) {
+    const conf = document.createElement("div");
+    conf.className = "confetti";
+
+    conf.style.left = Math.random() * 100 + "vw";
+    conf.style.animationDuration = (Math.random() * 2 + 2) + "s";
+
+    document.body.appendChild(conf);
+
+    if (i === 0) {
+      console.log("🎊 FIRST CONFETTI CREATED");
+      alert("🎊 FIRST CONFETTI CREATED");
     }
+
+    setTimeout(() => {
+      conf.remove();
+    }, 4000);
   }
+
+  console.log("🎊 CONFETTI LOOP DONE");
+  alert("🎊 CONFETTI LOOP DONE");
+}
 
 
       function generateInvoicePDF(data) {
@@ -767,7 +782,13 @@ confirmBtn.addEventListener("click", async () => {
     tx.markSuccess();
     
       // 1. show success FIRST
-      launchConfetti();
+        console.log("🎊 ABOUT TO START CONFETTI");
+        alert("🎊 ABOUT TO START CONFETTI");
+
+        launchConfetti();
+
+        console.log("🎊 CONFETTI FUNCTION CALLED");
+        alert("🎊 CONFETTI FUNCTION CALLED");
 
       await showResultModal(true);
 

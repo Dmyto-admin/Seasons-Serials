@@ -399,6 +399,18 @@ header {
     cursor: pointer;
 }
 
+.store-img-t2 {
+    display: block;
+    height: 110px;
+    width: 120px;
+    margin-left: 14%;
+    margin-right: 14%;
+    margin-top: 10px;
+    border: 1px solid rgba(225, 225, 225, .5);
+    border-radius: 20px;
+    cursor: pointer;
+}
+
 #imageViewer {
     display: flex;
     justify-content: center;

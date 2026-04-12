@@ -255,6 +255,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+function closeReservation(){
+      reservationBox.classList.remove("show");
+
+      if (reservationInterval) {
+        clearInterval(reservationInterval);
+        reservationInterval = null;
+      }
+
+      document.body.style.pointerEvents = "auto";
+    }
+  
   products.forEach(product => {
 
     const productRef = doc(db, "products", product.id);
@@ -305,17 +316,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const closeReservationBtn = document.getElementById("closeReservationBtn");
 
     let reservationInterval = null;
-
-    function closeReservation(){
-      reservationBox.classList.remove("show");
-
-      if (reservationInterval) {
-        clearInterval(reservationInterval);
-        reservationInterval = null;
-      }
-
-      document.body.style.pointerEvents = "auto";
-    }
 
     if (closeReservationBtn) {
       closeReservationBtn.onclick = closeReservation;
@@ -622,7 +622,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       } catch (err) {
         console.error("❌ Rollback FAILED:", step.label, err);
-        alert("ROLLBACK FAILED: " + step.label + " → " + (err?.message || err));
+        alert("ROLLBACK FAILED: " + step.label;
+        alert(err?.message || err);
       }
     }
 
@@ -677,13 +678,16 @@ confirmBtn.addEventListener("click", async () => {
     }, { merge: true });
 
     // ✅ ADD ROLLBACK
-    tx.addRollback(async () => {
-      await setDoc(productRef, {
-        status: "available",
-        reservedUntil: 0,
-        reservedBy: ""
-      }, { merge: true });
-    });
+    tx.addRollback(
+       async () => {
+        await setDoc(productRef, {
+          status: "available",
+          reservedUntil: 0,
+          reservedBy: ""
+        }, { merge: true });
+      },
+      "restore product"
+    );
 
     // 🟡 STEP 2 — APPLY DISCOUNT (AUTO)
     if (matchedDiscountDoc && matchedDiscountDoc.data().status === "available") {
@@ -756,13 +760,7 @@ confirmBtn.addEventListener("click", async () => {
       invoice_id: invoiceId
     });
 
-    // ✅ COMPENSATION ACTION
-    tx.addRollback(async () => {
-      await emailjs.send("service_newemail1","template_cancel_email", {
-        to_email: email,
-        message: "Your order was cancelled due to an error."
-      });
-    });
+    // COMPENSATION ACTION NONE
 
     
     // 🔵 STEP 7 — SHOW SUCCESS UI FIRST

@@ -802,18 +802,30 @@ header {
   display: none;
 }
 
-.confetti {
+#confettiLayer {
   position: fixed;
-  top: -10px;
-  width: 8px;
-  height: 8px;
-  background: hsl(calc(360 * var(--i)), 100%, 50%);
-  animation: fall linear forwards;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 9998; /* behind success modal */
+}
+
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 14px;
+  border-radius: 2px;
+  opacity: 0.9;
+  animation: fall 3.5s linear forwards;
+  will-change: transform;
 }
 
 @keyframes fall {
-  to {
-    transform: translateY(100vh) rotate(720deg);
+  0% {
+    transform: translateY(-10vh) rotate(0deg);
+  }
+  100% {
+    transform: translateY(110vh) rotate(720deg);
   }
 }
 

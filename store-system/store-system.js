@@ -474,7 +474,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (success) {
     loadTitle.innerText = "Order Successful!";
     resultIcon.innerHTML = "✅";
-    launchConfetti();
   } else {
     loadTitle.innerText = "Order Failed";
     resultIcon.innerHTML = "❌";
@@ -482,11 +481,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   loadModal.classList.add("show");
 
-  // ⏳ SHORTER DISPLAY TIME (you asked faster closing)
-  await sleep(1500);
+  await sleep(1200); // shorter visibility
 
   loadModal.classList.remove("show");
-  }
+}
 
   function launchConfetti() {
     for (let i = 0; i < 80; i++) {
@@ -591,13 +589,19 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async rollback() {
+
+    if (orderSucceeded) {
+      console.warn("Rollback skipped (order already succeeded)");
+      return;
+    }
+    
     console.warn("⚠️ ROLLING BACK EVERYTHING...");
     for (let i = this.rollbackStack.length - 1; i >= 0; i--) {
       try {
         await this.rollbackStack[i]();
       } catch (err) {
-        console.error("Rollback step failed:", err);
-        alert("Rollback step failed:", err);
+        console.error("Rollback step failed at step:", i, err);
+        alert("Rollback failed: " + err?.message);
       }
     }
   }
@@ -616,6 +620,8 @@ confirmBtn.addEventListener("click", async () => {
 
   const productRef = selectedProduct.ref;
   let discountApplied = false;
+
+  let orderSucceeded = false;
 
   const tx = new Transaction();
 
@@ -732,19 +738,23 @@ confirmBtn.addEventListener("click", async () => {
 
     
     // 🔵 STEP 7 — SHOW SUCCESS UI FIRST
-    await showResultModal(true);
+    
+      // 1. show success FIRST
+      launchConfetti();
 
-    // 🔵 STEP 8 — CLOSE CHECKOUT MODAL TOGETHER
-    closeModal();
-    closeReservation();
+      await showResultModal(true);
 
-    // small buffer so iPad UI settles
-    await sleep(300);
+      // 2. close UI immediately after
+      closeModal();
+      closeReservation();
 
-    // 🔵 STEP 9 — DELAY PDF DOWNLOAD (IMPORTANT FOR iPAD SAFARI)
-    setTimeout(() => {
-      pdfDoc.save("Invoice_" + invoiceData.invoiceId + ".pdf");
-    }, 1200);
+      // 3. wait for UI to settle (iPad fix)
+      await sleep(800);
+
+      // 4. ONLY NOW download PDF
+      setTimeout(() => {
+        pdfDoc.save("Invoice_" + invoiceData.invoiceId + ".pdf");
+      }, 800);
     
     } catch (error) {
       console.error("❌ FULL FAILURE:", error);

@@ -6,7 +6,7 @@
 }
 
 body {
-    display: block;
+    display: flex;
     position: relative;
     justify-content: center;
     align-items: center;
@@ -14,9 +14,6 @@ body {
     background: url('background.jpg') no-repeat;
     background-size: cover;
     background-position: center;
-
-    overflow-x: auto;  /* horizontal scroll */
-    overflow-y: auto;  /* vertical scroll */
 }
 
 header {

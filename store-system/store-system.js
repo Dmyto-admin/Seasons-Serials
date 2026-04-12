@@ -450,6 +450,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let reservationInterval = null;
 
+  
+  const loadModal = document.getElementById("loadModal");
+  const loadTitle = document.getElementById("loadTitle");
+  const loader = document.getElementById("loader");
+  const resultIcon = document.getElementById("resultIcon");
+
+  function showLoading(text="Processing...") {
+    loadTitle.innerText = text;
+    loader.style.display = "block";
+    resultIcon.classList.add("hidden");
+    loadModal.classList.add("show");
+  }
+
+  function showResultModal(success=true) {
+    loader.style.display = "none";
+    resultIcon.classList.remove("hidden");
+
+    if (success) {
+      loadTitle.innerText = "Order Successful!";
+      resultIcon.innerHTML = "✅";
+      launchConfetti();
+    } else {
+      loadTitle.innerText = "Order Failed";
+      resultIcon.innerHTML = "❌";
+    }
+
+    setTimeout(() => {
+      loadModal.classList.remove("show");
+    }, 2500);
+  }
+
 
       function generateInvoicePDF(data) {
           const { jsPDF } = window.jspdf;

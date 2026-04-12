@@ -602,13 +602,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   addRollback(fn, label = "unknown") {
     console.log("🟡 Adding rollback:", label, fn);
-    alert("🟡 Adding rollback:" + label + fn);
     this.rollbackStack.push({ fn, label });
   }
 
   markSuccess() {
     console.log("🟢 TRANSACTION MARKED SUCCESS");
-    alert("🟢 TRANSACTION MARKED SUCCESS");
     this.cancelled = true;
   }
 
@@ -783,12 +781,10 @@ confirmBtn.addEventListener("click", async () => {
     
       // 1. show success FIRST
         console.log("🎊 ABOUT TO START CONFETTI");
-        alert("🎊 ABOUT TO START CONFETTI");
 
         launchConfetti();
 
         console.log("🎊 CONFETTI FUNCTION CALLED");
-        alert("🎊 CONFETTI FUNCTION CALLED");
 
       await showResultModal(true);
 

@@ -609,12 +609,16 @@ document.addEventListener("DOMContentLoaded", () => {
   
 if (confirmBtn) {
 confirmBtn.addEventListener("click", async () => {
-  showLoading("Processing your order...");
 
   const name = document.getElementById("checkoutName").value.trim();
   const email = document.getElementById("checkoutEmail").value.trim();
 
-  if (!name || !email || !selectedProduct) return;
+  if (!name || !email || !selectedProduct) {
+    showResultModal(false);
+    return;
+  }
+
+  showLoading("Processing your order...");
 
   confirmBtn.disabled = true;
 
@@ -759,9 +763,13 @@ confirmBtn.addEventListener("click", async () => {
     } catch (error) {
       console.error("❌ FULL FAILURE:", error);
 
-      await tx.rollback();
+      try {
+        await tx.rollback();
+      } catch (e) {
+        console.error("rollback crashed", e);
+      }
 
-      showResultModal(false);
+      await showResultModal(false);
 
       confirmBtn.disabled = false;
 

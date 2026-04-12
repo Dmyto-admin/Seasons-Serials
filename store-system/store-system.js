@@ -622,7 +622,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       } catch (err) {
         console.error("❌ Rollback FAILED:", step.label, err);
-        alert("ROLLBACK FAILED: " + step.label;
+        alert("ROLLBACK FAILED: " + step.label);
         alert(err?.message || err);
       }
     }

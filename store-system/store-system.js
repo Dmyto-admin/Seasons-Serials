@@ -529,6 +529,28 @@ document.addEventListener("DOMContentLoaded", () => {
          // ===== RETURN DOC, BASE64 LATER ✅
           return doc;
        }
+
+  class Transaction {
+  constructor() {
+    this.rollbackStack = [];
+  }
+
+  addRollback(fn) {
+    this.rollbackStack.push(fn);
+  }
+
+  async rollback() {
+    console.warn("⚠️ ROLLING BACK EVERYTHING...");
+    for (let i = this.rollbackStack.length - 1; i >= 0; i--) {
+      try {
+        await this.rollbackStack[i]();
+      } catch (err) {
+        console.error("Rollback step failed:", err);
+        alert("Rollback step failed:", err);
+      }
+    }
+  }
+}
   
 if (confirmBtn) {
 confirmBtn.addEventListener("click", async () => {
@@ -542,6 +564,8 @@ confirmBtn.addEventListener("click", async () => {
 
   const productRef = selectedProduct.ref;
   let discountApplied = false;
+
+  const tx = new Transaction();
 
   try {
 
@@ -565,10 +589,26 @@ confirmBtn.addEventListener("click", async () => {
       reservedBy: email
     }, { merge: true });
 
+    // ✅ ADD ROLLBACK
+    tx.addRollback(async () => {
+      await setDoc(productRef, {
+        status: "available",
+        reservedUntil: 0,
+        reservedBy: ""
+      }, { merge: true });
+    });
+
     // 🟡 STEP 2 — APPLY DISCOUNT (AUTO)
     if (matchedDiscountDoc && matchedDiscountDoc.data().status === "available") {
       await updateDoc(doc(db, "discounts", matchedDiscountDoc.id), {
         status: "used"
+      });
+
+      // ✅ ROLLBACK
+      tx.addRollback(async () => {
+        await updateDoc(doc(db, "discounts", matchedDiscountDoc.id), {
+        status: "available"
+        });
       });
 
       currentDiscountValue = parseFloat(matchedDiscountDoc.data().value);
@@ -611,6 +651,11 @@ confirmBtn.addEventListener("click", async () => {
       ...invoiceData,
       pdf: pdfBase64
     });
+    
+    // ✅ ROLLBACK (delete invoice)
+    tx.addRollback(async () => {
+      await deleteDoc(doc(db, "users", email, "invoices", invoiceId));
+    });
 
     // 🔵 STEP 6 — SEND EMAIL
     await emailjs.send("service_newemail1", "template_tan46u4", {
@@ -624,45 +669,32 @@ confirmBtn.addEventListener("click", async () => {
       invoice_id: invoiceId
     });
 
+    // ✅ COMPENSATION ACTION
+    tx.addRollback(async () => {
+      await emailjs.send("service_newemail1","template_cancel_email", {
+        to_email: email,
+        message: "Your order was cancelled due to an error."
+      });
+    });
+
     
     // 🔵 STEP 7 — NOW DOWNLOAD (LAST STEP)
     pdfDoc.save("Invoice_" + invoiceData.invoiceId + ".pdf");
 
-  } catch (error) {
+    } catch (error) {
+      console.error("❌ FULL FAILURE:", error);
 
-    console.error("❌ FULL FAILURE:", error);
+      await tx.rollback();
 
-    // 🔴 ROLLBACK
-    try {
-      await setDoc(productRef, {
-        status: "available",
-        reservedUntil: 0,
-        reservedBy: ""
-      }, { merge: true });
+      showResultModal(false);
 
-      if (discountApplied && matchedDiscountDoc) {
-        await updateDoc(doc(db, "discounts", matchedDiscountDoc.id), {
-          status: "available"
-        });
-      }
+      confirmBtn.disabled = false;
 
-    } catch (rollbackError) {
-      console.error("Rollback failed:", rollbackError);
-      alert("Your purchase failed to be completed due to an unknown error. Please contact our support team via this email: seasonsserials.info@gmail.com")
-    }
+      selectedProduct.button.innerText = "Buy!";
+      selectedProduct.button.disabled = false;
+      selectedProduct.button.classList.remove("reserved-state");
 
-    alert("Error completing purchase: " + error.message);
-
-  } finally {
-
-    confirmBtn.disabled = false;
-
-    selectedProduct.button.innerText = "Buy!";
-    selectedProduct.button.disabled = false;
-    selectedProduct.button.classList.remove("reserved-state");
-
-    closeModal(); // ✅ ALWAYS CLOSE
-  }
+    } 
 });
   }
 

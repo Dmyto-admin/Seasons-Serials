@@ -299,7 +299,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     });
 
-    
+
     const reservationBox = document.getElementById("reservationBox");
     const timerEl = document.getElementById("reservationTimer");
     const closeReservationBtn = document.getElementById("closeReservationBtn");
@@ -383,26 +383,25 @@ document.addEventListener("DOMContentLoaded", () => {
       const productName = productBox.querySelector(".product-name").innerText;
       const productPrice = productBox.querySelector(".product-price").innerText;
       originalPrice = parseFloat(productPrice.replace("€", "").trim());
-    
+
       document.getElementById("checkoutProductName").innerText = productName;
       document.getElementById("checkoutProductPrice").innerText = productPrice;
-    
+
       document.getElementById("checkoutModal").classList.add("show");;
-    
+
       // ✅ RESET CONFIRM BUTTON STATE
       confirmBtn.disabled = false;
       confirmBtn.style.pointerEvents = "auto";
-    
+
       selectedProduct = {
         ref: productRef,
         name: productName,
         button: btn
       };
-    
+
     });
 
   });
-
   const checkoutModal = document.getElementById("checkoutModal");
   const cancelBtn = document.getElementById("cancelCheckoutBtn");
 

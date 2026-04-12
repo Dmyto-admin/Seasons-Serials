@@ -1,3 +1,29 @@
+:root {
+    --scale: 1;
+}
+
+body.mobile {
+    --scale: 0.55;
+}
+
+body.tablet {
+    --scale: 0.75;
+}
+
+body.laptop {
+    --scale: 0.9;
+}
+
+body.desktop {
+    --scale: 1;
+}
+
+body {
+    transform: scale(var(--scale));
+    transform-origin: top left;
+    width: calc(100% / var(--scale));
+}
+
 * {
     margin: 0;
     padding: 0;

@@ -598,6 +598,7 @@ document.addEventListener("DOMContentLoaded", () => {
   
 if (confirmBtn) {
 confirmBtn.addEventListener("click", async () => {
+  showLoading("Processing your order...");
 
   const name = document.getElementById("checkoutName").value.trim();
   const email = document.getElementById("checkoutEmail").value.trim();
@@ -621,7 +622,8 @@ confirmBtn.addEventListener("click", async () => {
     }
 
     // ⚡ INSTANT SUCCESS UI UPDATE
-    closeModal(); // ALWAYS close
+      // ✅ ADD THIS RIGHT HERE
+      showLoading("Processing your order...");
 
     selectedProduct.button.innerText = "Reserved";
     selectedProduct.button.disabled = false;
@@ -724,6 +726,11 @@ confirmBtn.addEventListener("click", async () => {
     
     // 🔵 STEP 7 — NOW DOWNLOAD (LAST STEP)
     pdfDoc.save("Invoice_" + invoiceData.invoiceId + ".pdf");
+
+    // 👉 CLOSE AFTER SUCCESS (not before)
+    setTimeout(() => {
+      closeModal();
+    }, 2500);
 
     } catch (error) {
       console.error("❌ FULL FAILURE:", error);

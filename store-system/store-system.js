@@ -626,26 +626,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async rollback() {
     console.warn("⚠️ ROLLBACK STARTED");
-    alert("⚠️ ROLLBACK STARTED");
     console.log("Stack size:", this.rollbackStack.length);
-    alert("Stack size:" + this.rollbackStack.length);
 
     for (let i = this.rollbackStack.length - 1; i >= 0; i--) {
       const step = this.rollbackStack[i];
 
       console.log(`↩️ Rolling back step ${i}:`, step.label);
-      alert(`↩️ Rolling back step ${i}:` + step.label);
 
       try {
         if (!step.fn) {
           console.error("❌ Rollback function is undefined at step", i);
-          alert("❌ Rollback function is undefined at step" + i);
           continue;
         }
 
         await step.fn();
         console.log(`✅ Rollback OK: ${step.label}`);
-        alert(`✅ Rollback OK: ${step.label}`);
 
       } catch (err) {
         console.error("❌ Rollback FAILED:", step.label, err);
@@ -655,7 +650,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     console.warn("⚠️ ROLLBACK FINISHED");
-    alert("⚠️ ROLLBACK FINISHED");
   }
 }
   
@@ -776,18 +770,86 @@ confirmBtn.addEventListener("click", async () => {
     });
 
     // 🔵 STEP 6 — SEND EMAIL
+
+    function buildSuccessEmail(data){
+      return `
+        <div style="background:#0a2540; color:white; padding:20px;">
+          <h2>Seasons Serials</h2>
+          <p style="font-size:12px; opacity:0.8;">Order Confirmation</p>
+        </div>
+
+        <div style="padding:25px; color:#333;">
+          <p>Dear <strong>${data.name}</strong>,</p>
+
+          <p>
+            Thank you for your purchase. Your product has been <strong>reserved especially for you for a period of 24 hours</strong>.
+          </p>
+
+          <div style="background:#f8fafc; padding:15px; border-radius:8px;">
+            <h3>Order Summary</h3>
+            <p><strong>Product:</strong> ${data.productName}</p>
+            <p><strong>Original Price:</strong> ${data.originalPrice}</p>
+            <p><strong>Discount:</strong> ${data.discount}</p>
+            <p><strong>Total:</strong> ${data.finalPrice}</p>
+          </div>
+
+          <p style="font-size:13px;">
+            Order ID: ${data.orderId}<br>
+            Invoice ID: ${data.invoiceId}
+          </p>
+        </div>
+      `;
+    }
+
+    function buildFailedEmail(data){
+      return `
+        <div style="background:#7f1d1d; color:white; padding:20px;">
+          <h2>Seasons Serials</h2>
+          <p style="font-size:12px; opacity:0.8;">Order Failed</p>
+        </div>
+
+        <div style="padding:25px; color:#333;">
+          <p>Dear <strong>${data.name}</strong>,</p>
+
+          <p>
+            Unfortunately, your order <strong>could not be completed</strong>.
+          </p>
+
+          <div style="background:#fef2f2; padding:15px; border-radius:8px; border:1px solid #fecaca;">
+            <p>
+              Product: <strong>${data.productName}</strong><br>
+              Attempted Price: <strong>${data.finalPrice}</strong>
+            </p>
+          </div>
+
+          <p>You can try again anytime.</p>
+
+          <div style="text-align:center;">
+            <a href="${data.retryLink}" 
+               style="background:#0a2540; color:white; padding:10px 20px; text-decoration:none;">
+               Retry Order
+            </a>
+          </div>
+        </div>
+        `;
+      }
+    const successHTML = buildSuccessEmail(invoiceData);
+
     await emailjs.send("service_newemail1", "template_tan46u4", {
       to_email: email,
-      customer_name: name,
-      product_name: selectedProduct.name,
-      original_price: formattedOriginalPrice,
-      discount: discountText,
-      final_price: formattedFinalPrice,
-      order_id: orderId,
-      invoice_id: invoiceId
+      content: successHTML
     });
+    // COMPENSATION ACTION - SEND COMPENSATION EMAIL
 
-    // COMPENSATION ACTION NONE
+    await emailjs.send("service_newemail1", "template_tan46u4", {
+  to_email: email,
+  content: buildFailedEmail({
+    name,
+    productName: selectedProduct?.name || "Unknown",
+    finalPrice: "—",
+    retryLink: "https://your-site.com"
+  })
+});
 
     
     // 🔵 STEP 7 — SHOW SUCCESS UI FIRST

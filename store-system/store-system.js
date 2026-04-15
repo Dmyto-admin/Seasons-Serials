@@ -839,18 +839,20 @@ confirmBtn.addEventListener("click", async () => {
       to_email: email,
       content: successHTML
     });
+    
     // COMPENSATION ACTION - SEND COMPENSATION EMAIL
-
-    await emailjs.send("service_newemail1", "template_tan46u4", {
-  to_email: email,
-  content: buildFailedEmail({
-    name,
-    productName: selectedProduct?.name || "Unknown",
-    finalPrice: "—",
-    retryLink: "https://your-site.com"
-  })
-});
-
+    
+    tx.addRollback(async () => {
+      await emailjs.send("service_newemail1", "template_tan46u4", {
+        to_email: email,
+        content: buildFailedEmail({
+          name,
+          productName: selectedProduct?.name || "Unknown",
+          finalPrice: "—",
+          retryLink: "https://your-site.com"
+        })
+      });
+    });
     
     // 🔵 STEP 7 — SHOW SUCCESS UI FIRST
     tx.markSuccess();

@@ -466,7 +466,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return new Promise(res => setTimeout(res, ms));
   }
 
-  async function showResultModal(success = true) {
+  async function showResultModal(success = true, duration = 3500) {
   loader.style.display = "none";
   resultIcon.classList.remove("hidden");
 
@@ -480,37 +480,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
   loadModal.classList.add("show");
 
-  await sleep(1200); // shorter visibility
+  await sleep(duration);
 
   loadModal.classList.remove("show");
 }
 
   function launchConfetti() {
-  const layer = document.getElementById("confettiLayer");
+  return new Promise((resolve) => {
+    const layer = document.getElementById("confettiLayer");
+    const colors = ["#00c2ff", "#00ff88", "#ffcc00", "#ff4d6d", "#a855f7"];
 
-  const colors = ["#00c2ff", "#00ff88", "#ffcc00", "#ff4d6d", "#a855f7"];
+    const count = 140;
 
-  const count = 140; // 👈 professional density
+    for (let i = 0; i < count; i++) {
+      const conf = document.createElement("div");
+      conf.className = "confetti";
 
-  for (let i = 0; i < count; i++) {
-    const conf = document.createElement("div");
-    conf.className = "confetti";
+      conf.style.left = Math.random() * 100 + "vw";
+      conf.style.top = "-10px";
+      conf.style.background = colors[Math.floor(Math.random() * colors.length)];
+      conf.style.width = (6 + Math.random() * 8) + "px";
+      conf.style.height = (8 + Math.random() * 14) + "px";
+      conf.style.animationDuration = (2.5 + Math.random() * 2) + "s";
+      conf.style.opacity = (0.6 + Math.random() * 0.4);
 
-    conf.style.left = Math.random() * 100 + "vw";
-    conf.style.top = "-10px";
+      layer.appendChild(conf);
 
-    conf.style.background = colors[Math.floor(Math.random() * colors.length)];
+      setTimeout(() => conf.remove(), 4000);
+    }
 
-    conf.style.width = (6 + Math.random() * 8) + "px";
-    conf.style.height = (8 + Math.random() * 14) + "px";
-
-    conf.style.animationDuration = (2.5 + Math.random() * 2) + "s";
-    conf.style.opacity = (0.6 + Math.random() * 0.4);
-
-    layer.appendChild(conf);
-
-    setTimeout(() => conf.remove(), 5000);
-  }
+    // 👇 resolve when confetti is done
+    setTimeout(resolve, 3500);
+  });
 }
 
 
@@ -782,11 +783,10 @@ confirmBtn.addEventListener("click", async () => {
       // 1. show success FIRST
         console.log("🎊 ABOUT TO START CONFETTI");
 
-        launchConfetti();
-
-        console.log("🎊 CONFETTI FUNCTION CALLED");
-
-      await showResultModal(true);
+        await Promise.all([
+          launchConfetti(),
+          showResultModal(true, 3500)
+        ]);
 
       // 2. close UI immediately after
       closeModal();

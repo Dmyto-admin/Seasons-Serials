@@ -878,10 +878,9 @@ confirmBtn.addEventListener("click", async () => {
     
     } catch (error) {
         console.error("❌ FULL FAILURE:", error);
-        alert("CATCH TRIGGERED: " + (error?.message || error));
+        console.error("CATCH TRIGGERED: " + (error?.message || error));
 
         console.log("🧨 ABOUT TO ROLLBACK");
-        alert("ROLLBACK STARTING");
 
         try {
           await tx.rollback();

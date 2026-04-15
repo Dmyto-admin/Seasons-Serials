@@ -797,6 +797,14 @@ confirmBtn.addEventListener("click", async () => {
             Order ID: ${data.orderId}<br>
             Invoice ID: ${data.invoiceId}
           </p>
+          <p style="margin-top:20px;">
+            Please complete the payment within 24 hours to secure your order.
+          </p>
+        </div>
+
+        <!-- FOOTER -->
+        <div style="background:#f1f5f9; padding:15px; text-align:center; font-size:12px; color:#666;">
+          © Seasons Serials — All rights reserved
         </div>
       `;
     }
@@ -812,7 +820,7 @@ confirmBtn.addEventListener("click", async () => {
           <p>Dear <strong>${data.name}</strong>,</p>
 
           <p>
-            Unfortunately, your order <strong>could not be completed</strong>.
+            Unfortunately, your order <strong>could not be completed</strong> due to an error.
           </p>
 
           <div style="background:#fef2f2; padding:15px; border-radius:8px; border:1px solid #fecaca;">
@@ -830,6 +838,11 @@ confirmBtn.addEventListener("click", async () => {
                Retry Order
             </a>
           </div>
+        </div>
+        
+        <!-- FOOTER -->
+        <div style="background:#f1f5f9; padding:15px; text-align:center; font-size:12px; color:#666;">
+          © Seasons Serials — All rights reserved
         </div>
         `;
       }

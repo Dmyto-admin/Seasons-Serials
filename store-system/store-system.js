@@ -43,8 +43,64 @@ async function saveInvoiceToUser(email, invoiceData) {
   }
 }
 
+async function runAutomationChecks() {
+  const productsSnap = await getDocs(collection(db, "products"));
+
+  for (const docSnap of productsSnap.docs) {
+    const data = docSnap.data();
+    const now = Date.now();
+
+    // 🟡 1. SEND 12h REMINDER
+    if (
+      data.status === "reserved" &&
+      !data.reminderSent &&
+      now >= data.reminderAt
+    ) {
+      await emailjs.send("service_newemail1", "template_tan46u4", {
+        to_email: data.reservedBy,
+        content: buildReminderEmail(data)
+      });
+
+      await updateDoc(docSnap.ref, { reminderSent: true });
+    }
+
+    // 🟠 2. SEND 2h WARNING
+    if (
+      data.status === "reserved" &&
+      !data.warningSent &&
+      now >= data.warningAt
+    ) {
+      await emailjs.send("service_newemail1", "template_tan46u4", {
+        to_email: data.reservedBy,
+        content: buildWarningEmail(data)
+      });
+
+      await updateDoc(docSnap.ref, { warningSent: true });
+    }
+
+    // 🔴 3. AUTO RELEASE
+    if (
+      data.status === "reserved" &&
+      now >= data.reservedUntil
+    ) {
+      await updateDoc(docSnap.ref, {
+        status: "available",
+        reservedUntil: 0,
+        reservedBy: "",
+        reminderSent: false,
+        warningSent: false
+      });
+    }
+  }
+}
+
 
 document.addEventListener("DOMContentLoaded", () => {
+
+  runAutomationChecks();
+
+  setInterval(runAutomationChecks, 5 * 60 * 1000); // every 5 min
+
   let selectedProduct = null;
   let appliedDiscount = null;
   let originalPriceNumber = 0;
@@ -694,8 +750,14 @@ confirmBtn.addEventListener("click", async () => {
 
     await setDoc(productRef, {
       status: "reserved",
-      reservedUntil: Date.now() + (24 * 60 * 60 * 1000),
-      reservedBy: email
+      reservedUntil: Date.now + 24 * 60 * 60 * 1000,
+      reservedBy: email,
+
+      reminderAt: Date.now + 12 * 60 * 60 * 1000,
+      reminderSent: false,
+
+      warningAt: Date.now + 22 * 60 * 60 * 1000,
+      warningSent: false
     }, { merge: true });
 
     // ✅ ADD ROLLBACK
@@ -846,6 +908,47 @@ confirmBtn.addEventListener("click", async () => {
         </div>
         `;
       }
+
+    function buildReminderEmail(data){
+      return `
+        <div style="background:#0a2540; color:white; padding:20px;">
+          <h2>Seasons Serials</h2>
+          <p style="font-size:12px; opacity:0.8;">Product Reservation Reminder</p>
+        </div>
+        
+        <p>Your reservation is still active.</p>
+        <div style="background:#f8fafc; padding:15px; border-radius:8px;">
+            <p><strong>Product:</strong> ${data.productName || "Your item"}</p>
+        </div>
+        <p style="margin-top:20px;">Please complete payment soon. Only <strong>12 hours</strong> are left.</p>
+
+        <!-- FOOTER -->
+        <div style="background:#f1f5f9; padding:15px; text-align:center; font-size:12px; color:#666;">
+          © Seasons Serials — All rights reserved
+        </div>
+      `;
+    }
+
+    function buildWarningEmail(data){
+      return `
+        <div style="background:#b45309; color:white; padding:20px;">
+          <h2>Seasons Serials</h2>
+          <p style="font-size:12px; opacity:0.8;">Product Reservation Expiring Soon</p>
+        </div>
+
+        <div style="background:#f8fafc; padding:15px; border-radius:8px;">
+            <p><strong>Product:</strong> ${data.productName || "Your item"}</p>
+        </div>
+        
+        <p style="margin-top:20px;"> ⚠️ Your reservation will expire in <strong>2 hours</strong>.</p>
+
+        <!-- FOOTER -->
+        <div style="background:#f1f5f9; padding:15px; text-align:center; font-size:12px; color:#666;">
+          © Seasons Serials — All rights reserved
+        </div>
+      `;
+    }
+    
     const successHTML = buildSuccessEmail(invoiceData);
 
     await emailjs.send("service_newemail1", "template_tan46u4", {

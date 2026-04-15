@@ -379,7 +379,75 @@ imageViewerImg.addEventListener('mousemove', (e) => {
     imageViewerImg.style.transformOrigin = `${x}% ${y}%`;
 });
 
+const watermark = document.createElement("div");
 
+watermark.innerText = "Seasons Serials";
+watermark.style.position = "absolute";
+watermark.style.top = "50%";
+watermark.style.left = "50%";
+watermark.style.transform = "translate(-50%, -50%) rotate(-20deg)";
+watermark.style.fontSize = "40px";
+watermark.style.opacity = "0.15";
+watermark.style.color = "white";
+watermark.style.pointerEvents = "none";
+watermark.style.userSelect = "none";
+
+imageViewer.appendChild(watermark);
+
+// 🚫 Disable right click
+document.addEventListener("contextmenu", e => e.preventDefault());
+
+// 🚫 Disable drag
+document.querySelectorAll("img").forEach(img => {
+  img.addEventListener("dragstart", e => e.preventDefault());
+});
+
+// 🚫 Detect PrintScreen
+document.addEventListener("keyup", (e) => {
+  if (e.key === "PrintScreen") {
+    triggerProtection();
+  }
+});
+
+// 🚫 Detect suspicious behavior (DevTools open)
+let devtoolsOpen = false;
+
+setInterval(() => {
+  const threshold = 160;
+  if (window.outerWidth - window.innerWidth > threshold) {
+    if (!devtoolsOpen) {
+      devtoolsOpen = true;
+      triggerProtection();
+    }
+  } else {
+    devtoolsOpen = false;
+  }
+}, 1000);
+
+// 🚫 PROTECTION EFFECT
+function triggerProtection() {
+  document.body.style.filter = "blur(30px)";
+  document.body.innerHTML += `
+    <div style="
+      position:fixed;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      background:black;
+      color:white;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:30px;
+      z-index:9999;
+    ">
+      Screenshot blocked 🚫
+    </div>
+  `;
+
+  setTimeout(() => location.reload(), 1500);
+}
 
 
 

@@ -825,7 +825,6 @@ confirmBtn.addEventListener("click", async () => {
           console.error("rollback crashed", e);
           alert("ROLLBACK CRASH: " + (e?.message || e));
         }
-
         await showResultModal(false);
       }
 });

@@ -53,6 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let originalPrice = 0;
   let previewDiscountValue = 0;
   let reservationInterval = null;
+  let activeReservationProduct = null; // 👈 CRITICAL
 
 
   emailjs.init("x6kHcpv6XN2lZmOea");
@@ -305,9 +306,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const timerEl = document.getElementById("reservationTimer");
     const closeReservationBtn = document.getElementById("closeReservationBtn");
 
-    let reservationInterval = null;
-
-    function closeReservation(){
+    function closeReservation() {
       reservationBox.classList.remove("show");
 
       if (reservationInterval) {
@@ -315,7 +314,9 @@ document.addEventListener("DOMContentLoaded", () => {
         reservationInterval = null;
       }
 
-      timerEl.innerText = ""; // 👈 CRITICAL FIX
+      activeReservationProduct = null; // 👈 IMPORTANT
+
+      timerEl.innerText = "";
 
       document.body.style.pointerEvents = "auto";
     }
@@ -335,37 +336,43 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       function openReservation(productRef) {
-         reservationBox.classList.add("show");
 
-         if (reservationInterval) {
-           clearInterval(reservationInterval);
-           reservationInterval = null;
-         }
-
-          async function updateTimer() {
-            const snap = await getDoc(productRef);
-            if (!snap.exists()) return;
-
-            const data = snap.data();
-            const remaining = data.reservedUntil - Date.now();
-
-            if (remaining <= 0) {
-              timerEl.innerText = "Reservation expired";
-              clearInterval(reservationInterval);
-              reservationInterval = null;
-              return;
-            }
-
-            const hours = Math.floor(remaining / (1000 * 60 * 60));
-            const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-
-            timerEl.innerText = `THIS PRODUCT IS RESERVED FOR: ${hours}h ${minutes}m`;
-          }
-
-          updateTimer();
-          reservationInterval = setInterval(updateTimer, 1000);
+        // 🚨 STOP EVERYTHING BEFORE STARTING NEW
+        if (reservationInterval) {
+          clearInterval(reservationInterval);
+          reservationInterval = null;
         }
 
+        activeReservationProduct = productRef;
+
+        reservationBox.classList.add("show");
+
+        async function updateTimer() {
+          // 🚨 PREVENT OLD INTERVALS FROM WRITING
+          if (activeReservationProduct !== productRef) return;
+
+          const snap = await getDoc(productRef);
+          if (!snap.exists()) return;
+
+          const data = snap.data();
+          const remaining = data.reservedUntil - Date.now();
+
+          if (remaining <= 0) {
+            timerEl.innerText = "Reservation expired";
+            clearInterval(reservationInterval);
+            reservationInterval = null;
+            return;
+          }
+
+          const hours = Math.floor(remaining / (1000 * 60 * 60));
+          const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+
+          timerEl.innerText = `THIS PRODUCT IS RESERVED FOR: ${hours}h ${minutes}m`;
+        }
+
+        updateTimer();
+        reservationInterval = setInterval(updateTimer, 1000);
+      }
 
       // Close on Cancel button
       if (closeReservationBtn) {

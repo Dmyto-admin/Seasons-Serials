@@ -331,6 +331,8 @@ document.querySelectorAll('.store-img, .store-img-t2, .store-img-t3').forEach(im
         imageViewer.classList.add('active');
         screenOverlay.classList.add('active');
 
+        setTimeout(generateWatermarks, 100); // 👈 IMPORTANT
+
         zoomed = false;
         imageViewerImg.style.transform = "scale(1)";
         imageViewerImg.style.transformOrigin = "center center";
@@ -359,6 +361,8 @@ imageViewerImg.addEventListener('click', (e) => {
     e.stopPropagation();
     zoomed = !zoomed;
 
+    setTimeout(generateWatermarks, 50);
+
     if (zoomed) {
         imageViewerImg.style.transform = "scale(2)";
         imageViewerImg.style.cursor = "zoom-out";
@@ -379,20 +383,68 @@ imageViewerImg.addEventListener('mousemove', (e) => {
     imageViewerImg.style.transformOrigin = `${x}% ${y}%`;
 });
 
-const watermark = document.createElement("div");
+window.addEventListener("resize", () => {
+  if (imageViewer.classList.contains("active")) {
+    generateWatermarks();
+  }
+});
 
-watermark.innerText = "Seasons Serials";
-watermark.style.position = "absolute";
-watermark.style.top = "50%";
-watermark.style.left = "50%";
-watermark.style.transform = "translate(-50%, -50%) rotate(-40deg)";
-watermark.style.fontSize = "40px";
-watermark.style.opacity = "0.45";
-watermark.style.color = "white";
-watermark.style.pointerEvents = "none";
-watermark.style.userSelect = "none";
+function generateWatermarks() {
+  watermarkLayer.innerHTML = "";
 
-imageViewer.appendChild(watermark);
+  const rect = imageViewerImg.getBoundingClientRect();
+  const width = rect.width;
+  const height = rect.height;
+
+  if (!width || !height) return;
+
+  const user = getUser();
+  const text = (user?.email || "Seasons Serials").toUpperCase();
+
+  // 🔥 SCALE BASED ON IMAGE SIZE
+  const fontSize = Math.max(16, width / 15);
+  const gapX = fontSize * 4;
+  const gapY = fontSize * 2;
+
+  const cols = Math.ceil(width / gapX) + 2;
+  const rows = Math.ceil(height / gapY) + 2;
+
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const wm = document.createElement("div");
+
+      wm.innerText = text;
+      wm.style.position = "absolute";
+      wm.style.left = `${x * gapX}px`;
+      wm.style.top = `${y * gapY}px`;
+
+      wm.style.fontSize = fontSize + "px";
+      wm.style.color = "white";
+      wm.style.opacity = "0.18";
+      wm.style.transform = "rotate(-30deg)";
+      wm.style.whiteSpace = "nowrap";
+      wm.style.userSelect = "none";
+
+      watermarkLayer.appendChild(wm);
+    }
+  }
+}
+
+const watermarkLayer = document.createElement("div");
+
+watermarkLayer.style.position = "absolute";
+watermarkLayer.style.top = "0";
+watermarkLayer.style.left = "0";
+watermarkLayer.style.width = "100%";
+watermarkLayer.style.height = "100%";
+watermarkLayer.style.pointerEvents = "none";
+watermarkLayer.style.display = "flex";
+watermarkLayer.style.flexWrap = "wrap";
+watermarkLayer.style.alignContent = "center";
+watermarkLayer.style.justifyContent = "center";
+watermarkLayer.style.overflow = "hidden";
+
+imageViewer.appendChild(watermarkLayer);
 
 // 🚫 Disable right click
 document.addEventListener("contextmenu", e => e.preventDefault());
@@ -426,28 +478,52 @@ setInterval(() => {
 
 // 🚫 PROTECTION EFFECT
 function triggerProtection() {
-  document.body.style.filter = "blur(30px)";
-  document.body.innerHTML += `
-    <div style="
-      position:fixed;
-      top:0;
-      left:0;
-      width:100%;
-      height:100%;
-      background:black;
-      color:white;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:30px;
-      z-index:9999;
-    ">
-      Screenshot blocked 🚫
-    </div>
-  `;
+  const overlay = document.createElement("div");
 
-  setTimeout(() => location.reload(), 1500);
+  overlay.style.position = "fixed";
+  overlay.style.top = "0";
+  overlay.style.left = "0";
+  overlay.style.width = "100%";
+  overlay.style.height = "100%";
+  overlay.style.background = "black";
+  overlay.style.color = "white";
+  overlay.style.display = "flex";
+  overlay.style.alignItems = "center";
+  overlay.style.justifyContent = "center";
+  overlay.style.fontSize = "30px";
+  overlay.style.zIndex = "9999";
+
+  overlay.innerText = "Protected Content 🚫";
+
+  document.body.appendChild(overlay);
+
+  setTimeout(() => overlay.remove(), 1500);
 }
+
+let touchStartTime = 0;
+
+document.addEventListener("touchstart", () => {
+  touchStartTime = Date.now();
+});
+
+document.addEventListener("touchend", () => {
+  const duration = Date.now() - touchStartTime;
+
+  // 👇 long press → possible screenshot intent
+  if (duration > 500) {
+    triggerProtection();
+  }
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    imageViewerImg.style.filter = "blur(40px)";
+  } else {
+    imageViewerImg.style.filter = "none";
+  }
+});
+
+document.addEventListener("gesturestart", triggerProtection);
 
 
 

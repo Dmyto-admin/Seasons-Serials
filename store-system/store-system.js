@@ -849,7 +849,7 @@ confirmBtn.addEventListener("click", async () => {
           name,
           productName: selectedProduct?.name || "Unknown",
           finalPrice: "—",
-          retryLink: "https://your-site.com"
+          retryLink: "https://seasons-serials.vercel.app/seasons-serials-store.html"
         })
       });
     });

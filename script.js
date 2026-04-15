@@ -514,15 +514,6 @@ document.addEventListener("touchend", () => {
     triggerProtection();
   }
 });
-
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden) {
-    imageViewerImg.style.filter = "blur(40px)";
-  } else {
-    imageViewerImg.style.filter = "none";
-  }
-});
-
 document.addEventListener("gesturestart", triggerProtection);
 
 

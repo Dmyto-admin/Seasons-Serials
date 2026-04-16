@@ -263,20 +263,30 @@ async function loadAllInvoices() {
       // ======================
       // AUTO DELETE SYSTEM
       // ======================
-      if (shouldAutoDelete) {
+    let interval;
 
-        const timeout = setTimeout(async () => {
+    if (shouldAutoDelete) {
 
-          await deleteDoc(
-            doc(db, "users", data.userEmail, "invoices", data.id)
-          );
+      interval = setInterval(() => {
+        const now = Date.now();
+        const timeLeft = (data.createdAt + 48 * 60 * 60 * 1000) - now;
+        timerEl.textContent = formatTime(timeLeft);
+      }, 1000);
 
-          loadAllInvoices();
+      const timeout = setTimeout(async () => {
+        await deleteDoc(
+          doc(db, "users", data.userEmail, "invoices", data.id)
+        );
 
-        }, 48 * 60 * 60 * 1000);
+        loadAllInvoices();
+      }, 48 * 60 * 60 * 1000);
 
-        autoDeleteMap.set(data.id, timeout);
-      }
+      autoDeleteMap.set(data.id, {
+        timeout,
+        interval,
+        timerEl
+      });
+    }
 
       const timerEl = block.querySelector(".delete-timer");
 
@@ -296,8 +306,15 @@ async function loadAllInvoices() {
 
         cancelAutoBtn.onclick = () => {
 
-          if (autoDeleteMap.has(data.id)) {
-            clearTimeout(autoDeleteMap.get(data.id));
+          const refs = autoDeleteMap.get(data.id);
+
+          if (refs) {
+            clearTimeout(refs.timeout);
+            clearInterval(refs.interval);
+
+            // remove text immediately
+            refs.timerEl.textContent = "";
+    
             autoDeleteMap.delete(data.id);
           }
 
@@ -410,22 +427,31 @@ function renderInvoices(list) {
     };
 
     // ===== AUTO DELETE (FIXED) =====
+    let interval;
+
     if (shouldAutoDelete) {
 
-      if (timeLeft <= 0) {
-        deleteDoc(doc(db, "users", data.userEmail, "invoices", data.id));
-      } else {
-        const timeout = setTimeout(async () => {
-          await deleteDoc(
-            doc(db, "users", data.userEmail, "invoices", data.id)
-          );
-          loadAllInvoices();
-        }, timeLeft);
+      interval = setInterval(() => {
+        const now = Date.now();
+        const timeLeft = (data.createdAt + 48 * 60 * 60 * 1000) - now;
+        timerEl.textContent = formatTime(timeLeft);
+      }, 1000);
 
-        autoDeleteMap.set(data.id, timeout);
-      }
+      const timeout = setTimeout(async () => {
+        await deleteDoc(
+          doc(db, "users", data.userEmail, "invoices", data.id)
+        );
+
+        loadAllInvoices();
+      }, 48 * 60 * 60 * 1000);
+
+      autoDeleteMap.set(data.id, {
+        timeout,
+        interval,
+        timerEl
+      });
     }
-
+    
     // ===== TIMER =====
     const timerEl = block.querySelector(".delete-timer");
 
@@ -443,10 +469,19 @@ function renderInvoices(list) {
 
     if (cancelAutoBtn) {
       cancelAutoBtn.onclick = () => {
-        if (autoDeleteMap.has(data.id)) {
-          clearTimeout(autoDeleteMap.get(data.id));
-          autoDeleteMap.delete(data.id);
+
+        const refs = autoDeleteMap.get(data.id);
+
+        if (refs) {
+          clearTimeout(refs.timeout);
+          clearInterval(refs.interval);
+
+          // remove text immediately
+          refs.timerEl.textContent = "";
+    
+           autoDeleteMap.delete(data.id);
         }
+
         cancelAutoBtn.remove();
       };
     }

@@ -279,7 +279,7 @@ async function loadAllInvoices() {
       }
 
       const timerEl = block.querySelector(".delete-timer");
-      timerEl.style.color = "#0b2d6b"; // dark blue
+      timerEl.style.color = "#0045bc"; // dark blue
 
       setInterval(() => {
         const now = Date.now();
@@ -432,7 +432,7 @@ function renderInvoices(list) {
 
     // ===== TIMER =====
     const timerEl = block.querySelector(".delete-timer");
-    timerEl.style.color = "#0b2d6b"; // dark blue
+    timerEl.style.color = "#0045bc"; // dark blue
 
     const interval = setInterval(() => {
       const now = Date.now();

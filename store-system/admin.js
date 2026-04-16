@@ -357,11 +357,119 @@ function renderInvoices(list) {
       </div>
     `;
 
-    // 👉 REATTACH ALL LOGIC HERE (copy from loadAllInvoices)
+      // ======================
+      // DOWNLOAD
+      // ======================
+      block.querySelector(".download-btn").onclick = () => {
 
-    container.appendChild(block);
-  });
-}
+        const base64 = data.pdf;
+
+        const byteString = atob(base64.split(',')[1]);
+        const mimeString = base64.split(',')[0].split(':')[1].split(';')[0];
+
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+
+        for (let i = 0; i < byteString.length; i++) {
+          ia[i] = byteString.charCodeAt(i);
+        }
+
+        const blob = new Blob([ab], { type: mimeString });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "Invoice_" + data.invoiceId + ".pdf";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      };
+
+      // ======================
+      // PAYED
+      // ======================
+      block.querySelector(".pay-btn").onclick = async () => {
+
+        const confirm = await showConfirm("mark as PAYED", data.invoiceId);
+        if (!confirm) return;
+
+        await updateDoc(
+          doc(db, "users", data.userEmail, "invoices", data.id),
+          { status: "payed" }
+        );
+
+        // cancel auto delete if exists
+        if (autoDeleteMap.has(data.id)) {
+          clearTimeout(autoDeleteMap.get(data.id));
+          autoDeleteMap.delete(data.id);
+        }
+
+        loadAllInvoices();
+      };
+
+      // ======================
+      // CANCEL (manual delete)
+      // ======================
+      block.querySelector(".cancel-btn").onclick = async () => {
+
+        const confirm = await showConfirm("DELETE", data.invoiceId);
+        if (!confirm) return;
+
+        await deleteDoc(
+          doc(db, "users", data.userEmail, "invoices", data.id)
+        );
+
+        loadAllInvoices();
+      };
+
+      // ======================
+      // AUTO DELETE SYSTEM
+      // ======================
+      if (shouldAutoDelete) {
+
+        const timeout = setTimeout(async () => {
+
+          await deleteDoc(
+            doc(db, "users", data.userEmail, "invoices", data.id)
+          );
+
+          loadAllInvoices();
+
+        }, 48 * 60 * 60 * 1000);
+
+        autoDeleteMap.set(data.id, timeout);
+      }
+
+      const timerEl = block.querySelector(".delete-timer");
+
+      setInterval(() => {
+        const now = Date.now();
+        const timeLeft = (data.createdAt + 48 * 60 * 60 * 1000) - now;
+
+        timerEl.textContent = formatTime(timeLeft);
+      }, 1000);
+
+      // ======================
+      // CANCEL AUTO DELETE BTN
+      // ======================
+      const cancelAutoBtn = block.querySelector(".cancel-auto-delete-btn");
+
+      if (cancelAutoBtn) {
+
+        cancelAutoBtn.onclick = () => {
+
+          if (autoDeleteMap.has(data.id)) {
+            clearTimeout(autoDeleteMap.get(data.id));
+            autoDeleteMap.delete(data.id);
+          }
+
+          cancelAutoBtn.remove();
+        };
+      }
+
+      container.appendChild(block);
+    });
+  } 
 
 document.getElementById("applyFilters").onclick = () => {
 
@@ -373,10 +481,18 @@ document.getElementById("applyFilters").onclick = () => {
   const to = document.getElementById("toDate").value;
 
   if (search) {
-    filtered = filtered.filter(i =>
-      String(i.invoiceId).toLowerCase().includes(search) ||
-      i.userEmail.toLowerCase().includes(search)
-    );
+    filtered = filtered.filter(i => {
+
+      const id = String(i.invoiceId).toLowerCase();
+      const email = i.userEmail.toLowerCase();
+
+      return (
+        id.includes(search) ||
+        email.includes(search) ||
+        fuzzyMatch(id, search) ||
+        fuzzyMatch(email, search)
+      );
+    });
   }
 
   if (user) {
@@ -399,5 +515,30 @@ document.getElementById("applyFilters").onclick = () => {
 
   renderInvoices(filtered);
 };
+
+document.getElementById("resetFilters").onclick = () => {
+
+  document.getElementById("searchInvoice").value = "";
+  document.getElementById("filterUser").value = "";
+  document.getElementById("fromDate").value = "";
+  document.getElementById("toDate").value = "";
+
+  renderInvoices(ALL_INVOICES);
+};
+
+function fuzzyMatch(text, query) {
+  text = text.toLowerCase();
+  query = query.toLowerCase();
+
+  let ti = 0;
+  let qi = 0;
+
+  while (ti < text.length && qi < query.length) {
+    if (text[ti] === query[qi]) qi++;
+    ti++;
+  }
+
+  return qi === query.length;
+}
 
 document.addEventListener("DOMContentLoaded", loadAllInvoices);

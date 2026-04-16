@@ -284,13 +284,23 @@ async function loadAllInvoices() {
       const timerEl = block.querySelector(".delete-timer");
       timerEl.style.color = "#0045bc"; // dark blue
 
-      const interval = setInterval(() => {
+      let interval;
+
+      const updateTimer = () => {
         const now = Date.now();
         const timeLeft = (data.createdAt + 48 * 60 * 60 * 1000) - now;
 
         timerEl.textContent = formatTime(timeLeft);
-      }, 1000);
 
+        // stop condition
+        if (timeLeft <= 0 || data.autoDeleteCancelled) {
+          clearInterval(interval);
+          timerEl.textContent = "Stopped";
+        }
+      };
+
+      interval = setInterval(updateTimer, 1000);
+      updateTimer();
       intervalMap.set(data.id, interval);
 
       // ======================
@@ -461,14 +471,23 @@ function renderInvoices(list) {
     const timerEl = block.querySelector(".delete-timer");
     timerEl.style.color = "#0045bc"; // dark blue
 
-    const interval = setInterval(() => {
+    let interval;
+
+    const updateTimer = () => {
       const now = Date.now();
-      timeLeft = (data.createdAt + 48 * 60 * 60 * 1000) - now;
+      const timeLeft = (data.createdAt + 48 * 60 * 60 * 1000) - now;
 
       timerEl.textContent = formatTime(timeLeft);
 
-      if (timeLeft <= 0) clearInterval(interval);
-    }, 1000);
+      // stop condition
+      if (timeLeft <= 0 || data.autoDeleteCancelled) {
+        clearInterval(interval);
+        timerEl.textContent = "Stopped";
+      }
+    };
+
+    interval = setInterval(updateTimer, 1000);
+    updateTimer();
     
     intervalMap.set(data.id, interval);
 

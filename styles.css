@@ -1698,5 +1698,13 @@ input:-webkit-autofill:focus {
 
 .wrapper-admin-payments .form-box{
     width: 100%;
-    padding: 30px;
+    height: 100%;
+    padding: 0 40px 40px;
+    box-sizing: border-box;
+}
+
+.wrapper-admin-payments .form-box h2 {
+    margin-top: 40px;     /* ← moves "Manage Invoices" UP */
+    margin-bottom: 20px;
+    text-align: center;
 }

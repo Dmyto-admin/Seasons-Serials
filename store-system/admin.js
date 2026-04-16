@@ -279,6 +279,7 @@ async function loadAllInvoices() {
       }
 
       const timerEl = block.querySelector(".delete-timer");
+      timerEl.style.color = "#0b2d6b"; // dark blue
 
       setInterval(() => {
         const now = Date.now();
@@ -302,6 +303,9 @@ async function loadAllInvoices() {
           }
 
           cancelAutoBtn.remove();
+
+          // hide timer text
+          timerEl.style.display = "none";
         };
       }
 
@@ -428,6 +432,7 @@ function renderInvoices(list) {
 
     // ===== TIMER =====
     const timerEl = block.querySelector(".delete-timer");
+    timerEl.style.color = "#0b2d6b"; // dark blue
 
     const interval = setInterval(() => {
       const now = Date.now();
@@ -448,6 +453,9 @@ function renderInvoices(list) {
           autoDeleteMap.delete(data.id);
         }
         cancelAutoBtn.remove();
+        
+        // hide timer text
+        timerEl.style.display = "none";
       };
     }
 

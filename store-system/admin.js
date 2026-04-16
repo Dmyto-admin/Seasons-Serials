@@ -263,23 +263,34 @@ async function loadAllInvoices() {
       // ======================
       // AUTO DELETE SYSTEM
       // ======================
-    let interval;
+    const timerEl = block.querySelector(".delete-timer");
+
+    const deleteAt = data.createdAt + 48 * 60 * 60 * 1000;
+
+    let interval = null;
+    let timeout = null;
+
+    function updateTimer() {
+      const now = Date.now();
+      const timeLeft = deleteAt - now;
+
+      timerEl.textContent = formatTime(timeLeft);
+
+      if (timeLeft <= 0) {
+        clearInterval(interval);
+      }
+    }
+
+    updateTimer();
+    interval = setInterval(updateTimer, 1000);
 
     if (shouldAutoDelete) {
-
-      interval = setInterval(() => {
-        const now = Date.now();
-        const timeLeft = (data.createdAt + 48 * 60 * 60 * 1000) - now;
-        timerEl.textContent = formatTime(timeLeft);
-      }, 1000);
-
-      const timeout = setTimeout(async () => {
+      timeout = setTimeout(async () => {
         await deleteDoc(
           doc(db, "users", data.userEmail, "invoices", data.id)
         );
-
         loadAllInvoices();
-      }, 48 * 60 * 60 * 1000);
+      }, Math.max(deleteAt - Date.now(), 0));
 
       autoDeleteMap.set(data.id, {
         timeout,
@@ -287,15 +298,6 @@ async function loadAllInvoices() {
         timerEl
       });
     }
-
-      const timerEl = block.querySelector(".delete-timer");
-
-      setInterval(() => {
-        const now = Date.now();
-        const timeLeft = (data.createdAt + 48 * 60 * 60 * 1000) - now;
-
-        timerEl.textContent = formatTime(timeLeft);
-      }, 1000);
 
       // ======================
       // CANCEL AUTO DELETE BTN
@@ -312,9 +314,7 @@ async function loadAllInvoices() {
             clearTimeout(refs.timeout);
             clearInterval(refs.interval);
 
-            // remove text immediately
-            refs.timerEl.textContent = "";
-    
+            refs.timerEl.textContent = ""; // ✅ remove text
             autoDeleteMap.delete(data.id);
           }
 
@@ -427,23 +427,34 @@ function renderInvoices(list) {
     };
 
     // ===== AUTO DELETE (FIXED) =====
-    let interval;
+    const timerEl = block.querySelector(".delete-timer");
+
+    const deleteAt = data.createdAt + 48 * 60 * 60 * 1000;
+
+    let interval = null;
+    let timeout = null;
+
+    function updateTimer() {
+      const now = Date.now();
+      const timeLeft = deleteAt - now;
+
+      timerEl.textContent = formatTime(timeLeft);
+
+      if (timeLeft <= 0) {
+        clearInterval(interval);
+      }
+    }
+
+    updateTimer();
+    interval = setInterval(updateTimer, 1000);
 
     if (shouldAutoDelete) {
-
-      interval = setInterval(() => {
-        const now = Date.now();
-        const timeLeft = (data.createdAt + 48 * 60 * 60 * 1000) - now;
-        timerEl.textContent = formatTime(timeLeft);
-      }, 1000);
-
-      const timeout = setTimeout(async () => {
+      timeout = setTimeout(async () => {
         await deleteDoc(
           doc(db, "users", data.userEmail, "invoices", data.id)
         );
-
         loadAllInvoices();
-      }, 48 * 60 * 60 * 1000);
+      }, Math.max(deleteAt - Date.now(), 0));
 
       autoDeleteMap.set(data.id, {
         timeout,
@@ -451,18 +462,6 @@ function renderInvoices(list) {
         timerEl
       });
     }
-    
-    // ===== TIMER =====
-    const timerEl = block.querySelector(".delete-timer");
-
-    const interval = setInterval(() => {
-      const now = Date.now();
-      timeLeft = (data.createdAt + 48 * 60 * 60 * 1000) - now;
-
-      timerEl.textContent = formatTime(timeLeft);
-
-      if (timeLeft <= 0) clearInterval(interval);
-    }, 1000);
 
     // ===== CANCEL AUTO DELETE =====
     const cancelAutoBtn = block.querySelector(".cancel-auto-delete-btn");
@@ -476,10 +475,8 @@ function renderInvoices(list) {
           clearTimeout(refs.timeout);
           clearInterval(refs.interval);
 
-          // remove text immediately
-          refs.timerEl.textContent = "";
-    
-           autoDeleteMap.delete(data.id);
+          refs.timerEl.textContent = ""; // ✅ remove text
+          autoDeleteMap.delete(data.id);
         }
 
         cancelAutoBtn.remove();

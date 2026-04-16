@@ -286,6 +286,8 @@ async function loadAllInvoices() {
       container.appendChild(block);
     });
 
+    alert("🎉 FINISHED LOADING INVOICES 🎉");
+    
   } catch (error) {
     console.error(error);
     alert(error.message);

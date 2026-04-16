@@ -431,7 +431,7 @@ function renderInvoices(list) {
         await deleteDoc(
           doc(db, "users", data.userEmail, "invoices", data.id)
         );
-        return; // skip rendering
+        continue; // skip rendering
       }
 
       const timeout = setTimeout(async () => {

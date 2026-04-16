@@ -318,7 +318,9 @@ async function loadAllInvoices() {
           cancelAutoBtn.remove();
 
           // hide timer text
-          // TEMPORARLY: timerEl.style.display = "none";
+          timerEl.style.display = "none";
+
+          alert("Auto delete cancelled successfully!");
         };
       }
 
@@ -487,7 +489,9 @@ function renderInvoices(list) {
         cancelAutoBtn.remove();
         
         // hide timer text
-        // TEMPORARLY timerEl.style.display = "none";
+        timerEl.style.display = "none";
+
+        alert("Auto delete cancelled successfully!");
       };
     }
 

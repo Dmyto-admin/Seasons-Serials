@@ -334,7 +334,7 @@ document.querySelectorAll('.store-img, .store-img-t2, .store-img-t3').forEach(im
 
         setTimeout(() => {
             baseRect = imageViewerImg.getBoundingClientRect(); // ✅ SAVE ORIGINAL
-            generateWatermarksCanvas();
+            generateWatermarks();
         }, 150);
 
         zoomed = false;
@@ -375,7 +375,7 @@ imageViewerImg.addEventListener('click', (e) => {
     }
     
     // 🔥 IMPORTANT: DO NOT recalc size, just redraw using baseRect
-    setTimeout(() => generateWatermarksCanvas(), 50);
+    setTimeout(() => generateWatermarks(), 50);
 });
 
 imageViewerImg.addEventListener('mousemove', (e) => {
@@ -390,54 +390,65 @@ imageViewerImg.addEventListener('mousemove', (e) => {
 
 window.addEventListener("resize", () => {
   if (imageViewer.classList.contains("active")) {
-    generateWatermarksCanvas();
+    generateWatermarks();
   }
 });
 
-const watermarkCanvas = document.createElement("canvas");
-const ctx = watermarkCanvas.getContext("2d");
+const watermarkLayer = document.createElement("div");
 
-watermarkCanvas.style.position = "absolute";
-watermarkCanvas.style.pointerEvents = "none";
-watermarkCanvas.style.zIndex = "5";
+watermarkLayer.style.position = "absolute";
+watermarkLayer.style.pointerEvents = "none";
+watermarkLayer.style.overflow = "hidden";
+watermarkLayer.style.zIndex = "5";
 
-imageViewer.appendChild(watermarkCanvas);
+imageViewer.appendChild(watermarkLayer);
 
-function generateWatermarksCanvas() {
+function generateWatermarks() {
+
+  watermarkLayer.innerHTML = "";
 
   const rect = imageViewerImg.getBoundingClientRect();
   if (!rect.width || !rect.height) return;
 
+  // 👉 POSITION relative to viewer
   const viewerRect = imageViewer.getBoundingClientRect();
 
-  watermarkCanvas.width = rect.width;
-  watermarkCanvas.height = rect.height;
-
-  watermarkCanvas.style.left = (rect.left - viewerRect.left) + "px";
-  watermarkCanvas.style.top = (rect.top - viewerRect.top) + "px";
-  watermarkCanvas.style.width = rect.width + "px";
-  watermarkCanvas.style.height = rect.height + "px";
-
-  ctx.clearRect(0, 0, watermarkCanvas.width, watermarkCanvas.height);
+  watermarkLayer.style.left = (rect.left - viewerRect.left) + "px";
+  watermarkLayer.style.top = (rect.top - viewerRect.top) + "px";
+  watermarkLayer.style.width = rect.width + "px";
+  watermarkLayer.style.height = rect.height + "px";
 
   const text = "Seasons Serials";
 
-  const fontSize = Math.max(20, rect.width / 12);
-
-  ctx.font = `${fontSize}px Arial`;
-  ctx.fillStyle = "rgba(255,255,255,0.12)";
-  ctx.rotate(-Math.PI / 6);
+  // 🔥 NOW scales with zoom automatically
+  const fontSize = Math.max(18, rect.width / 12);
 
   const gapX = fontSize * 6;
   const gapY = fontSize * 3;
 
-  for (let y = -rect.height; y < rect.height * 2; y += gapY) {
-    for (let x = -rect.width; x < rect.width * 2; x += gapX) {
-      ctx.fillText(text, x, y);
+  const cols = Math.ceil(rect.width / gapX);
+  const rows = Math.ceil(rect.height / gapY);
+
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+
+      const wm = document.createElement("div");
+
+      wm.innerText = text;
+
+      wm.style.position = "absolute";
+      wm.style.left = `${x * gapX}px`;
+      wm.style.top = `${y * gapY}px`;
+
+      wm.style.fontSize = fontSize + "px";
+      wm.style.color = "white";
+      wm.style.opacity = "0.12";
+      wm.style.transform = "rotate(-30deg)";
+      wm.style.whiteSpace = "nowrap";
+
+      watermarkLayer.appendChild(wm);
     }
   }
-
-  ctx.setTransform(1, 0, 0, 1, 0, 0); // reset rotation
 }
 
 // 🚫 Detect PrintScreen

@@ -100,6 +100,8 @@ const container = document.querySelector(".admin-invoices-container");
 // stores pending auto deletes
 const autoDeleteMap = new Map();
 
+let ALL_INVOICES = [];
+
 async function loadAllInvoices() {
 
   container.innerHTML = "";
@@ -109,7 +111,7 @@ async function loadAllInvoices() {
     const usersSnap = await getDocs(collection(db, "users"));
 
     // 🔥 GLOBAL ARRAY (ALL USERS)
-    const allInvoices = [];
+    ALL_INVOICES = [];
 
     for (const userDoc of usersSnap.docs) {
 
@@ -124,7 +126,7 @@ async function loadAllInvoices() {
 
         if (data.status === "cancelled") return;
 
-        allInvoices.push({
+        ALL_INVOICES.push({
           id: docSnap.id,
           userEmail,
           ...data,
@@ -135,10 +137,10 @@ async function loadAllInvoices() {
     }
 
     // 🔥 SORT ALL INVOICES (NEWEST FIRST)
-    allInvoices.sort((a, b) => b.parsedDate - a.parsedDate);
+    ALL_INVOICES.sort((a, b) => b.parsedDate - a.parsedDate);
 
     // ===== RENDER =====
-    allInvoices.forEach((data) => {
+    ALL_INVOICES.forEach((data) => {
 
       const block = document.createElement("div");
       block.classList.add("invoice-block");
@@ -286,5 +288,88 @@ async function loadAllInvoices() {
     alert(error.message);
   }
 }
+
+function renderInvoices(list) {
+
+  container.innerHTML = "";
+
+  list.forEach((data) => {
+
+    const block = document.createElement("div");
+    block.classList.add("invoice-block");
+
+    block.innerHTML = `
+      <div class="invoice-card">
+        <div class="invoice-header">
+          <span class="invoice-id">#${data.invoiceId}</span>
+          <span class="invoice-date">${data.date}</span>
+        </div>
+
+        <div class="invoice-body">
+          <p><strong>User:</strong> ${data.userEmail}</p>
+          <p><strong>Product:</strong> ${data.productName}</p>
+          <p>${data.finalPrice}</p>
+          <p>${data.status || "pending"}</p>
+        </div>
+
+        <div class="admin-actions">
+          <button class="pay-btn">Payed</button>
+          <button class="cancel-btn">Cancel</button>
+          <button class="cancel-auto-delete-btn">Cancel auto delete</button>
+        </div>
+
+        <button class="download-btn">Download</button>
+      </div>
+    `;
+
+    container.appendChild(block);
+  });
+}
+
+document.getElementById("applyFilters").onclick = () => {
+
+  let filtered = [...ALL_INVOICES];
+
+  const search = document.getElementById("searchInvoice").value.toLowerCase();
+  const user = document.getElementById("filterUser").value.toLowerCase();
+  const from = document.getElementById("fromDate").value;
+  const to = document.getElementById("toDate").value;
+
+  if (search) {
+    filtered = filtered.filter(i =>
+      i.invoiceId.toLowerCase().includes(search) ||
+      i.userEmail.toLowerCase().includes(search)
+    );
+  }
+
+  if (user) {
+    filtered = filtered.filter(i =>
+      i.userEmail.toLowerCase().includes(user)
+    );
+  }
+
+  if (from) {
+    filtered = filtered.filter(i =>
+      new Date(i.parsedDate) >= new Date(from)
+    );
+  }
+
+  if (to) {
+    filtered = filtered.filter(i =>
+      new Date(i.parsedDate) <= new Date(to)
+    );
+  }
+
+  renderInvoices(filtered);
+};
+
+document.getElementById("resetFilters").onclick = () => {
+  document.getElementById("searchInvoice").value = "";
+  document.getElementById("filterUser").value = "";
+  document.getElementById("fromDate").value = "";
+  document.getElementById("toDate").value = "";
+
+  renderInvoices(ALL_INVOICES);
+};
 
 document.addEventListener("DOMContentLoaded", loadAllInvoices);

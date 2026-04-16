@@ -442,7 +442,7 @@ function generateWatermarks() {
 
       wm.style.fontSize = fontSize + "px";
       wm.style.color = "white";
-      wm.style.opacity = "0.12";
+      wm.style.opacity = "0.55";
       wm.style.transform = "rotate(-30deg)";
       wm.style.whiteSpace = "nowrap";
 

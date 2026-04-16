@@ -263,38 +263,30 @@ async function loadAllInvoices() {
       // ======================
       // AUTO DELETE SYSTEM
       // ======================
-    const timerEl = block.querySelector(".delete-timer");
-const deleteAt = data.createdAt + 48 * 60 * 60 * 1000;
+      if (shouldAutoDelete) {
 
-let interval = null;
-let timeout = null;
+        const timeout = setTimeout(async () => {
 
-function updateTimer() {
-  const timeLeft = deleteAt - Date.now();
-  timerEl.textContent = formatTime(timeLeft);
+          await deleteDoc(
+            doc(db, "users", data.userEmail, "invoices", data.id)
+          );
 
-  if (timeLeft <= 0) {
-    clearInterval(interval);
-  }
-}
+          loadAllInvoices();
 
-updateTimer();
-interval = setInterval(updateTimer, 1000);
+        }, 48 * 60 * 60 * 1000);
 
-if (shouldAutoDelete) {
-  timeout = setTimeout(async () => {
-    await deleteDoc(
-      doc(db, "users", data.userEmail, "invoices", data.id)
-    );
-    loadAllInvoices();
-  }, Math.max(deleteAt - Date.now(), 0));
+        autoDeleteMap.set(data.id, timeout);
+      }
 
-  autoDeleteMap.set(data.id, {
-    timeout,
-    interval,
-    timerEl
-  });
-}
+      const timerEl = block.querySelector(".delete-timer");
+
+      setInterval(() => {
+        const now = Date.now();
+        const timeLeft = (data.createdAt + 48 * 60 * 60 * 1000) - now;
+
+        timerEl.textContent = formatTime(timeLeft);
+      }, 1000);
+
       // ======================
       // CANCEL AUTO DELETE BTN
       // ======================
@@ -304,13 +296,8 @@ if (shouldAutoDelete) {
 
         cancelAutoBtn.onclick = () => {
 
-          const refs = autoDeleteMap.get(data.id);
-
-          if (refs) {
-            clearTimeout(refs.timeout);
-            clearInterval(refs.interval);
-
-            refs.timerEl.textContent = ""; // ✅ remove text
+          if (autoDeleteMap.has(data.id)) {
+            clearTimeout(autoDeleteMap.get(data.id));
             autoDeleteMap.delete(data.id);
           }
 
@@ -423,55 +410,43 @@ function renderInvoices(list) {
     };
 
     // ===== AUTO DELETE (FIXED) =====
+    if (shouldAutoDelete) {
+
+      if (timeLeft <= 0) {
+        deleteDoc(doc(db, "users", data.userEmail, "invoices", data.id));
+      } else {
+        const timeout = setTimeout(async () => {
+          await deleteDoc(
+            doc(db, "users", data.userEmail, "invoices", data.id)
+          );
+          loadAllInvoices();
+        }, timeLeft);
+
+        autoDeleteMap.set(data.id, timeout);
+      }
+    }
+
+    // ===== TIMER =====
     const timerEl = block.querySelector(".delete-timer");
-const deleteAt = data.createdAt + 48 * 60 * 60 * 1000;
 
-let interval = null;
-let timeout = null;
+    const interval = setInterval(() => {
+      const now = Date.now();
+      timeLeft = (data.createdAt + 48 * 60 * 60 * 1000) - now;
 
-function updateTimer() {
-  const timeLeft = deleteAt - Date.now();
-  timerEl.textContent = formatTime(timeLeft);
+      timerEl.textContent = formatTime(timeLeft);
 
-  if (timeLeft <= 0) {
-    clearInterval(interval);
-  }
-}
-
-updateTimer();
-interval = setInterval(updateTimer, 1000);
-
-if (shouldAutoDelete) {
-  timeout = setTimeout(async () => {
-    await deleteDoc(
-      doc(db, "users", data.userEmail, "invoices", data.id)
-    );
-    loadAllInvoices();
-  }, Math.max(deleteAt - Date.now(), 0));
-
-  autoDeleteMap.set(data.id, {
-    timeout,
-    interval,
-    timerEl
-  });
-}
+      if (timeLeft <= 0) clearInterval(interval);
+    }, 1000);
 
     // ===== CANCEL AUTO DELETE =====
     const cancelAutoBtn = block.querySelector(".cancel-auto-delete-btn");
 
     if (cancelAutoBtn) {
       cancelAutoBtn.onclick = () => {
-
-        const refs = autoDeleteMap.get(data.id);
-
-        if (refs) {
-          clearTimeout(refs.timeout);
-          clearInterval(refs.interval);
-
-          refs.timerEl.textContent = ""; // ✅ remove text
+        if (autoDeleteMap.has(data.id)) {
+          clearTimeout(autoDeleteMap.get(data.id));
           autoDeleteMap.delete(data.id);
         }
-
         cancelAutoBtn.remove();
       };
     }

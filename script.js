@@ -394,64 +394,50 @@ window.addEventListener("resize", () => {
   }
 });
 
-const watermarkLayer = document.createElement("div");
+const watermarkCanvas = document.createElement("canvas");
+const ctx = watermarkCanvas.getContext("2d");
 
-watermarkLayer.style.position = "absolute";
-watermarkLayer.style.pointerEvents = "none";
-watermarkLayer.style.overflow = "hidden";
-watermarkLayer.style.zIndex = "5";
+watermarkCanvas.style.position = "absolute";
+watermarkCanvas.style.pointerEvents = "none";
+watermarkCanvas.style.zIndex = "5";
 
-imageViewer.appendChild(watermarkLayer);
+imageViewer.appendChild(watermarkCanvas);
 
-function generateWatermarks() {
+function generateWatermarksCanvas() {
 
-  watermarkLayer.innerHTML = "";
+  const rect = imageViewerImg.getBoundingClientRect();
+  if (!rect.width || !rect.height) return;
 
-  if (!baseRect) return;
-
-  // 👉 ALWAYS USE ORIGINAL SIZE (NOT ZOOMED)
-  const width = baseRect.width;
-  const height = baseRect.height;
-
-  // 👉 POSITION relative to imageViewer (NOT viewport!)
   const viewerRect = imageViewer.getBoundingClientRect();
 
-  watermarkLayer.style.left = (baseRect.left - viewerRect.left) + "px";
-  watermarkLayer.style.top = (baseRect.top - viewerRect.top) + "px";
-  watermarkLayer.style.width = width + "px";
-  watermarkLayer.style.height = height + "px";
+  watermarkCanvas.width = rect.width;
+  watermarkCanvas.height = rect.height;
+
+  watermarkCanvas.style.left = (rect.left - viewerRect.left) + "px";
+  watermarkCanvas.style.top = (rect.top - viewerRect.top) + "px";
+  watermarkCanvas.style.width = rect.width + "px";
+  watermarkCanvas.style.height = rect.height + "px";
+
+  ctx.clearRect(0, 0, watermarkCanvas.width, watermarkCanvas.height);
 
   const text = "Seasons Serials";
 
-  const fontSize = Math.max(18, width / 12);
+  const fontSize = Math.max(20, rect.width / 12);
 
-  // 👉 EVEN CLEANER spacing
+  ctx.font = `${fontSize}px Arial`;
+  ctx.fillStyle = "rgba(255,255,255,0.12)";
+  ctx.rotate(-Math.PI / 6);
+
   const gapX = fontSize * 6;
   const gapY = fontSize * 3;
 
-  const cols = Math.ceil(width / gapX);
-  const rows = Math.ceil(height / gapY);
-
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < cols; x++) {
-
-      const wm = document.createElement("div");
-
-      wm.innerText = text;
-
-      wm.style.position = "absolute";
-      wm.style.left = `${x * gapX}px`;
-      wm.style.top = `${y * gapY}px`;
-
-      wm.style.fontSize = fontSize + "px";
-      wm.style.color = "white";
-      wm.style.opacity = "0.12";
-      wm.style.transform = "rotate(-30deg)";
-      wm.style.whiteSpace = "nowrap";
-
-      watermarkLayer.appendChild(wm);
+  for (let y = -rect.height; y < rect.height * 2; y += gapY) {
+    for (let x = -rect.width; x < rect.width * 2; x += gapX) {
+      ctx.fillText(text, x, y);
     }
   }
+
+  ctx.setTransform(1, 0, 0, 1, 0, 0); // reset rotation
 }
 
 // 🚫 Detect PrintScreen

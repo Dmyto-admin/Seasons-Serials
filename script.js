@@ -373,9 +373,6 @@ imageViewerImg.addEventListener('click', (e) => {
         imageViewerImg.style.transformOrigin = "center center";
         imageViewerImg.style.cursor = "zoom-in";
     }
-    
-    // 🔥 IMPORTANT: DO NOT recalc size, just redraw using baseRect
-    setTimeout(() => generateWatermarks(), 50);
 });
 
 imageViewerImg.addEventListener('mousemove', (e) => {
@@ -396,11 +393,6 @@ window.addEventListener("resize", () => {
 
 const watermarkLayer = document.createElement("div");
 
-watermarkLayer.style.position = "absolute";
-watermarkLayer.style.pointerEvents = "none";
-watermarkLayer.style.overflow = "hidden";
-watermarkLayer.style.zIndex = "5";
-
 imageViewer.appendChild(watermarkLayer);
 
 function generateWatermarks() {
@@ -410,17 +402,8 @@ function generateWatermarks() {
   const rect = imageViewerImg.getBoundingClientRect();
   if (!rect.width || !rect.height) return;
 
-  // 👉 POSITION relative to viewer
-  const viewerRect = imageViewer.getBoundingClientRect();
-
-  watermarkLayer.style.left = (rect.left - viewerRect.left) + "px";
-  watermarkLayer.style.top = (rect.top - viewerRect.top) + "px";
-  watermarkLayer.style.width = rect.width + "px";
-  watermarkLayer.style.height = rect.height + "px";
-
   const text = "    Seasons Serials";
 
-  // 🔥 NOW scales with zoom automatically
   const fontSize = Math.max(18, rect.width / 12);
 
   const gapX = fontSize * 6;
@@ -442,7 +425,7 @@ function generateWatermarks() {
 
       wm.style.fontSize = fontSize + "px";
       wm.style.color = "white";
-      wm.style.opacity = "0.55";
+      wm.style.opacity = "0.45";
       wm.style.transform = "rotate(-30deg)";
       wm.style.whiteSpace = "nowrap";
 

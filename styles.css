@@ -1816,3 +1816,12 @@ input:-webkit-autofill:focus {
     border-color: #3b82f6;
     box-shadow: 0 0 0 2px rgba(59,130,246,0.3);
 }
+
+.delete-timer {
+    margin-top: 8px;
+    font-size: 12px;
+    opacity: 0.8;
+
+    color: #ffb74d;
+    font-weight: 500;
+}

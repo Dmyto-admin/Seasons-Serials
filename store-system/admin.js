@@ -287,7 +287,7 @@ async function loadAllInvoices() {
       const timerEl = block.querySelector(".delete-timer");
       timerEl.style.color = "#0045bc"; // dark blue
 
-      setInterval(() => {
+      const interval = setInterval(() => {
         const now = Date.now();
         const timeLeft = (data.createdAt + 48 * 60 * 60 * 1000) - now;
 
@@ -318,7 +318,7 @@ async function loadAllInvoices() {
           cancelAutoBtn.remove();
 
           // hide timer text
-          timerEl.style.display = "none";
+          // TEMPORARLY: timerEl.style.display = "none";
         };
       }
 
@@ -487,7 +487,7 @@ function renderInvoices(list) {
         cancelAutoBtn.remove();
         
         // hide timer text
-        timerEl.style.display = "none";
+        // TEMPORARLY timerEl.style.display = "none";
       };
     }
 

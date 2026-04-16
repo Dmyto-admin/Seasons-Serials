@@ -168,7 +168,7 @@ async function loadAllInvoices() {
             <button class="pay-btn">Payed</button>
             <button class="cancel-btn">Cancel</button>
             ${shouldAutoDelete ? `
-            <button class="cancel-auto-delete-btn">Cancel auto delete</button>
+            <button class="cancel-auto-delete-btn">Cancel delete</button>
           ` : ""}
           </div>
 

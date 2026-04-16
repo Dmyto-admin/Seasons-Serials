@@ -88,8 +88,7 @@
     </div>
     </div>
 </div>
-    
-<ion-icon name="search"></ion-icon>
+
 <ion-icon name="checkmark"></ion-icon>
 <ion-icon name="close"></ion-icon>
 <ion-icon name="menu"></ion-icon>
@@ -105,14 +104,24 @@
             <div class="profile-info">
                 <div class="invoice-tools">
 
-                   <input id="searchInvoice" placeholder="Search user or invoice ID...">
-                   <input id="filterUser" placeholder="Filter by user email">
+                  <div class="search-box">
+                    <span class="search-icon">
+                        <ion-icon name="search"></ion-icon>
+                    </span>
+                    <input id="searchInvoice" placeholder="Search invoice ID or user email...">
+                  </div>
 
-                   <input id="fromDate" type="date">
-                   <input id="toDate" type="date">
+                  <input id="filterUser" placeholder="Filter by user email">
 
-                   <button id="applyFilters">Apply</button>
-                   <button id="resetFilters">Reset</button>
+                  <div class="date-group">
+                    <input id="fromDate" type="date">
+                    <input id="toDate" type="date">
+                  </div>
+
+                  <div class="btn-group">
+                    <button id="applyFilters">Apply</button>
+                    <button id="resetFilters">Reset</button>
+                  </div>
 
                 </div>
                 <div class="admin-invoices-container"></div>

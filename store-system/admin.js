@@ -165,13 +165,12 @@ async function loadAllInvoices() {
           <div class="admin-actions">
             <button class="pay-btn">Payed</button>
             <button class="cancel-btn">Cancel</button>
+            ${shouldAutoDelete ? `
+            <button class="cancel-auto-delete-btn">Cancel auto delete</button>
+          ` : ""}
           </div>
 
           <button class="download-btn">Download</button>
-
-          ${shouldAutoDelete ? `
-            <button class="cancel-auto-delete-btn">Cancel auto delete</button>
-          ` : ""}
 
         </div>
       `;
@@ -265,12 +264,6 @@ async function loadAllInvoices() {
       const cancelAutoBtn = block.querySelector(".cancel-auto-delete-btn");
 
       if (cancelAutoBtn) {
-
-        cancelAutoBtn.style.background = "orange";
-        cancelAutoBtn.style.color = "white";
-        cancelAutoBtn.style.border = "none";
-        cancelAutoBtn.style.marginLeft = "auto";
-        cancelAutoBtn.style.display = "block";
 
         cancelAutoBtn.onclick = () => {
 

@@ -12,7 +12,7 @@ const products = [
 
 ];
 
-products.forEach(p=>{
+products.forEach( p =>{
 
   const productRef = doc(db,"products",p.id);
 

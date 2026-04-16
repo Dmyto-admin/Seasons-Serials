@@ -163,7 +163,7 @@ async function loadAllInvoices() {
       const deleteAt = data.createdAt + 48 * 60 * 60 * 1000;
       const timeLeft = deleteAt - now;
       const isOlderThan48h = (now - data.createdAt) > 48 * 60 * 60 * 1000;
-      const shouldAutoDelete = data.status !== "payed" && !data.autoDeleteCancelled;
+      const shouldAutoDelete = data.status !== "payed" && data.autoDeleteCancelled !== true;
 
       block.innerHTML = `
         <div class="invoice-card">
@@ -303,7 +303,7 @@ async function loadAllInvoices() {
 
       if (cancelAutoBtn) {
 
-        cancelAutoBtn.onclick = () => {
+        cancelAutoBtn.onclick = async () => {
 
           if (autoDeleteMap.has(data.id)) {
             clearTimeout(autoDeleteMap.get(data.id));
@@ -355,7 +355,7 @@ function renderInvoices(list) {
     const deleteAt = data.createdAt + 48 * 60 * 60 * 1000;
     let timeLeft = deleteAt - now;
 
-    const shouldAutoDelete = data.status !== "payed" && !data.autoDeleteCancelled;
+    const shouldAutoDelete = data.status !== "payed" && data.autoDeleteCancelled !== true;
 
     block.innerHTML = `
       <div class="invoice-card">
@@ -483,7 +483,7 @@ function renderInvoices(list) {
     const cancelAutoBtn = block.querySelector(".cancel-auto-delete-btn");
 
     if (cancelAutoBtn) {
-      cancelAutoBtn.onclick = () => {
+      cancelAutoBtn.onclick = async () => {
         if (autoDeleteMap.has(data.id)) {
           clearTimeout(autoDeleteMap.get(data.id));
           autoDeleteMap.delete(data.id);

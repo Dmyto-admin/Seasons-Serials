@@ -97,90 +97,89 @@ function showConfirm(actionText, invoiceId) {
 
 const container = document.querySelector(".admin-invoices-container");
 
+// stores pending auto deletes
+const autoDeleteMap = new Map();
+
 async function loadAllInvoices() {
-
-  console.log("🔥 FUNCTION STARTED");
-
-  if (!container) {
-    alert("❌ CONTAINER NOT FOUND");
-    return;
-  }
 
   container.innerHTML = "";
 
   try {
 
-    console.log("📡 GETTING USERS...");
-
     const usersSnap = await getDocs(collection(db, "users"));
 
-    console.log("👥 USERS FOUND: " + usersSnap.size);
+    // 🔥 GLOBAL ARRAY (ALL USERS)
+    const allInvoices = [];
 
     for (const userDoc of usersSnap.docs) {
 
       const userEmail = userDoc.id;
-      console.log("➡️ USER: " + userEmail);
 
       const invoicesSnap = await getDocs(
         collection(db, "users", userEmail, "invoices")
       );
-
-      console.log("📄 INVOICES FOUND: " + invoicesSnap.size);
-
-      
-      const invoicesArray = [];
 
       invoicesSnap.forEach(docSnap => {
         const data = docSnap.data();
 
         if (data.status === "cancelled") return;
 
-        invoicesArray.push({
+        allInvoices.push({
           id: docSnap.id,
           userEmail,
           ...data,
-          parsedDate: parseDate(data.date)
+          parsedDate: parseDate(data.date),
+          createdAt: data.createdAt || Date.now()
         });
       });
+    }
 
-      invoicesArray.sort((a, b) => b.parsedDate - a.parsedDate);
+    // 🔥 SORT ALL INVOICES (NEWEST FIRST)
+    allInvoices.sort((a, b) => b.parsedDate - a.parsedDate);
 
+    // ===== RENDER =====
+    allInvoices.forEach((data) => {
 
-      // ✅ RENDER
-      invoicesArray.forEach((data) => {
-        console.log("✅ CREATING BLOCK");
+      const block = document.createElement("div");
+      block.classList.add("invoice-block");
 
-        const block = document.createElement("div");
-        block.classList.add("invoice-block");
+      const now = Date.now();
+      const isOlderThan48h = (now - data.createdAt) > 48 * 60 * 60 * 1000;
+      const shouldAutoDelete = data.status !== "payed" && isOlderThan48h;
 
-        block.innerHTML = `
-          <div class="invoice-card">
+      block.innerHTML = `
+        <div class="invoice-card">
 
-            <div class="invoice-header">
-              <span class="invoice-id">#${data.invoiceId}</span>
-              <span class="invoice-date">${data.date}</span>
-            </div>
-            
-            <div class="invoice-body">
-              <p><strong>User:</strong> ${data.userEmail}</p>
-              <p><strong>Product:</strong> ${data.productName}</p>
-              <p class="invoice-price">${data.finalPrice}</p>
-              <p><strong>Order status:</strong> ${data.status || "pending"}</p>
-            </div>
-
-            <div class="admin-actions">
-              <button class="pay-btn">Payed</button>
-              <button class="cancel-btn">Cancel</button>
-            </div>
-            
-            <button class="download-btn">Download</button>
-            
+          <div class="invoice-header">
+            <span class="invoice-id">#${data.invoiceId}</span>
+            <span class="invoice-date">${data.date}</span>
           </div>
-        `;
-        
-      const btn = block.querySelector(".download-btn");
 
-      btn.addEventListener("click", () => {
+          <div class="invoice-body">
+            <p><strong>User:</strong> ${data.userEmail}</p>
+            <p><strong>Product:</strong> ${data.productName}</p>
+            <p class="invoice-price">${data.finalPrice}</p>
+            <p><strong>Status:</strong> ${data.status || "pending"}</p>
+          </div>
+
+          <div class="admin-actions">
+            <button class="pay-btn">Payed</button>
+            <button class="cancel-btn">Cancel</button>
+          </div>
+
+          <button class="download-btn">Download</button>
+
+          ${shouldAutoDelete ? `
+            <button class="cancel-auto-delete-btn">Cancel auto delete</button>
+          ` : ""}
+
+        </div>
+      `;
+
+      // ======================
+      // DOWNLOAD
+      // ======================
+      block.querySelector(".download-btn").onclick = () => {
 
         const base64 = data.pdf;
 
@@ -197,71 +196,99 @@ async function loadAllInvoices() {
         const blob = new Blob([ab], { type: mimeString });
         const url = URL.createObjectURL(blob);
 
-        // 🔥 CROSS-BROWSER FIX
-        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "Invoice_" + data.invoiceId + ".pdf";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      };
 
-        if (isSafari) {
-          window.open(url, "_blank"); // Safari
-        } else {
-          const link = document.createElement("a");
-          link.href = url;
-          link.download = "Invoice_" + data.invoiceId + ".pdf";
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+      // ======================
+      // PAYED
+      // ======================
+      block.querySelector(".pay-btn").onclick = async () => {
+
+        const confirm = await showConfirm("mark as PAYED", data.invoiceId);
+        if (!confirm) return;
+
+        await updateDoc(
+          doc(db, "users", data.userEmail, "invoices", data.id),
+          { status: "payed" }
+        );
+
+        // cancel auto delete if exists
+        if (autoDeleteMap.has(data.id)) {
+          clearTimeout(autoDeleteMap.get(data.id));
+          autoDeleteMap.delete(data.id);
         }
 
-       });
+        loadAllInvoices();
+      };
 
-        // 🔥 PAYED
-        block.querySelector(".pay-btn").onclick = async () => {
+      // ======================
+      // CANCEL (manual delete)
+      // ======================
+      block.querySelector(".cancel-btn").onclick = async () => {
 
-          const confirm = await showConfirm("mark as PAYED", data.invoiceId);
-          if (!confirm) return;
+        const confirm = await showConfirm("DELETE", data.invoiceId);
+        if (!confirm) return;
 
-          alert("💰 PAYED CLICKED 💰");
+        await deleteDoc(
+          doc(db, "users", data.userEmail, "invoices", data.id)
+        );
 
-          await updateDoc(
-            doc(db, "users", userEmail, "invoices", data.id),
-            { status: "payed" }
+        loadAllInvoices();
+      };
+
+      // ======================
+      // AUTO DELETE SYSTEM
+      // ======================
+      if (shouldAutoDelete) {
+
+        const timeout = setTimeout(async () => {
+
+          await deleteDoc(
+            doc(db, "users", data.userEmail, "invoices", data.id)
           );
 
           loadAllInvoices();
-        };
 
-        // 🔥 CANCEL
-        block.querySelector(".cancel-btn").onclick = async () => {
+        }, 48 * 60 * 60 * 1000);
 
-          const confirm = await showConfirm("DELETE", data.invoiceId);
-          if (!confirm) return;
+        autoDeleteMap.set(data.id, timeout);
+      }
 
-          alert("🗑️ DELETE CLICKED 🗑️");
+      // ======================
+      // CANCEL AUTO DELETE BTN
+      // ======================
+      const cancelAutoBtn = block.querySelector(".cancel-auto-delete-btn");
 
-          try {
-            const ref = doc(db, "users", userEmail, "invoices", data.id);
+      if (cancelAutoBtn) {
 
-            await deleteDoc(ref);
+        cancelAutoBtn.style.background = "orange";
+        cancelAutoBtn.style.color = "white";
+        cancelAutoBtn.style.border = "none";
+        cancelAutoBtn.style.marginLeft = "auto";
+        cancelAutoBtn.style.display = "block";
 
-            alert("✅ DELETED FROM FIREBASE");
+        cancelAutoBtn.onclick = () => {
 
-            loadAllInvoices();
-
-          } catch (err) {
-            console.error("❌ DELETE FAILED:", err);
-            alert("DELETE ERROR: " + err.message);
+          if (autoDeleteMap.has(data.id)) {
+            clearTimeout(autoDeleteMap.get(data.id));
+            autoDeleteMap.delete(data.id);
           }
+
+          cancelAutoBtn.remove();
         };
+      }
 
-        container.appendChild(block);
-
-      });
-    }
-
-    alert("🎉 FINISHED LOADING INVOICES");
+      container.appendChild(block);
+    });
 
   } catch (error) {
-    console.error("❌ REAL ERROR:", error);
-    alert("ERROR: " + error.message);
+    console.error(error);
+    alert(error.message);
   }
 }
 

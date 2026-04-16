@@ -1622,7 +1622,7 @@ input:-webkit-autofill:focus {
 
 /* CANCEL AUTO DELETE BUTTON */
 .cancel-auto-delete-btn {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
+    background: linear-gradient(135deg, #ff9649ff, #fc7b1cff);
     color: white;
 }
 

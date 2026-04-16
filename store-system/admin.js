@@ -110,11 +110,6 @@ function showConfirm(actionText, invoiceId) {
 
 const container = document.querySelector(".admin-invoices-container");
 
-if (!container) {
-  alert("Container not found!");
-  return;
-}
-
 // stores pending auto deletes
 const autoDeleteMap = new Map();
 
@@ -158,7 +153,7 @@ async function loadAllInvoices() {
     ALL_INVOICES.sort((a, b) => b.parsedDate - a.parsedDate);
 
     // ===== RENDER =====
-    for (const data of ALL_INVOICES) {
+    ALL_INVOICES.forEach((data) => {
 
       const block = document.createElement("div");
       block.classList.add("invoice-block");
@@ -270,34 +265,27 @@ async function loadAllInvoices() {
       // ======================
       if (shouldAutoDelete) {
 
-        if (timeLeft <= 0) {
-          // 🔥 already expired → delete immediately
-          await deleteDoc(
-            doc(db, "users", data.userEmail, "invoices", data.id)
-          );
-          continue;
-        }
-
         const timeout = setTimeout(async () => {
+
           await deleteDoc(
             doc(db, "users", data.userEmail, "invoices", data.id)
           );
+
           loadAllInvoices();
-        }, timeLeft);
+
+        }, 48 * 60 * 60 * 1000);
 
         autoDeleteMap.set(data.id, timeout);
       }
 
       const timerEl = block.querySelector(".delete-timer");
 
-      const interval = setInterval(() => {
-      const now = Date.now();
-      const timeLeft = (data.createdAt + 48 * 60 * 60 * 1000) - now;
+      setInterval(() => {
+        const now = Date.now();
+        const timeLeft = (data.createdAt + 48 * 60 * 60 * 1000) - now;
 
-      timerEl.textContent = formatTime(timeLeft);
-
-      if (timeLeft <= 0) clearInterval(interval);
-    }, 1000);
+        timerEl.textContent = formatTime(timeLeft);
+      }, 1000);
 
       // ======================
       // CANCEL AUTO DELETE BTN
@@ -305,27 +293,20 @@ async function loadAllInvoices() {
       const cancelAutoBtn = block.querySelector(".cancel-auto-delete-btn");
 
       if (cancelAutoBtn) {
+
         cancelAutoBtn.onclick = () => {
 
-          // stop deletion
           if (autoDeleteMap.has(data.id)) {
             clearTimeout(autoDeleteMap.get(data.id));
             autoDeleteMap.delete(data.id);
           }
 
-          // stop timer
-          clearInterval(interval);
-
-          // remove timer UI
-          timerEl.remove();
-
-          // remove button
           cancelAutoBtn.remove();
         };
       }
 
       container.appendChild(block);
-    }
+    });
 
     alert("🎉 FINISHED LOADING INVOICES 🎉");
     
@@ -432,21 +413,17 @@ function renderInvoices(list) {
     if (shouldAutoDelete) {
 
       if (timeLeft <= 0) {
-        // 🔥 already expired → delete immediately
-        await deleteDoc(
-          doc(db, "users", data.userEmail, "invoices", data.id)
-        );
-        continue; // skip rendering
+        deleteDoc(doc(db, "users", data.userEmail, "invoices", data.id));
+      } else {
+        const timeout = setTimeout(async () => {
+          await deleteDoc(
+            doc(db, "users", data.userEmail, "invoices", data.id)
+          );
+          loadAllInvoices();
+        }, timeLeft);
+
+        autoDeleteMap.set(data.id, timeout);
       }
-
-      const timeout = setTimeout(async () => {
-        await deleteDoc(
-          doc(db, "users", data.userEmail, "invoices", data.id)
-        );
-        loadAllInvoices();
-      }, timeLeft);
-
-      autoDeleteMap.set(data.id, timeout);
     }
 
     // ===== TIMER =====
@@ -466,20 +443,10 @@ function renderInvoices(list) {
 
     if (cancelAutoBtn) {
       cancelAutoBtn.onclick = () => {
-
-        // stop deletion
         if (autoDeleteMap.has(data.id)) {
           clearTimeout(autoDeleteMap.get(data.id));
           autoDeleteMap.delete(data.id);
         }
-
-        // stop timer
-        clearInterval(interval);
-
-        // remove timer UI
-        timerEl.remove();
-
-        // remove button
         cancelAutoBtn.remove();
       };
     }

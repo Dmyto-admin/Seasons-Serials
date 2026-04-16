@@ -1574,11 +1574,11 @@ input:-webkit-autofill:focus {
     z-index: 1000;
 }
 
-.wrapper-admin-products.active-popup{
+.wrapper-admin-products.active-popup {
     transform: translate(-50%,-50%) scale(1);
 }
 
-.wrapper-admin-products .form-box{
+.wrapper-admin-products .form-box {
     width: 100%;
     height: 100%;
     padding: 0 40px 40px;
@@ -1591,18 +1591,13 @@ input:-webkit-autofill:focus {
     text-align: center;
 }
 
-/* ADMIN INVOICES WRAPPER */
-
-.wrapper-admin-products .form-box{
-    width: 100%;
-    padding: 30px;
-}
-
-.admin-products-list{
+.admin-products-list {
     display: flex;
     flex-direction: column;
     gap: 15px;
 }
+
+/* ADMIN INVOICES WRAPPER */
 
 .admin-actions {
     display: flex;

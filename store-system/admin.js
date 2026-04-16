@@ -110,6 +110,11 @@ function showConfirm(actionText, invoiceId) {
 
 const container = document.querySelector(".admin-invoices-container");
 
+if (!container) {
+  alert("Container not found!");
+  return;
+}
+
 // stores pending auto deletes
 const autoDeleteMap = new Map();
 

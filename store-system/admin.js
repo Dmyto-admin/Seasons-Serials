@@ -265,27 +265,23 @@ async function loadAllInvoices() {
       // ======================
       if (shouldAutoDelete) {
 
-        const timeout = setTimeout(async () => {
-
+        if (timeLeft <= 0) {
+          // 🔥 already expired → delete immediately
           await deleteDoc(
             doc(db, "users", data.userEmail, "invoices", data.id)
           );
+          return; // skip rendering
+        }
 
+        const timeout = setTimeout(async () => {
+          await deleteDoc(
+            doc(db, "users", data.userEmail, "invoices", data.id)
+          );
           loadAllInvoices();
-
-        }, 48 * 60 * 60 * 1000);
+        }, timeLeft);
 
         autoDeleteMap.set(data.id, timeout);
       }
-
-      const timerEl = block.querySelector(".delete-timer");
-
-      setInterval(() => {
-        const now = Date.now();
-        const timeLeft = (data.createdAt + 48 * 60 * 60 * 1000) - now;
-
-        timerEl.textContent = formatTime(timeLeft);
-      }, 1000);
 
       // ======================
       // CANCEL AUTO DELETE BTN
@@ -293,14 +289,21 @@ async function loadAllInvoices() {
       const cancelAutoBtn = block.querySelector(".cancel-auto-delete-btn");
 
       if (cancelAutoBtn) {
-
         cancelAutoBtn.onclick = () => {
 
+           // stop scheduled deletion
           if (autoDeleteMap.has(data.id)) {
             clearTimeout(autoDeleteMap.get(data.id));
             autoDeleteMap.delete(data.id);
           }
 
+          // stop timer
+          clearInterval(interval);
+
+          // remove timer UI
+          timerEl.remove();
+
+          // remove button
           cancelAutoBtn.remove();
         };
       }
@@ -413,17 +416,21 @@ function renderInvoices(list) {
     if (shouldAutoDelete) {
 
       if (timeLeft <= 0) {
-        deleteDoc(doc(db, "users", data.userEmail, "invoices", data.id));
-      } else {
-        const timeout = setTimeout(async () => {
-          await deleteDoc(
-            doc(db, "users", data.userEmail, "invoices", data.id)
-          );
-          loadAllInvoices();
-        }, timeLeft);
-
-        autoDeleteMap.set(data.id, timeout);
+        // 🔥 already expired → delete immediately
+        await deleteDoc(
+          doc(db, "users", data.userEmail, "invoices", data.id)
+        );
+        return; // skip rendering
       }
+
+      const timeout = setTimeout(async () => {
+        await deleteDoc(
+          doc(db, "users", data.userEmail, "invoices", data.id)
+        );
+        loadAllInvoices();
+      }, timeLeft);
+
+      autoDeleteMap.set(data.id, timeout);
     }
 
     // ===== TIMER =====

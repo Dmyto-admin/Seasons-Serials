@@ -145,7 +145,7 @@ async function loadAllInvoices() {
 
       const now = Date.now();
       const isOlderThan48h = (now - data.createdAt) > 48 * 60 * 60 * 1000;
-      const shouldAutoDelete = data.status !== "payed" && isOlderThan48h;
+      const shouldAutoDelete = data.status !== "payed";
 
       block.innerHTML = `
         <div class="invoice-card">

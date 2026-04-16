@@ -1620,7 +1620,18 @@ input:-webkit-autofill:focus {
     box-shadow: 0 0 15px rgba(239,68,68,0.6);
 }
 
-.pay-btn, .cancel-btn {
+/* CANCEL AUTO DELETE BUTTON */
+.cancel-auto-delete-btn {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+}
+
+.cancel-auto-delete-btn:hover {
+    transform: scale(1.07);
+    box-shadow: 0 0 15px rgba(239,68,68,0.6);
+}
+
+.pay-btn, .cancel-btn, cancel-auto-delete-btn {
     width: 40%;
     border: none;
     padding: 10px 14px;
@@ -1636,7 +1647,8 @@ input:-webkit-autofill:focus {
 
 /* ✨ glow effect */
 .pay-btn::after,
-.cancel-btn::after {
+.cancel-btn::after,
+.cancel-auto-delete-btn::after{
     content: "";
     position: absolute;
     width: 100%;
@@ -1649,7 +1661,8 @@ input:-webkit-autofill:focus {
 }
 
 .pay-btn:hover::after,
-.cancel-btn:hover::after {
+.cancel-btn:hover::after,
+.cancel-auto-delete-btn:hover::after{
     opacity: 1;
 }
 

@@ -270,7 +270,7 @@ async function loadAllInvoices() {
           await deleteDoc(
             doc(db, "users", data.userEmail, "invoices", data.id)
           );
-          return; // skip rendering
+          continue;
         }
 
         const timeout = setTimeout(async () => {
@@ -320,7 +320,7 @@ async function loadAllInvoices() {
       }
 
       container.appendChild(block);
-    });
+    }
 
     alert("🎉 FINISHED LOADING INVOICES 🎉");
     

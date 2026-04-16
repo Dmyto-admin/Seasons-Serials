@@ -331,7 +331,7 @@ document.querySelectorAll('.store-img, .store-img-t2, .store-img-t3').forEach(im
         imageViewer.classList.add('active');
         screenOverlay.classList.add('active');
 
-        setTimeout(generateWatermarks, 100); // 👈 IMPORTANT
+        setTimeout(generateWatermarks, 150);
 
         zoomed = false;
         imageViewerImg.style.transform = "scale(1)";
@@ -361,7 +361,7 @@ imageViewerImg.addEventListener('click', (e) => {
     e.stopPropagation();
     zoomed = !zoomed;
 
-    setTimeout(generateWatermarks, 50);
+    setTimeout(generateWatermarks, 100);
 
     if (zoomed) {
         imageViewerImg.style.transform = "scale(2)";
@@ -389,38 +389,56 @@ window.addEventListener("resize", () => {
   }
 });
 
+const watermarkLayer = document.createElement("div");
+
+watermarkLayer.style.position = "absolute";
+watermarkLayer.style.pointerEvents = "none";
+watermarkLayer.style.overflow = "hidden";
+watermarkLayer.style.zIndex = "5";
+
+imageViewer.appendChild(watermarkLayer);
+
 function generateWatermarks() {
+
   watermarkLayer.innerHTML = "";
 
   const rect = imageViewerImg.getBoundingClientRect();
-  const width = rect.width;
-  const height = rect.height;
 
-  if (!width || !height) return;
+  if (!rect.width || !rect.height) return;
 
-  const user = getUser();
-  const text = (user?.email || "Seasons Serials").toUpperCase();
+  // 👉 POSITION LAYER EXACTLY OVER IMAGE
+  watermarkLayer.style.left = rect.left + "px";
+  watermarkLayer.style.top = rect.top + "px";
+  watermarkLayer.style.width = rect.width + "px";
+  watermarkLayer.style.height = rect.height + "px";
 
-  // 🔥 SCALE BASED ON IMAGE SIZE
-  const fontSize = Math.max(16, width / 15);
-  const gapX = fontSize * 4;
-  const gapY = fontSize * 2;
+  // 👉 TEXT (NO USER SYSTEM NEEDED)
+  const text = "Seasons Serils";
 
-  const cols = Math.ceil(width / gapX) + 2;
-  const rows = Math.ceil(height / gapY) + 2;
+  // 👉 SCALE BASED ON IMAGE SIZE
+  const fontSize = Math.max(18, rect.width / 12);
+
+  // 👉 LOWER DENSITY (as you asked)
+  const gapX = fontSize * 6;
+  const gapY = fontSize * 3;
+
+  const cols = Math.ceil(rect.width / gapX);
+  const rows = Math.ceil(rect.height / gapY);
 
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
+
       const wm = document.createElement("div");
 
       wm.innerText = text;
+
       wm.style.position = "absolute";
       wm.style.left = `${x * gapX}px`;
       wm.style.top = `${y * gapY}px`;
 
       wm.style.fontSize = fontSize + "px";
       wm.style.color = "white";
-      wm.style.opacity = "0.18";
+      wm.style.opacity = "0.12"; // softer
       wm.style.transform = "rotate(-30deg)";
       wm.style.whiteSpace = "nowrap";
       wm.style.userSelect = "none";
@@ -429,31 +447,6 @@ function generateWatermarks() {
     }
   }
 }
-
-const watermark = document.createElement("div");
-
-watermark.innerText = "Seasons Serials";
-watermark.style.position = "absolute";
-watermark.style.top = "50%";
-watermark.style.left = "50%";
-watermark.style.transform = "translate(-50%, -50%) rotate(-45deg)";
-watermark.style.fontSize = "40px";
-watermark.style.opacity = "0.55";
-watermark.style.color = "white";
-watermark.style.pointerEvents = "none";
-watermark.style.userSelect = "none";
-
-imageViewer.appendChild(watermark);
-
-
-
-// 🚫 Disable right click
-document.addEventListener("contextmenu", e => e.preventDefault());
-
-// 🚫 Disable drag
-document.querySelectorAll("img").forEach(img => {
-  img.addEventListener("dragstart", e => e.preventDefault());
-});
 
 // 🚫 Detect PrintScreen
 document.addEventListener("keyup", (e) => {
@@ -494,28 +487,12 @@ function triggerProtection() {
   overlay.style.fontSize = "30px";
   overlay.style.zIndex = "9999";
 
-  overlay.innerText = "Protected Content 🚫";
+  overlay.innerText = "Content Protection Triggered 🚫";
 
   document.body.appendChild(overlay);
 
-  setTimeout(() => overlay.remove(), 1500);
+  setTimeout(() => overlay.remove(), 1750);
 }
-
-let touchStartTime = 0;
-
-document.addEventListener("touchstart", () => {
-  touchStartTime = Date.now();
-});
-
-document.addEventListener("touchend", () => {
-  const duration = Date.now() - touchStartTime;
-
-  // 👇 long press → possible screenshot intent
-  if (duration > 500) {
-    triggerProtection();
-  }
-});
-document.addEventListener("gesturestart", triggerProtection);
 
 
 

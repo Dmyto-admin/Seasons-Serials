@@ -334,7 +334,7 @@ document.querySelectorAll('.store-img, .store-img-t2, .store-img-t3').forEach(im
 
         setTimeout(() => {
             baseRect = imageViewerImg.getBoundingClientRect(); // ✅ SAVE ORIGINAL
-            generateWatermarks();
+            generateWatermarksCanvas();
         }, 150);
 
         zoomed = false;
@@ -375,7 +375,7 @@ imageViewerImg.addEventListener('click', (e) => {
     }
     
     // 🔥 IMPORTANT: DO NOT recalc size, just redraw using baseRect
-    setTimeout(() => generateWatermarks(), 50);
+    setTimeout(() => generateWatermarksCanvas(), 50);
 });
 
 imageViewerImg.addEventListener('mousemove', (e) => {
@@ -390,7 +390,7 @@ imageViewerImg.addEventListener('mousemove', (e) => {
 
 window.addEventListener("resize", () => {
   if (imageViewer.classList.contains("active")) {
-    generateWatermarks();
+    generateWatermarksCanvas();
   }
 });
 

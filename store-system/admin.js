@@ -64,6 +64,19 @@ function parseDate(dateStr) {
   return new Date(`${year}-${month}-${day}`);
 }
 
+function formatTime(ms) {
+
+  if (ms <= 0) return "Deleting soon...";
+
+  const totalSec = Math.floor(ms / 1000);
+
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+
+  return `This invoice auto deletes in ${h}h ${m}m ${s}s`;
+}
+
 function showConfirm(actionText, invoiceId) {
   return new Promise((resolve) => {
 
@@ -146,6 +159,8 @@ async function loadAllInvoices() {
       block.classList.add("invoice-block");
 
       const now = Date.now();
+      const deleteAt = data.createdAt + 48 * 60 * 60 * 1000;
+      const timeLeft = deleteAt - now;
       const isOlderThan48h = (now - data.createdAt) > 48 * 60 * 60 * 1000;
       const shouldAutoDelete = data.status !== "payed";
 
@@ -171,6 +186,9 @@ async function loadAllInvoices() {
             <button class="cancel-auto-delete-btn">Cancel Auto Delete</button>
           ` : ""}
           </div>
+          
+          <div class="delete-timer">${formatTime(timeLeft)}</div>
+
 
           <button class="download-btn">Download</button>
 
@@ -260,6 +278,15 @@ async function loadAllInvoices() {
         autoDeleteMap.set(data.id, timeout);
       }
 
+      const timerEl = block.querySelector(".delete-timer");
+
+      setInterval(() => {
+        const now = Date.now();
+        const timeLeft = (data.createdAt + 48 * 60 * 60 * 1000) - now;
+
+        timerEl.textContent = formatTime(timeLeft);
+      }, 1000);
+
       // ======================
       // CANCEL AUTO DELETE BTN
       // ======================
@@ -317,6 +344,9 @@ function renderInvoices(list) {
           <button class="cancel-btn">Cancel</button>
           <button class="cancel-auto-delete-btn">Cancel Auto Delete</button>
         </div>
+
+        <div class="delete-timer">${formatTime(timeLeft)}</div>
+
 
         <button class="download-btn">Download</button>
       </div>

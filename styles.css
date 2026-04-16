@@ -1634,7 +1634,7 @@ input:-webkit-autofill:focus {
 .pay-btn, .cancel-btn, .cancel-auto-delete-btn {
     width: auto;
     border: none;
-    padding: 9px 14px;
+    padding: 10px 14px;
     border-radius: 10px;
 
     font-weight: 600;

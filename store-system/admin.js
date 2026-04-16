@@ -264,41 +264,37 @@ async function loadAllInvoices() {
       // AUTO DELETE SYSTEM
       // ======================
     const timerEl = block.querySelector(".delete-timer");
+const deleteAt = data.createdAt + 48 * 60 * 60 * 1000;
 
-    const deleteAt = data.createdAt + 48 * 60 * 60 * 1000;
+let interval = null;
+let timeout = null;
 
-    let interval = null;
-    let timeout = null;
+function updateTimer() {
+  const timeLeft = deleteAt - Date.now();
+  timerEl.textContent = formatTime(timeLeft);
 
-    function updateTimer() {
-      const now = Date.now();
-      const timeLeft = deleteAt - now;
+  if (timeLeft <= 0) {
+    clearInterval(interval);
+  }
+}
 
-      timerEl.textContent = formatTime(timeLeft);
+updateTimer();
+interval = setInterval(updateTimer, 1000);
 
-      if (timeLeft <= 0) {
-        clearInterval(interval);
-      }
-    }
+if (shouldAutoDelete) {
+  timeout = setTimeout(async () => {
+    await deleteDoc(
+      doc(db, "users", data.userEmail, "invoices", data.id)
+    );
+    loadAllInvoices();
+  }, Math.max(deleteAt - Date.now(), 0));
 
-    updateTimer();
-    interval = setInterval(updateTimer, 1000);
-
-    if (shouldAutoDelete) {
-      timeout = setTimeout(async () => {
-        await deleteDoc(
-          doc(db, "users", data.userEmail, "invoices", data.id)
-        );
-        loadAllInvoices();
-      }, Math.max(deleteAt - Date.now(), 0));
-
-      autoDeleteMap.set(data.id, {
-        timeout,
-        interval,
-        timerEl
-      });
-    }
-
+  autoDeleteMap.set(data.id, {
+    timeout,
+    interval,
+    timerEl
+  });
+}
       // ======================
       // CANCEL AUTO DELETE BTN
       // ======================
@@ -428,40 +424,37 @@ function renderInvoices(list) {
 
     // ===== AUTO DELETE (FIXED) =====
     const timerEl = block.querySelector(".delete-timer");
+const deleteAt = data.createdAt + 48 * 60 * 60 * 1000;
 
-    const deleteAt = data.createdAt + 48 * 60 * 60 * 1000;
+let interval = null;
+let timeout = null;
 
-    let interval = null;
-    let timeout = null;
+function updateTimer() {
+  const timeLeft = deleteAt - Date.now();
+  timerEl.textContent = formatTime(timeLeft);
 
-    function updateTimer() {
-      const now = Date.now();
-      const timeLeft = deleteAt - now;
+  if (timeLeft <= 0) {
+    clearInterval(interval);
+  }
+}
 
-      timerEl.textContent = formatTime(timeLeft);
+updateTimer();
+interval = setInterval(updateTimer, 1000);
 
-      if (timeLeft <= 0) {
-        clearInterval(interval);
-      }
-    }
+if (shouldAutoDelete) {
+  timeout = setTimeout(async () => {
+    await deleteDoc(
+      doc(db, "users", data.userEmail, "invoices", data.id)
+    );
+    loadAllInvoices();
+  }, Math.max(deleteAt - Date.now(), 0));
 
-    updateTimer();
-    interval = setInterval(updateTimer, 1000);
-
-    if (shouldAutoDelete) {
-      timeout = setTimeout(async () => {
-        await deleteDoc(
-          doc(db, "users", data.userEmail, "invoices", data.id)
-        );
-        loadAllInvoices();
-      }, Math.max(deleteAt - Date.now(), 0));
-
-      autoDeleteMap.set(data.id, {
-        timeout,
-        interval,
-        timerEl
-      });
-    }
+  autoDeleteMap.set(data.id, {
+    timeout,
+    interval,
+    timerEl
+  });
+}
 
     // ===== CANCEL AUTO DELETE =====
     const cancelAutoBtn = block.querySelector(".cancel-auto-delete-btn");

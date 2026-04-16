@@ -432,9 +432,7 @@ function generateWatermarks() {
 
 const watermarkLayer = document.createElement("div");
 
-watermarkLayer.style.position = "absolute";
-watermark.style.top = "50%";
-watermark.style.left = "50%";
+watermarkLayer.style.position = "relative";
 watermark.style.transform = "translate(-50%, -50%) rotate(-40deg)";
 watermarkLayer.style.width = "100%";
 watermarkLayer.style.height = "100%";

@@ -332,11 +332,6 @@ document.querySelectorAll('.store-img, .store-img-t2, .store-img-t3').forEach(im
         imageViewer.classList.add('active');
         screenOverlay.classList.add('active');
 
-        setTimeout(() => {
-            baseRect = imageViewerImg.getBoundingClientRect(); // ✅ SAVE ORIGINAL
-            generateWatermarks();
-        }, 150);
-
         zoomed = false;
         imageViewerImg.style.transform = "scale(1)";
         imageViewerImg.style.transformOrigin = "center center";
@@ -384,102 +379,6 @@ imageViewerImg.addEventListener('mousemove', (e) => {
 
     imageViewerImg.style.transformOrigin = `${x}% ${y}%`;
 });
-
-window.addEventListener("resize", () => {
-  if (imageViewer.classList.contains("active")) {
-    generateWatermarks();
-  }
-});
-
-const watermarkLayer = document.createElement("div");
-
-imageViewer.appendChild(watermarkLayer);
-
-function generateWatermarks() {
-
-  watermarkLayer.innerHTML = "";
-
-  const rect = imageViewerImg.getBoundingClientRect();
-  if (!rect.width || !rect.height) return;
-
-  const text = "    Seasons Serials";
-
-  const fontSize = Math.max(18, rect.width / 12);
-
-  const gapX = fontSize * 6;
-  const gapY = fontSize * 3;
-
-  const cols = Math.ceil(rect.width / gapX);
-  const rows = Math.ceil(rect.height / gapY);
-
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < cols; x++) {
-
-      const wm = document.createElement("div");
-
-      wm.innerText = text;
-
-      wm.style.position = "absolute";
-      wm.style.left = `${x * gapX}px`;
-      wm.style.top = `${y * gapY}px`;
-
-      wm.style.fontSize = fontSize + "px";
-      wm.style.color = "white";
-      wm.style.opacity = "0.45";
-      wm.style.transform = "rotate(-30deg)";
-      wm.style.whiteSpace = "nowrap";
-
-      watermarkLayer.appendChild(wm);
-    }
-  }
-}
-
-// 🚫 Detect PrintScreen
-document.addEventListener("keyup", (e) => {
-  if (e.key === "PrintScreen") {
-    triggerProtection();
-  }
-});
-
-// 🚫 Detect suspicious behavior (DevTools open)
-let devtoolsOpen = false;
-
-setInterval(() => {
-  const threshold = 160;
-  if (window.outerWidth - window.innerWidth > threshold) {
-    if (!devtoolsOpen) {
-      devtoolsOpen = true;
-      triggerProtection();
-    }
-  } else {
-    devtoolsOpen = false;
-  }
-}, 1000);
-
-// 🚫 PROTECTION EFFECT
-function triggerProtection() {
-  const overlay = document.createElement("div");
-
-  overlay.style.position = "fixed";
-  overlay.style.top = "0";
-  overlay.style.left = "0";
-  overlay.style.width = "100%";
-  overlay.style.height = "100%";
-  overlay.style.background = "black";
-  overlay.style.color = "white";
-  overlay.style.display = "flex";
-  overlay.style.alignItems = "center";
-  overlay.style.justifyContent = "center";
-  overlay.style.fontSize = "30px";
-  overlay.style.zIndex = "9999";
-
-  overlay.innerText = "Content Protection Triggered 🚫";
-
-  document.body.appendChild(overlay);
-
-  setTimeout(() => overlay.remove(), 1750);
-}
-
 
 
 // ===== SALE COUNTDOWN TIMER (ENDS 03/03/2026) =====

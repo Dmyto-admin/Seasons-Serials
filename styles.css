@@ -1730,3 +1730,89 @@ input:-webkit-autofill:focus {
     margin-bottom: 20px;
     text-align: center;
 }
+
+.invoice-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+
+    padding: 14px;
+    margin-bottom: 20px;
+
+    background: rgba(20,20,20,0.85);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+
+    backdrop-filter: blur(10px);
+}
+
+/* SEARCH BOX */
+.search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    flex: 1;
+    min-width: 240px;
+
+    padding: 10px 12px;
+
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+}
+
+.search-box input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+
+    color: white;
+    font-size: 14px;
+}
+
+.search-icon {
+    opacity: 0.7;
+}
+
+/* OTHER INPUTS */
+.invoice-tools input[type="date"],
+.invoice-tools input:not(#searchInvoice) {
+    padding: 10px 12px;
+    border-radius: 10px;
+
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.06);
+    color: white;
+
+    outline: none;
+}
+
+/* BUTTON GROUP */
+.btn-group button {
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: none;
+
+    cursor: pointer;
+    font-weight: 600;
+}
+
+/* APPLY */
+#applyFilters {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+}
+
+/* RESET */
+#resetFilters {
+    background: rgba(255,255,255,0.1);
+    color: white;
+}
+
+/* FOCUS EFFECT */
+.invoice-tools input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59,130,246,0.3);
+}

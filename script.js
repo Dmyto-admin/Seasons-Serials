@@ -418,7 +418,7 @@ function generateWatermarks() {
   watermarkLayer.style.width = rect.width + "px";
   watermarkLayer.style.height = rect.height + "px";
 
-  const text = "Seasons Serials";
+  const text = "    Seasons Serials";
 
   // 🔥 NOW scales with zoom automatically
   const fontSize = Math.max(18, rect.width / 12);

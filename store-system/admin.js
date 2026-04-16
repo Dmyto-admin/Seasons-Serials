@@ -153,7 +153,7 @@ async function loadAllInvoices() {
     ALL_INVOICES.sort((a, b) => b.parsedDate - a.parsedDate);
 
     // ===== RENDER =====
-    ALL_INVOICES.forEach((data) => {
+    for (const data of ALL_INVOICES) {
 
       const block = document.createElement("div");
       block.classList.add("invoice-block");
@@ -283,6 +283,17 @@ async function loadAllInvoices() {
         autoDeleteMap.set(data.id, timeout);
       }
 
+      const timerEl = block.querySelector(".delete-timer");
+
+      const interval = setInterval(() => {
+      const now = Date.now();
+      const timeLeft = (data.createdAt + 48 * 60 * 60 * 1000) - now;
+
+      timerEl.textContent = formatTime(timeLeft);
+
+      if (timeLeft <= 0) clearInterval(interval);
+    }, 1000);
+
       // ======================
       // CANCEL AUTO DELETE BTN
       // ======================
@@ -291,7 +302,7 @@ async function loadAllInvoices() {
       if (cancelAutoBtn) {
         cancelAutoBtn.onclick = () => {
 
-           // stop scheduled deletion
+          // stop deletion
           if (autoDeleteMap.has(data.id)) {
             clearTimeout(autoDeleteMap.get(data.id));
             autoDeleteMap.delete(data.id);
@@ -450,10 +461,20 @@ function renderInvoices(list) {
 
     if (cancelAutoBtn) {
       cancelAutoBtn.onclick = () => {
+
+        // stop deletion
         if (autoDeleteMap.has(data.id)) {
           clearTimeout(autoDeleteMap.get(data.id));
           autoDeleteMap.delete(data.id);
         }
+
+        // stop timer
+        clearInterval(interval);
+
+        // remove timer UI
+        timerEl.remove();
+
+        // remove button
         cancelAutoBtn.remove();
       };
     }

@@ -430,20 +430,22 @@ function generateWatermarks() {
   }
 }
 
-const watermarkLayer = document.createElement("div");
+const watermark = document.createElement("div");
 
-watermarkLayer.style.position = "relative";
-watermark.style.transform = "translate(-50%, -50%) rotate(-40deg)";
-watermarkLayer.style.width = "100%";
-watermarkLayer.style.height = "100%";
-watermarkLayer.style.pointerEvents = "none";
-watermarkLayer.style.display = "flex";
-watermarkLayer.style.flexWrap = "wrap";
-watermarkLayer.style.alignContent = "center";
-watermarkLayer.style.justifyContent = "center";
-watermarkLayer.style.overflow = "hidden";
+watermark.innerText = "Seasons Serials";
+watermark.style.position = "absolute";
+watermark.style.top = "50%";
+watermark.style.left = "50%";
+watermark.style.transform = "translate(-50%, -50%) rotate(-45deg)";
+watermark.style.fontSize = "40px";
+watermark.style.opacity = "0.55";
+watermark.style.color = "white";
+watermark.style.pointerEvents = "none";
+watermark.style.userSelect = "none";
 
-imageViewer.appendChild(watermarkLayer);
+imageViewer.appendChild(watermark);
+
+
 
 // 🚫 Disable right click
 document.addEventListener("contextmenu", e => e.preventDefault());

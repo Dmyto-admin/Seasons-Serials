@@ -748,15 +748,17 @@ confirmBtn.addEventListener("click", async () => {
     selectedProduct.button.disabled = false;
     selectedProduct.button.classList.add("reserved-state");
 
+    const now = Date.now();
+
     await setDoc(productRef, {
       status: "reserved",
-      reservedUntil: Date.now + 24 * 60 * 60 * 1000,
+      reservedUntil: now + 24 * 60 * 60 * 1000,
       reservedBy: email,
 
-      reminderAt: Date.now + 12 * 60 * 60 * 1000,
+      reminderAt: now + 12 * 60 * 60 * 1000,
       reminderSent: false,
 
-      warningAt: Date.now + 22 * 60 * 60 * 1000,
+      warningAt: now + 22 * 60 * 60 * 1000,
       warningSent: false
     }, { merge: true });
 

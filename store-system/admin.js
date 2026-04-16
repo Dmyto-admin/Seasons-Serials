@@ -269,19 +269,16 @@ async function loadAllInvoices() {
       // ======================
       // AUTO DELETE SYSTEM
       // ======================
-      if (shouldAutoDelete) {
+      if (shouldAutoDelete && !data.autoDeleteCancelled) {
 
-        const timeout = setTimeout(async () => {
+        if (shouldAutoDelete && timeLeft > 0) {
+          const timeout = setTimeout(async () => {
+            await deleteDoc(doc(db, "users", data.userEmail, "invoices", data.id));
+            loadAllInvoices();
+          }, timeLeft);
 
-          await deleteDoc(
-            doc(db, "users", data.userEmail, "invoices", data.id)
-          );
-
-          loadAllInvoices();
-
-        }, 48 * 60 * 60 * 1000);
-
-        autoDeleteMap.set(data.id, timeout);
+          autoDeleteMap.set(data.id, timeout);
+        }
       }
 
       const timerEl = block.querySelector(".delete-timer");
@@ -448,15 +445,11 @@ function renderInvoices(list) {
     };
 
     // ===== AUTO DELETE (FIXED) =====
-    if (shouldAutoDelete) {
+    if (shouldAutoDelete && !data.autoDeleteCancelled) {
 
-      if (timeLeft <= 0) {
-        deleteDoc(doc(db, "users", data.userEmail, "invoices", data.id));
-      } else {
+      if (shouldAutoDelete && timeLeft > 0) {
         const timeout = setTimeout(async () => {
-          await deleteDoc(
-            doc(db, "users", data.userEmail, "invoices", data.id)
-          );
+          await deleteDoc(doc(db, "users", data.userEmail, "invoices", data.id));
           loadAllInvoices();
         }, timeLeft);
 

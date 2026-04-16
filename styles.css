@@ -1632,7 +1632,7 @@ input:-webkit-autofill:focus {
 }
 
 .pay-btn, .cancel-btn, .cancel-auto-delete-btn {
-    width: 40%;
+    width: 35%;
     border: none;
     padding: 10px 14px;
     border-radius: 10px;

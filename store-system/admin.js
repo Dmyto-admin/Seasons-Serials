@@ -325,8 +325,13 @@ function renderInvoices(list) {
     const block = document.createElement("div");
     block.classList.add("invoice-block");
 
+    const now = Date.now();
+    const deleteAt = data.createdAt + 48 * 60 * 60 * 1000;
+    const timeLeft = deleteAt - now;
+
     block.innerHTML = `
       <div class="invoice-card">
+
         <div class="invoice-header">
           <span class="invoice-id">#${data.invoiceId}</span>
           <span class="invoice-date">${data.date}</span>
@@ -347,10 +352,12 @@ function renderInvoices(list) {
 
         <div class="delete-timer">${formatTime(timeLeft)}</div>
 
-
         <button class="download-btn">Download</button>
+
       </div>
     `;
+
+    // 👉 REATTACH ALL LOGIC HERE (copy from loadAllInvoices)
 
     container.appendChild(block);
   });
@@ -367,7 +374,7 @@ document.getElementById("applyFilters").onclick = () => {
 
   if (search) {
     filtered = filtered.filter(i =>
-      i.invoiceId.toLowerCase().includes(search) ||
+      String(i.invoiceId).toLowerCase().includes(search) ||
       i.userEmail.toLowerCase().includes(search)
     );
   }
@@ -380,26 +387,17 @@ document.getElementById("applyFilters").onclick = () => {
 
   if (from) {
     filtered = filtered.filter(i =>
-      new Date(i.parsedDate) >= new Date(from)
+      i.parsedDate >= new Date(from)
     );
   }
 
   if (to) {
     filtered = filtered.filter(i =>
-      new Date(i.parsedDate) <= new Date(to)
+      i.parsedDate <= new Date(to)
     );
   }
 
   renderInvoices(filtered);
-};
-
-document.getElementById("resetFilters").onclick = () => {
-  document.getElementById("searchInvoice").value = "";
-  document.getElementById("filterUser").value = "";
-  document.getElementById("fromDate").value = "";
-  document.getElementById("toDate").value = "";
-
-  renderInvoices(ALL_INVOICES);
 };
 
 document.addEventListener("DOMContentLoaded", loadAllInvoices);

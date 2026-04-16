@@ -327,7 +327,9 @@ function renderInvoices(list) {
 
     const now = Date.now();
     const deleteAt = data.createdAt + 48 * 60 * 60 * 1000;
-    const timeLeft = deleteAt - now;
+    let timeLeft = deleteAt - now;
+
+    const shouldAutoDelete = data.status !== "payed";
 
     block.innerHTML = `
       <div class="invoice-card">
@@ -347,7 +349,7 @@ function renderInvoices(list) {
         <div class="admin-actions">
           <button class="pay-btn">Payed</button>
           <button class="cancel-btn">Cancel</button>
-          <button class="cancel-auto-delete-btn">Cancel Auto Delete</button>
+          ${shouldAutoDelete ? `<button class="cancel-auto-delete-btn">Cancel Auto Delete</button>` : ""}
         </div>
 
         <div class="delete-timer">${formatTime(timeLeft)}</div>
@@ -357,119 +359,101 @@ function renderInvoices(list) {
       </div>
     `;
 
-      // ======================
-      // DOWNLOAD
-      // ======================
-      block.querySelector(".download-btn").onclick = () => {
+    // ===== DOWNLOAD =====
+    block.querySelector(".download-btn").onclick = () => {
+      const base64 = data.pdf;
 
-        const base64 = data.pdf;
+      const byteString = atob(base64.split(',')[1]);
+      const mimeString = base64.split(',')[0].split(':')[1].split(';')[0];
 
-        const byteString = atob(base64.split(',')[1]);
-        const mimeString = base64.split(',')[0].split(':')[1].split(';')[0];
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
 
-        const ab = new ArrayBuffer(byteString.length);
-        const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
 
-        for (let i = 0; i < byteString.length; i++) {
-          ia[i] = byteString.charCodeAt(i);
-        }
+      const blob = new Blob([ab], { type: mimeString });
+      const url = URL.createObjectURL(blob);
 
-        const blob = new Blob([ab], { type: mimeString });
-        const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "Invoice_" + data.invoiceId + ".pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
 
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = "Invoice_" + data.invoiceId + ".pdf";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      };
+    // ===== PAYED =====
+    block.querySelector(".pay-btn").onclick = async () => {
+      const confirm = await showConfirm("mark as PAYED", data.invoiceId);
+      if (!confirm) return;
 
-      // ======================
-      // PAYED
-      // ======================
-      block.querySelector(".pay-btn").onclick = async () => {
+      await updateDoc(
+        doc(db, "users", data.userEmail, "invoices", data.id),
+        { status: "payed" }
+      );
 
-        const confirm = await showConfirm("mark as PAYED", data.invoiceId);
-        if (!confirm) return;
+      loadAllInvoices();
+    };
 
-        await updateDoc(
-          doc(db, "users", data.userEmail, "invoices", data.id),
-          { status: "payed" }
-        );
+    // ===== DELETE =====
+    block.querySelector(".cancel-btn").onclick = async () => {
+      const confirm = await showConfirm("DELETE", data.invoiceId);
+      if (!confirm) return;
 
-        // cancel auto delete if exists
+      await deleteDoc(
+        doc(db, "users", data.userEmail, "invoices", data.id)
+      );
+
+      loadAllInvoices();
+    };
+
+    // ===== AUTO DELETE (FIXED) =====
+    if (shouldAutoDelete) {
+
+      if (timeLeft <= 0) {
+        deleteDoc(doc(db, "users", data.userEmail, "invoices", data.id));
+      } else {
+        const timeout = setTimeout(async () => {
+          await deleteDoc(
+            doc(db, "users", data.userEmail, "invoices", data.id)
+          );
+          loadAllInvoices();
+        }, timeLeft);
+
+        autoDeleteMap.set(data.id, timeout);
+      }
+    }
+
+    // ===== TIMER =====
+    const timerEl = block.querySelector(".delete-timer");
+
+    const interval = setInterval(() => {
+      const now = Date.now();
+      timeLeft = (data.createdAt + 48 * 60 * 60 * 1000) - now;
+
+      timerEl.textContent = formatTime(timeLeft);
+
+      if (timeLeft <= 0) clearInterval(interval);
+    }, 1000);
+
+    // ===== CANCEL AUTO DELETE =====
+    const cancelAutoBtn = block.querySelector(".cancel-auto-delete-btn");
+
+    if (cancelAutoBtn) {
+      cancelAutoBtn.onclick = () => {
         if (autoDeleteMap.has(data.id)) {
           clearTimeout(autoDeleteMap.get(data.id));
           autoDeleteMap.delete(data.id);
         }
-
-        loadAllInvoices();
+        cancelAutoBtn.remove();
       };
+    }
 
-      // ======================
-      // CANCEL (manual delete)
-      // ======================
-      block.querySelector(".cancel-btn").onclick = async () => {
-
-        const confirm = await showConfirm("DELETE", data.invoiceId);
-        if (!confirm) return;
-
-        await deleteDoc(
-          doc(db, "users", data.userEmail, "invoices", data.id)
-        );
-
-        loadAllInvoices();
-      };
-
-      // ======================
-      // AUTO DELETE SYSTEM
-      // ======================
-      if (shouldAutoDelete) {
-
-        const timeout = setTimeout(async () => {
-
-          await deleteDoc(
-            doc(db, "users", data.userEmail, "invoices", data.id)
-          );
-
-          loadAllInvoices();
-
-        }, 48 * 60 * 60 * 1000);
-
-        autoDeleteMap.set(data.id, timeout);
-      }
-
-      const timerEl = block.querySelector(".delete-timer");
-
-      setInterval(() => {
-        const now = Date.now();
-        const timeLeft = (data.createdAt + 48 * 60 * 60 * 1000) - now;
-
-        timerEl.textContent = formatTime(timeLeft);
-      }, 1000);
-
-      // ======================
-      // CANCEL AUTO DELETE BTN
-      // ======================
-      const cancelAutoBtn = block.querySelector(".cancel-auto-delete-btn");
-
-      if (cancelAutoBtn) {
-
-        cancelAutoBtn.onclick = () => {
-
-          if (autoDeleteMap.has(data.id)) {
-            clearTimeout(autoDeleteMap.get(data.id));
-            autoDeleteMap.delete(data.id);
-          }
-
-          cancelAutoBtn.remove();
-        };
-      }
-
-      container.appendChild(block);
-    });
-  } 
+    container.appendChild(block);
+  });
+}
 
 document.getElementById("applyFilters").onclick = () => {
 
@@ -481,18 +465,24 @@ document.getElementById("applyFilters").onclick = () => {
   const to = document.getElementById("toDate").value;
 
   if (search) {
-    filtered = filtered.filter(i => {
+    filtered = filtered
+      .map(i => {
 
-      const id = String(i.invoiceId).toLowerCase();
-      const email = i.userEmail.toLowerCase();
+        const id = String(i.invoiceId).toLowerCase();
+        const email = i.userEmail.toLowerCase();
 
-      return (
-        id.includes(search) ||
-        email.includes(search) ||
-        fuzzyMatch(id, search) ||
-        fuzzyMatch(email, search)
-      );
-    });
+        let score = 0;
+
+        if (id.includes(search)) score += 5;
+        if (email.includes(search)) score += 5;
+
+        if (fuzzyMatch(id, search)) score += 2;
+        if (fuzzyMatch(email, search)) score += 2;
+
+        return { ...i, score };
+      })
+      .filter(i => i.score > 0)
+      .sort((a, b) => b.score - a.score);
   }
 
   if (user) {

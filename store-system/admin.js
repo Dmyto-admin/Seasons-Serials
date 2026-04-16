@@ -112,6 +112,7 @@ const container = document.querySelector(".admin-invoices-container");
 
 // stores pending auto deletes
 const autoDeleteMap = new Map();
+const intervalMap = new Map();
 
 let ALL_INVOICES = [];
 
@@ -242,6 +243,11 @@ async function loadAllInvoices() {
           autoDeleteMap.delete(data.id);
         }
 
+        if (intervalMap.has(data.id)) {
+          clearInterval(intervalMap.get(data.id));
+          intervalMap.delete(data.id);
+        }
+
         loadAllInvoices();
       };
 
@@ -288,6 +294,8 @@ async function loadAllInvoices() {
         timerEl.textContent = formatTime(timeLeft);
       }, 1000);
 
+      intervalMap.set(data.id, interval);
+
       // ======================
       // CANCEL AUTO DELETE BTN
       // ======================
@@ -300,6 +308,11 @@ async function loadAllInvoices() {
           if (autoDeleteMap.has(data.id)) {
             clearTimeout(autoDeleteMap.get(data.id));
             autoDeleteMap.delete(data.id);
+          }
+
+          if (intervalMap.has(data.id)) {
+            clearInterval(intervalMap.get(data.id));
+            intervalMap.delete(data.id);
           }
 
           cancelAutoBtn.remove();
@@ -398,6 +411,18 @@ function renderInvoices(list) {
         { status: "payed" }
       );
 
+        // cancel auto delete if exists
+        if (autoDeleteMap.has(data.id)) {
+          clearTimeout(autoDeleteMap.get(data.id));
+          autoDeleteMap.delete(data.id);
+        }
+
+        if (intervalMap.has(data.id)) {
+          clearInterval(intervalMap.get(data.id));
+          intervalMap.delete(data.id);
+        }
+
+
       loadAllInvoices();
     };
 
@@ -442,6 +467,8 @@ function renderInvoices(list) {
 
       if (timeLeft <= 0) clearInterval(interval);
     }, 1000);
+    
+    intervalMap.set(data.id, interval);
 
     // ===== CANCEL AUTO DELETE =====
     const cancelAutoBtn = block.querySelector(".cancel-auto-delete-btn");
@@ -451,6 +478,11 @@ function renderInvoices(list) {
         if (autoDeleteMap.has(data.id)) {
           clearTimeout(autoDeleteMap.get(data.id));
           autoDeleteMap.delete(data.id);
+        }
+        
+        if (intervalMap.has(data.id)) {
+          clearInterval(intervalMap.get(data.id));
+          intervalMap.delete(data.id);
         }
         cancelAutoBtn.remove();
         

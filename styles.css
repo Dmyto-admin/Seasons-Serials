@@ -1631,7 +1631,7 @@ input:-webkit-autofill:focus {
     box-shadow: 0 0 15px rgba(239,68,68,0.6);
 }
 
-.pay-btn, .cancel-btn, cancel-auto-delete-btn {
+.pay-btn, .cancel-btn, .cancel-auto-delete-btn {
     width: 40%;
     border: none;
     padding: 10px 14px;

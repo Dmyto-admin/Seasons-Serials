@@ -322,6 +322,7 @@ const imageViewerImg = document.getElementById('imageViewerImg');
 const imageViewerClose = document.querySelector('.image-viewer-close');
 
 let zoomed = false;
+let baseRect = null;
 
 /* OPEN ANY STORE IMAGE */
 document.querySelectorAll('.store-img, .store-img-t2, .store-img-t3').forEach(img => {
@@ -331,7 +332,10 @@ document.querySelectorAll('.store-img, .store-img-t2, .store-img-t3').forEach(im
         imageViewer.classList.add('active');
         screenOverlay.classList.add('active');
 
-        setTimeout(generateWatermarks, 150);
+        setTimeout(() => {
+            baseRect = imageViewerImg.getBoundingClientRect(); // ✅ SAVE ORIGINAL
+            generateWatermarks();
+        }, 150);
 
         zoomed = false;
         imageViewerImg.style.transform = "scale(1)";
@@ -361,8 +365,6 @@ imageViewerImg.addEventListener('click', (e) => {
     e.stopPropagation();
     zoomed = !zoomed;
 
-    setTimeout(generateWatermarks, 100);
-
     if (zoomed) {
         imageViewerImg.style.transform = "scale(2)";
         imageViewerImg.style.cursor = "zoom-out";
@@ -371,6 +373,9 @@ imageViewerImg.addEventListener('click', (e) => {
         imageViewerImg.style.transformOrigin = "center center";
         imageViewerImg.style.cursor = "zoom-in";
     }
+    
+    // 🔥 IMPORTANT: DO NOT recalc size, just redraw using baseRect
+    setTimeout(() => generateWatermarks(), 50);
 });
 
 imageViewerImg.addEventListener('mousemove', (e) => {
@@ -402,28 +407,30 @@ function generateWatermarks() {
 
   watermarkLayer.innerHTML = "";
 
-  const rect = imageViewerImg.getBoundingClientRect();
+  if (!baseRect) return;
 
-  if (!rect.width || !rect.height) return;
+  // 👉 ALWAYS USE ORIGINAL SIZE (NOT ZOOMED)
+  const width = baseRect.width;
+  const height = baseRect.height;
 
-  // 👉 POSITION LAYER EXACTLY OVER IMAGE
-  watermarkLayer.style.left = rect.left + "px";
-  watermarkLayer.style.top = rect.top + "px";
-  watermarkLayer.style.width = rect.width + "px";
-  watermarkLayer.style.height = rect.height + "px";
+  // 👉 POSITION relative to imageViewer (NOT viewport!)
+  const viewerRect = imageViewer.getBoundingClientRect();
 
-  // 👉 TEXT (NO USER SYSTEM NEEDED)
-  const text = "Seasons Serils";
+  watermarkLayer.style.left = (baseRect.left - viewerRect.left) + "px";
+  watermarkLayer.style.top = (baseRect.top - viewerRect.top) + "px";
+  watermarkLayer.style.width = width + "px";
+  watermarkLayer.style.height = height + "px";
 
-  // 👉 SCALE BASED ON IMAGE SIZE
-  const fontSize = Math.max(18, rect.width / 12);
+  const text = "Seasons Serials";
 
-  // 👉 LOWER DENSITY (as you asked)
+  const fontSize = Math.max(18, width / 12);
+
+  // 👉 EVEN CLEANER spacing
   const gapX = fontSize * 6;
   const gapY = fontSize * 3;
 
-  const cols = Math.ceil(rect.width / gapX);
-  const rows = Math.ceil(rect.height / gapY);
+  const cols = Math.ceil(width / gapX);
+  const rows = Math.ceil(height / gapY);
 
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
@@ -438,10 +445,9 @@ function generateWatermarks() {
 
       wm.style.fontSize = fontSize + "px";
       wm.style.color = "white";
-      wm.style.opacity = "0.12"; // softer
+      wm.style.opacity = "0.12";
       wm.style.transform = "rotate(-30deg)";
       wm.style.whiteSpace = "nowrap";
-      wm.style.userSelect = "none";
 
       watermarkLayer.appendChild(wm);
     }

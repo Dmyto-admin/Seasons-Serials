@@ -99,7 +99,17 @@ function applyFilters() {
 
     debugAlert("FINAL RESULT", result);
 
-    renderProductsAdvanced(result);
+    document.querySelectorAll(".product-item").forEach(el => {
+        const id = el.dataset.id;
+
+        const product = allProducts.find(p => p.id === id);
+
+        if (!product) return;
+
+        const matches = result.some(p => p.id === product.id);
+
+        el.style.display = matches ? "block" : "none";
+      });
 
   } catch (error) {
     console.error("❌ FILTER CRASH:", error);
@@ -141,17 +151,21 @@ function renderProductsAdvanced(products) {
   const containerP = document.querySelectorAll(".products-row")[0];
   const containerS = document.querySelectorAll(".products-row")[1];
 
-  containerP.innerHTML = "";
-  containerS.innerHTML = "";
-
   products.forEach(product => {
+
+    // 🛑 Prevent duplicates
+    if (document.getElementById(product.product)) return;
+
     const div = document.createElement("div");
+
+    div.classList.add("product-item"); // 👈 IMPORTANT
+    div.dataset.id = product.id;       // 👈 IMPORTANT
 
     div.innerHTML = `
       <div class="sale-product-box" id="${product.product}">
           <img
              src="${product.img}"
-             alt="IMG-SALE-1-'THE-BAMBOO"
+             alt="IMG"
              data-full="${product.fullscreen}"
              class="${product.imgClass}"
            >
@@ -175,6 +189,7 @@ function renderProductsAdvanced(products) {
       containerS.appendChild(div);
     }
   });
+
   attachDynamicEvents();
 }
 

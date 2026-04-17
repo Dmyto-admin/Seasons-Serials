@@ -15,106 +15,68 @@ let filters = {
   sort: null
 };
 
-function debugAlert(step, data = null) {
-  try {
-    alert(`🧪 ${step}\n\n` + (data ? JSON.stringify(data, null, 2) : ""));
-  } catch (e) {
-    alert(`🧪 ${step} (data not serializable)`);
-  }
-}
-
 function applyFilters() {
   try {
-    debugAlert("START applyFilters", filters);
+    alert("🔵 Applying filters...");
 
     let result = [...allProducts];
 
-    debugAlert("INITIAL PRODUCTS", result);
-
     // SEARCH
     if (filters.search) {
-      result = result.filter(p => {
-        if (!p.name) {
-          alert("❌ Missing name field in product: " + JSON.stringify(p));
-          return false;
-        }
-        return p.name.toLowerCase().includes(filters.search);
-      });
-
-      debugAlert("AFTER SEARCH", result);
+      result = result.filter(p =>
+        (p.name || "").toLowerCase().includes(filters.search)
+      );
+      alert("✅ Search filter applied");
     }
 
     // CATEGORY
     if (filters.category) {
-      result = result.filter(p => {
-        if (!p.category) {
-          alert("❌ Missing category field: " + JSON.stringify(p));
-          return false;
-        }
-        return p.category === filters.category;
-      });
-
-      debugAlert("AFTER CATEGORY", result);
+      result = result.filter(p => p.category === filters.category);
+      alert("✅ Category filter applied");
     }
 
     // PRICE
-    result = result.filter(p => {
-      if (typeof p.price !== "number") {
-        alert("❌ Invalid price: " + JSON.stringify(p));
-        return false;
-      }
-      return p.price >= filters.minPrice && p.price <= filters.maxPrice;
-    });
-
-    debugAlert("AFTER PRICE", result);
+    result = result.filter(p =>
+      typeof p.price === "number" &&
+      p.price >= filters.minPrice &&
+      p.price <= filters.maxPrice
+    );
+    alert("✅ Price filter applied");
 
     // TYPE
     if (filters.type) {
-      result = result.filter(p => {
-        alert(`TYPE CHECK → product: ${p.type}, filter: ${filters.type}`);
-        if (!p.type) {
-          alert("❌ Missing type: " + JSON.stringify(p));
-          return false;
-        }
-        return p.type === filters.type;
-      });
-
-      debugAlert("AFTER TYPE", result);
+      result = result.filter(p => p.type === filters.type);
+      alert("✅ Type filter applied");
     }
 
     // SORT
     if (filters.sort === "name") {
       result.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-      debugAlert("SORTED BY NAME", result);
+      alert("✅ Sorted by name");
     }
 
     if (filters.sort === "priceLow") {
       result.sort((a, b) => (a.price || 0) - (b.price || 0));
-      debugAlert("SORTED LOW → HIGH", result);
+      alert("✅ Sorted low → high");
     }
 
     if (filters.sort === "priceHigh") {
       result.sort((a, b) => (b.price || 0) - (a.price || 0));
-      debugAlert("SORTED HIGH → LOW", result);
+      alert("✅ Sorted high → low");
     }
 
-    debugAlert("FINAL RESULT", result);
-
+    // APPLY TO DOM
     document.querySelectorAll(".product-item").forEach(el => {
-        const id = String(el.dataset.id);
+      const id = String(el.dataset.id);
+      const matches = result.some(p => String(p.id) === id);
+      el.style.display = matches ? "block" : "none";
+    });
 
-        const product = allProducts.find(p => String(p.id) === id);
-
-        if (!product) return;
-
-        const matches = result.some(p => p.id === product.id);
-
-        el.style.display = matches ? "block" : "none";
-      });
+    alert(`🟢 Filters complete!\nShowing ${result.length} products`);
 
   } catch (error) {
     console.error("❌ FILTER CRASH:", error);
-    alert("FILTER ERROR: " + error.message);
+    alert("❌ FILTER ERROR: " + error.message);
   }
 }
 

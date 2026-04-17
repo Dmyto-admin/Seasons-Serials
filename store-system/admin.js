@@ -8,7 +8,8 @@ const products = [
   { id:"saleProductTwo", msg:"prod2Msg", a:"prod2AvailableBtn", s:"prod2SoldBtn" },
   { id:"saleProductThree", msg:"prod3Msg", a:"prod3AvailableBtn", s:"prod3SoldBtn" },
   { id:"saleProductFour", msg:"prod4Msg", a:"prod4AvailableBtn", s:"prod4SoldBtn" },
-  { id:"saleProductFive", msg:"prod5Msg", a:"prod5AvailableBtn", s:"prod5SoldBtn" }
+  { id:"saleProductFive", msg:"prod5Msg", a:"prod5AvailableBtn", s:"prod5SoldBtn" },
+  { id:"saleProductSix", msg:"prod6Msg", a:"prod6AvailableBtn", s:"prod6SoldBtn" }
 
 ];
 

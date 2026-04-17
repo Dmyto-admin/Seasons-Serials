@@ -4,6 +4,41 @@ import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/f
 import { deleteDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 
+let allProducts = [];
+
+async function loadProducts() {
+  const querySnapshot = await getDocs(collection(db, "products"));
+  allProducts = [];
+
+  querySnapshot.forEach(doc => {
+    allProducts.push({ id: doc.id, ...doc.data() });
+  });
+
+  renderProducts(allProducts);
+}
+
+function renderProducts(products) {
+  const container = document.querySelector(".products-row");
+  container.innerHTML = "";
+
+  products.forEach(product => {
+    const div = document.createElement("div");
+    div.className = "sale-product-box";
+
+    div.innerHTML = `
+      <img src="${product.img}" class="store-img">
+      <div>
+        <span class="product-name">"${product.name}"</span>
+        <p><span class="product-price">${product.price}€</span></p>
+        <p><a href="${product.link}" class="more-info-product">Click here for details</a></p>
+      </div>
+      <button class="buyBtn">Buy!</button>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
 async function saveInvoiceToUser(email, invoiceData) {
   try {
     console.log("🔥 START SAVING", email, invoiceData);

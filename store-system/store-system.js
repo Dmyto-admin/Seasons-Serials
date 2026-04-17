@@ -160,7 +160,7 @@ function renderProductsAdvanced(products) {
            <div>
                <span class="product-name">"${product.name}"</span>
                <p>
-                  <span class="product-price">${product.price}€</span>
+                  <span class="product-price">${product.price}0€</span>
                </p>
                <p>
                   <a href="${product.link}" class="more-info-product" data-wrapper="${product.dataWrapper}">Click here for details</a>

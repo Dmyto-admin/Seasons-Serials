@@ -82,7 +82,6 @@ function applyFilters() {
 
 async function loadProducts() {
   try {
-    debugAlert("START loadProducts");
 
     const querySnapshot = await getDocs(collection(db, "products"));
 
@@ -91,15 +90,11 @@ async function loadProducts() {
     querySnapshot.forEach(docSnap => {
       const data = docSnap.data();
 
-      debugAlert("DOC LOADED", { id: docSnap.id, data });
-
       allProducts.push({
         id: docSnap.id,
         ...data
       });
     });
-
-    debugAlert("ALL PRODUCTS LOADED", allProducts);
 
     renderProductsAdvanced(allProducts);
     

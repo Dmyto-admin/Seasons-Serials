@@ -6,6 +6,56 @@ import { deleteDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-fi
 
 let allProducts = [];
 
+let filters = {
+  search: "",
+  category: null,
+  minPrice: 0,
+  maxPrice: Infinity,
+  type: null,
+  sort: null
+};
+
+function applyFilters() {
+  let result = [...allProducts];
+
+  // SEARCH
+  if (filters.search) {
+    result = result.filter(p =>
+      p.name.toLowerCase().includes(filters.search)
+    );
+  }
+
+  // CATEGORY
+  if (filters.category) {
+    result = result.filter(p => p.category === filters.category);
+  }
+
+  // PRICE
+  result = result.filter(p =>
+    p.price >= filters.minPrice && p.price <= filters.maxPrice
+  );
+
+  // TYPE (P / S)
+  if (filters.type) {
+    result = result.filter(p => p.type === filters.type);
+  }
+
+  // SORT
+  if (filters.sort === "name") {
+    result.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  if (filters.sort === "priceLow") {
+    result.sort((a, b) => a.price - b.price);
+  }
+
+  if (filters.sort === "priceHigh") {
+    result.sort((a, b) => b.price - a.price);
+  }
+
+  renderProductsAdvanced(result);
+}
+
 async function loadProducts() {
   const querySnapshot = await getDocs(collection(db, "products"));
   allProducts = [];
@@ -17,9 +67,12 @@ async function loadProducts() {
   renderProducts(allProducts);
 }
 
-function renderProducts(products) {
-  const container = document.querySelector(".products-row");
-  container.innerHTML = "";
+function renderProductsAdvanced(products) {
+  const containerP = document.querySelectorAll(".products-row")[0];
+  const containerS = document.querySelectorAll(".products-row")[1];
+
+  containerP.innerHTML = "";
+  containerS.innerHTML = "";
 
   products.forEach(product => {
     const div = document.createElement("div");
@@ -47,48 +100,64 @@ function renderProducts(products) {
        </div>
     `;
 
-    container.appendChild(div);
+    if (product.type === "P") {
+      containerP.appendChild(div);
+    } else {
+      containerS.appendChild(div);
+    }
   });
 }
 
-document.getElementById("searchInput").addEventListener("input", (e) => {
-  const value = e.target.value.toLowerCase();
-
-  const filtered = allProducts.filter(p =>
-    p.name.toLowerCase().includes(value)
-  );
-
-  renderProducts(filtered);
+document.getElementById("searchInput").addEventListener("input", e => {
+  filters.search = e.target.value.toLowerCase();
+  applyFilters();
 });
 
 document.querySelectorAll(".filter-type-all-products").forEach(btn => {
   btn.addEventListener("click", () => {
-    const category = btn.textContent;
-
-    const filtered = allProducts.filter(p => p.category === category);
-
-    renderProducts(filtered);
+    filters.category = btn.textContent;
+    applyFilters();
   });
 });
 
 document.getElementById("applyPrice").addEventListener("click", () => {
-  const min = parseFloat(document.getElementById("minPrice").value) || 0;
-  const max = parseFloat(document.getElementById("maxPrice").value) || Infinity;
-
-  const filtered = allProducts.filter(p =>
-    p.price >= min && p.price <= max
-  );
-
-  renderProducts(filtered);
+  filters.minPrice = parseFloat(minPrice.value) || 0;
+  filters.maxPrice = parseFloat(maxPrice.value) || Infinity;
+  applyFilters();
 });
 
-function filterByType(type) {
-  const filtered = allProducts.filter(p => p.type === type);
-  renderProducts(filtered);
-}
+document.getElementById("productsTypeP").onclick = () => {
+  filters.type = "P";
+  applyFilters();
+};
 
-document.getElementById("productsTypeP").onclick = () => filterByType("P");
-document.getElementById("productsTypeS").onclick = () => filterByType("S");
+document.getElementById("productsTypeS").onclick = () => {
+  filters.type = "S";
+  applyFilters();
+};
+
+document.getElementById("sortSelect").addEventListener("change", e => {
+  filters.sort = e.target.value;
+  applyFilters();
+});
+
+document.getElementById("resetFilters").addEventListener("click", () => {
+  filters = {
+    search: "",
+    category: null,
+    minPrice: 0,
+    maxPrice: Infinity,
+    type: null,
+    sort: null
+  };
+
+  document.getElementById("searchInput").value = "";
+  document.getElementById("minPrice").value = "";
+  document.getElementById("maxPrice").value = "";
+  document.getElementById("sortSelect").value = "";
+
+  applyFilters();
+});
 
 
 async function saveInvoiceToUser(email, invoiceData) {

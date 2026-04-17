@@ -64,6 +64,10 @@ async function loadProducts() {
     allProducts.push({ id: doc.id, ...doc.data() });
   });
 
+  alert("FILTERS:" + filters);
+  alert("ALL PRODUCTS:" + allProducts);
+  alert("RESULT:" + result);
+  
   renderProducts(allProducts);
 }
 

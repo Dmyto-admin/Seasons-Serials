@@ -71,6 +71,7 @@ function applyFilters() {
     // TYPE
     if (filters.type) {
       result = result.filter(p => {
+        alert(`TYPE CHECK → product: ${p.type}, filter: ${filters.type}`);
         if (!p.type) {
           alert("❌ Missing type: " + JSON.stringify(p));
           return false;
@@ -79,7 +80,6 @@ function applyFilters() {
       });
 
       debugAlert("AFTER TYPE", result);
-      alert(`TYPE CHECK → product: ${p.type}, filter: ${filters.type}`);
     }
 
     // SORT
@@ -214,12 +214,12 @@ document.getElementById("applyPrice").addEventListener("click", () => {
   applyFilters();
 });
 
-document.getElementById("productsTypeP").onclick = () => {
+document.getElementById("filterProductsTypeP").onclick = () => {
   filters.type = "P";
   applyFilters();
 };
 
-document.getElementById("productsTypeS").onclick = () => {
+document.getElementById("filterProductsTypeS").onclick = () => {
   filters.type = "S";
   applyFilters();
 };

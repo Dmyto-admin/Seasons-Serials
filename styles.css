@@ -382,9 +382,9 @@ header {
 .store-img {
     display: block;
     height: 130px;
-    width: 104px;
-    margin-left: 16%;
-    margin-right: 16%;
+    width: 105px;
+    margin-left: 18%;
+    margin-right: 18%;
     margin-top: 10px;
     border: 1px solid rgba(225, 225, 225, .5);
     border-radius: 20px;
@@ -405,7 +405,7 @@ header {
 
 .store-img-t3 {
     display: block;
-    height: 101px;
+    height: 96px;
     width: 129px;
     margin-left: 10%;
     margin-right: 10%;

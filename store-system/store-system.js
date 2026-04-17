@@ -26,18 +26,70 @@ function renderProducts(products) {
     div.className = "sale-product-box";
 
     div.innerHTML = `
-      <img src="${product.img}" class="store-img">
-      <div>
-        <span class="product-name">"${product.name}"</span>
-        <p><span class="product-price">${product.price}€</span></p>
-        <p><a href="${product.link}" class="more-info-product">Click here for details</a></p>
-      </div>
-      <button class="buyBtn">Buy!</button>
+      <div class="sale-product-box" id="${product.product}">
+          <img
+             src="${product.img}"
+             alt="IMG-SALE-1-'THE-BAMBOO"
+             data-full="${product.fullscreen}"
+             class="${product.imgClass}"
+           >
+           
+           <div>
+               <span class="product-name">"${product.name}"</span>
+               <p>
+                  <span class="product-price">${product.price}€</span>
+               </p>
+               <p>
+                  <a href="${product.link}" class="more-info-product" data-wrapper="${product.dataWrapper}">Click here for details</a>
+               </p>
+           </div>
+          <button class="buyBtn" id="${product.btn}">Buy!</button>
+       </div>
     `;
 
     container.appendChild(div);
   });
 }
+
+document.getElementById("searchInput").addEventListener("input", (e) => {
+  const value = e.target.value.toLowerCase();
+
+  const filtered = allProducts.filter(p =>
+    p.name.toLowerCase().includes(value)
+  );
+
+  renderProducts(filtered);
+});
+
+document.querySelectorAll(".filter-type-all-products").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const category = btn.textContent;
+
+    const filtered = allProducts.filter(p => p.category === category);
+
+    renderProducts(filtered);
+  });
+});
+
+document.getElementById("applyPrice").addEventListener("click", () => {
+  const min = parseFloat(document.getElementById("minPrice").value) || 0;
+  const max = parseFloat(document.getElementById("maxPrice").value) || Infinity;
+
+  const filtered = allProducts.filter(p =>
+    p.price >= min && p.price <= max
+  );
+
+  renderProducts(filtered);
+});
+
+function filterByType(type) {
+  const filtered = allProducts.filter(p => p.type === type);
+  renderProducts(filtered);
+}
+
+document.getElementById("productsTypeP").onclick = () => filterByType("P");
+document.getElementById("productsTypeS").onclick = () => filterByType("S");
+
 
 async function saveInvoiceToUser(email, invoiceData) {
   try {

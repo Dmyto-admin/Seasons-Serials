@@ -6,7 +6,6 @@ import { deleteDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-fi
 
 const filters = document.querySelectorAll(".filter-type-all-products");
 
-// ALL product holders (add more later if needed)
 const holders = {
     pictures: document.getElementById("picturesProductHolder"),
     stories: document.getElementById("storiesProductHolder"),
@@ -15,13 +14,25 @@ const holders = {
     tickets: null
 };
 
-// Function to hide everything
+const filterBtn = document.getElementById("filterBtn");
+
+// Hide all
 function hideAllHolders() {
     Object.values(holders).forEach(holder => {
-        if (holder) {
-            holder.style.display = "none";
-        }
+        if (holder) holder.style.display = "none";
     });
+}
+
+// Show all
+function showAllHolders() {
+    Object.values(holders).forEach(holder => {
+        if (holder) holder.style.display = "block";
+    });
+}
+
+// Remove active class
+function removeActive() {
+    filters.forEach(f => f.classList.remove("active-filter"));
 }
 
 // Click logic
@@ -29,10 +40,20 @@ filters.forEach(filter => {
     filter.addEventListener("click", () => {
         const category = filter.dataset.category;
 
-        // Hide ALL first
+        // Highlight active
+        removeActive();
+        filter.classList.add("active-filter");
+
+        // Update dropdown label
+        filterBtn.textContent = filter.textContent + " ▾";
+
+        if (category === "all") {
+            showAllHolders();
+            return;
+        }
+
         hideAllHolders();
 
-        // Show ONLY selected
         if (holders[category]) {
             holders[category].style.display = "block";
         }

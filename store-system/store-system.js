@@ -99,6 +99,9 @@ async function saveInvoiceToUser(email, invoiceData) {
   }
 }
 
+// Default: show all
+document.querySelector('[data-category="all"]').click();
+
 async function runAutomationChecks() {
   const productsSnap = await getDocs(collection(db, "products"));
 

@@ -146,7 +146,6 @@ function renderProductsAdvanced(products) {
 
   products.forEach(product => {
     const div = document.createElement("div");
-    div.className = "sale-product-box";
 
     div.innerHTML = `
       <div class="sale-product-box" id="${product.product}">
@@ -176,6 +175,7 @@ function renderProductsAdvanced(products) {
       containerS.appendChild(div);
     }
   });
+  attachDynamicEvents();
 }
 
 document.getElementById("searchInput").addEventListener("input", e => {
@@ -232,6 +232,171 @@ document.getElementById("resetFilters").addEventListener("click", () => {
 document.addEventListener("DOMContentLoaded", () => {
   loadProducts(); // 👈 YOU DIDN’T CALL IT BEFORE
 });
+
+function attachDynamicEvents() {
+
+  // IMAGE VIEWER
+  document.querySelectorAll('.store-img, .store-img-t2, .store-img-t3')
+    .forEach(img => {
+      img.onclick = () => {
+        imageViewerImg.src = img.dataset.full;
+        imageViewer.classList.add('active');
+        screenOverlay.classList.add('active');
+      };
+    });
+
+  // PRODUCT DETAILS
+  document.querySelectorAll("[data-wrapper]").forEach(btn => {
+    btn.onclick = (e) => {
+      e.preventDefault();
+      const wrapper = document.getElementById(btn.dataset.wrapper);
+      if (wrapper) {
+        wrapper.classList.add("active");
+        screenOverlay.classList.add("active");
+      }
+    };
+  });
+
+  // BUY BUTTONS
+  document.querySelectorAll(".buyBtn").forEach(btn => {
+    btn.onclick = () => {
+      console.log("Buy clicked:", btn.id);
+      const data = snap.data();
+
+      if(data.status === "reserved"){
+        openReservation(productRef);
+        return;
+      }
+
+      function openReservation(productRef) {
+
+        // 🚨 STOP EVERYTHING BEFORE STARTING NEW
+        if (reservationInterval) {
+          clearInterval(reservationInterval);
+          reservationInterval = null;
+        }
+
+        activeReservationProduct = productRef;
+
+        reservationBox.classList.add("show");
+
+        async function updateTimer() {
+          // 🚨 PREVENT OLD INTERVALS FROM WRITING
+          if (activeReservationProduct !== productRef) return;
+
+          const snap = await getDoc(productRef);
+          if (!snap.exists()) return;
+
+          const data = snap.data();
+          const remaining = data.reservedUntil - Date.now();
+
+          if (remaining <= 0) {
+            timerEl.innerText = "Reservation expired";
+            clearInterval(reservationInterval);
+            reservationInterval = null;
+            return;
+          }
+
+          const hours = Math.floor(remaining / (1000 * 60 * 60));
+          const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+
+          timerEl.innerText = `THIS PRODUCT IS RESERVED FOR: ${hours}h ${minutes}m`;
+        }
+
+        updateTimer();
+        reservationInterval = setInterval(updateTimer, 1000);
+      }
+
+      // Close on Cancel button
+      if (closeReservationBtn) {
+        closeReservationBtn.addEventListener("click", closeReservation);
+      }
+
+      // Close on ESC key
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && reservationBox.classList.contains("show")) {
+          closeReservation();
+        }
+      });
+
+      // Close when clicking outside the checkout box
+      reservationBox.addEventListener("click", function (e) {
+        if (e.target === reservationBox) {
+          closeReservation();
+        }
+      });
+
+      // NORMAL FLOW 
+
+      const productName = productBox.querySelector(".product-name").innerText;
+      const productPrice = productBox.querySelector(".product-price").innerText;
+      originalPrice = parseFloat(productPrice.replace("€", "").trim());
+
+      document.getElementById("checkoutProductName").innerText = productName;
+      document.getElementById("checkoutProductPrice").innerText = productPrice;
+
+      document.getElementById("checkoutModal").classList.add("show");;
+
+      // ✅ RESET CONFIRM BUTTON STATE
+      confirmBtn.disabled = false;
+      confirmBtn.style.pointerEvents = "auto";
+
+      selectedProduct = {
+        ref: productRef,
+        name: productName,
+        button: btn
+      };
+
+    });
+
+  });
+  const checkoutModal = document.getElementById("checkoutModal");
+  const cancelBtn = document.getElementById("cancelCheckoutBtn");
+
+  function closeModal() {
+    checkoutModal.classList.remove("show");
+  
+    document.getElementById("checkoutName").value="";
+    document.getElementById("checkoutEmail").value="";
+  
+    promoInput.value="";
+    promoInput.disabled=false;
+  
+    applyBtn.disabled=true;
+    applyBtn.style.cursor="not-allowed";
+    applyBtn.style.visibility="visible";
+  
+    setDiscountMessage("", "");
+
+    previewDiscountValue = 0;
+    currentDiscountValue = 0;
+
+    document.getElementById("checkoutProductPrice").innerText =
+    originalPrice.toFixed(2) + "€";
+  
+  }
+
+  // Close on Cancel button
+  if (cancelBtn) {
+    cancelBtn.addEventListener("click", closeModal);
+  }
+
+  // Close on ESC key
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && checkoutModal.classList.contains("show")) {
+      closeModal();
+    }
+  });
+
+  // Close when clicking outside the checkout box
+  checkoutModal.addEventListener("click", function (e) {
+    if (e.target === checkoutModal) {
+      closeModal();
+    }
+  });
+    };
+  });
+}
 
 async function saveInvoiceToUser(email, invoiceData) {
   try {

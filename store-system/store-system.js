@@ -71,6 +71,11 @@ function applyFilters() {
       const matches = result.some(p => String(p.id) === id);
       el.style.display = matches ? "block" : "none";
     });
+    document.querySelectorAll(".product-item").forEach(el => {
+      console.log("DOM ITEM ID:", el.dataset.id);
+      alert("DOM ITEM ID:" + el.dataset.id);
+      console.log("FILTER RESULT IDS:", result.map(p => p.id));
+    });
 
     alert(`🟢 Filters complete!\nShowing ${result.length} products`);
 
@@ -114,7 +119,7 @@ function renderProductsAdvanced(products) {
   products.forEach(product => {
 
     // 🛑 Prevent duplicates
-    if (document.getElementById(product.product)) return;
+    if (document.querySelector(`[data-id="${product.id}"]`)) return;
 
     const div = document.createElement("div");
 

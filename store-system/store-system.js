@@ -15,60 +15,126 @@ let filters = {
   sort: null
 };
 
+function debugAlert(step, data = null) {
+  try {
+    alert(`🧪 ${step}\n\n` + (data ? JSON.stringify(data, null, 2) : ""));
+  } catch (e) {
+    alert(`🧪 ${step} (data not serializable)`);
+  }
+}
+
 function applyFilters() {
-  let result = [...allProducts];
+  try {
+    debugAlert("START applyFilters", filters);
 
-  // SEARCH
-  if (filters.search) {
-    result = result.filter(p =>
-      p.name.toLowerCase().includes(filters.search)
-    );
+    let result = [...allProducts];
+
+    debugAlert("INITIAL PRODUCTS", result);
+
+    // SEARCH
+    if (filters.search) {
+      result = result.filter(p => {
+        if (!p.name) {
+          alert("❌ Missing name field in product: " + JSON.stringify(p));
+          return false;
+        }
+        return p.name.toLowerCase().includes(filters.search);
+      });
+
+      debugAlert("AFTER SEARCH", result);
+    }
+
+    // CATEGORY
+    if (filters.category) {
+      result = result.filter(p => {
+        if (!p.category) {
+          alert("❌ Missing category field: " + JSON.stringify(p));
+          return false;
+        }
+        return p.category === filters.category;
+      });
+
+      debugAlert("AFTER CATEGORY", result);
+    }
+
+    // PRICE
+    result = result.filter(p => {
+      if (typeof p.price !== "number") {
+        alert("❌ Invalid price: " + JSON.stringify(p));
+        return false;
+      }
+      return p.price >= filters.minPrice && p.price <= filters.maxPrice;
+    });
+
+    debugAlert("AFTER PRICE", result);
+
+    // TYPE
+    if (filters.type) {
+      result = result.filter(p => {
+        if (!p.type) {
+          alert("❌ Missing type: " + JSON.stringify(p));
+          return false;
+        }
+        return p.type === filters.type;
+      });
+
+      debugAlert("AFTER TYPE", result);
+    }
+
+    // SORT
+    if (filters.sort === "name") {
+      result.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+      debugAlert("SORTED BY NAME", result);
+    }
+
+    if (filters.sort === "priceLow") {
+      result.sort((a, b) => (a.price || 0) - (b.price || 0));
+      debugAlert("SORTED LOW → HIGH", result);
+    }
+
+    if (filters.sort === "priceHigh") {
+      result.sort((a, b) => (b.price || 0) - (a.price || 0));
+      debugAlert("SORTED HIGH → LOW", result);
+    }
+
+    debugAlert("FINAL RESULT", result);
+
+    renderProductsAdvanced(result);
+
+  } catch (error) {
+    console.error("❌ FILTER CRASH:", error);
+    alert("FILTER ERROR: " + error.message);
   }
-
-  // CATEGORY
-  if (filters.category) {
-    result = result.filter(p => p.category === filters.category);
-  }
-
-  // PRICE
-  result = result.filter(p =>
-    p.price >= filters.minPrice && p.price <= filters.maxPrice
-  );
-
-  // TYPE (P / S)
-  if (filters.type) {
-    result = result.filter(p => p.type === filters.type);
-  }
-
-  // SORT
-  if (filters.sort === "name") {
-    result.sort((a, b) => a.name.localeCompare(b.name));
-  }
-
-  if (filters.sort === "priceLow") {
-    result.sort((a, b) => a.price - b.price);
-  }
-
-  if (filters.sort === "priceHigh") {
-    result.sort((a, b) => b.price - a.price);
-  }
-
-  renderProductsAdvanced(result);
 }
 
 async function loadProducts() {
-  const querySnapshot = await getDocs(collection(db, "products"));
-  allProducts = [];
+  try {
+    debugAlert("START loadProducts");
 
-  querySnapshot.forEach(doc => {
-    allProducts.push({ id: doc.id, ...doc.data() });
-  });
+    const querySnapshot = await getDocs(collection(db, "products"));
 
-  alert("FILTERS:" + filters);
-  alert("ALL PRODUCTS:" + allProducts);
-  alert("RESULT:" + result);
-  
-  renderProducts(allProducts);
+    allProducts = [];
+
+    querySnapshot.forEach(docSnap => {
+      const data = docSnap.data();
+
+      debugAlert("DOC LOADED", { id: docSnap.id, data });
+
+      allProducts.push({
+        id: docSnap.id,
+        ...data
+      });
+    });
+
+    debugAlert("ALL PRODUCTS LOADED", allProducts);
+
+    // IMPORTANT: apply filters AFTER load
+    applyFilters();
+
+  } catch (error) {
+    console.error("❌ LOAD ERROR:", error);
+    alert("LOAD PRODUCTS ERROR: " + error.message);
+  }
 }
 
 function renderProductsAdvanced(products) {
@@ -163,6 +229,9 @@ document.getElementById("resetFilters").addEventListener("click", () => {
   applyFilters();
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+  loadProducts(); // 👈 YOU DIDN’T CALL IT BEFORE
+});
 
 async function saveInvoiceToUser(email, invoiceData) {
   try {

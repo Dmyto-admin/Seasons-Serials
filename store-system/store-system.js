@@ -79,6 +79,7 @@ function applyFilters() {
       });
 
       debugAlert("AFTER TYPE", result);
+      alert(`TYPE CHECK → product: ${p.type}, filter: ${filters.type}`);
     }
 
     // SORT
@@ -100,9 +101,9 @@ function applyFilters() {
     debugAlert("FINAL RESULT", result);
 
     document.querySelectorAll(".product-item").forEach(el => {
-        const id = el.dataset.id;
+        const id = String(el.dataset.id);
 
-        const product = allProducts.find(p => p.id === id);
+        const product = allProducts.find(p => String(p.id) === id);
 
         if (!product) return;
 
@@ -138,6 +139,8 @@ async function loadProducts() {
 
     debugAlert("ALL PRODUCTS LOADED", allProducts);
 
+    renderProductsAdvanced(allProducts);
+    
     // IMPORTANT: apply filters AFTER load
     applyFilters();
 

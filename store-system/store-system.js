@@ -4,6 +4,41 @@ import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/f
 import { deleteDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 
+const filters = document.querySelectorAll(".filter-type-all-products");
+
+// ALL product holders (add more later if needed)
+const holders = {
+    pictures: document.getElementById("picturesProductHolder"),
+    stories: document.getElementById("storiesProductHolder"),
+    handcrafts: null,
+    decorations: null,
+    tickets: null
+};
+
+// Function to hide everything
+function hideAllHolders() {
+    Object.values(holders).forEach(holder => {
+        if (holder) {
+            holder.style.display = "none";
+        }
+    });
+}
+
+// Click logic
+filters.forEach(filter => {
+    filter.addEventListener("click", () => {
+        const category = filter.dataset.category;
+
+        // Hide ALL first
+        hideAllHolders();
+
+        // Show ONLY selected
+        if (holders[category]) {
+            holders[category].style.display = "block";
+        }
+    });
+});
+
 async function saveInvoiceToUser(email, invoiceData) {
   try {
     console.log("🔥 START SAVING", email, invoiceData);

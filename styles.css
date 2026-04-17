@@ -1092,6 +1092,21 @@ header {
     cursor: pointer;
 }
 
+.filter-type-all-products {
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.filter-type-all-products:hover {
+    color: #aaa;
+}
+
+.active-filter {
+    color: #fff;
+    font-weight: 600;
+    border-bottom: 2px solid #fff;
+}
+
 
 /* WRAPPER SALE SCROLL */
 

@@ -807,7 +807,42 @@ document.addEventListener("DOMContentLoaded", () => {
     console.warn("⚠️ ROLLBACK FINISHED");
   }
 }
-  
+
+async function sendAdminEmailSafe(type, data, errorMsg = "") {
+  try {
+
+    // 🚫 BLOCK duplicate failure spam
+    if (type === "failure") {
+      const key = data.productId + "_" + errorMsg;
+
+      if (adminFailureTracker[key]) {
+        console.warn("⛔ Duplicate admin failure blocked:", key);
+        return;
+      }
+
+      adminFailureTracker[key] = true;
+    }
+
+    const html =
+      type === "success"
+        ? buildAdminSuccessEmail(data)
+        : buildAdminFailureEmail(data, errorMsg);
+
+    await emailjs.send("service_newemail1", "template_psaktfo", {
+      to_email: "seasonsserials.info@gmail.com",
+      subject:
+        type === "success"
+          ? `Order SUCCESS — ${data.productName}`
+          : `Order FAILED — ${data.productName}`,
+      content: html
+    });
+
+  } catch (err) {
+    // 🔥 ABSOLUTE RULE: NEVER BREAK CUSTOMER FLOW
+    console.error("Admin email failed (ignored):", err);
+  }
+}
+    
 if (confirmBtn) {
 confirmBtn.addEventListener("click", async () => {
 
@@ -1146,13 +1181,16 @@ confirmBtn.addEventListener("click", async () => {
           showResultModal(true, 3500)
         ]);
 
-      // 2. close UI immediately after
+      // 2. 📩 Notify admin (SUCCESS) — NON BLOCKING
+      sendAdminEmailSafe("success", invoiceData);
+      
+      // 3. close UI immediately after
       closeModal();
 
-      // 3. wait for UI to settle (iPad fix)
+      // 4. wait for UI to settle (iPad fix)
       await sleep(800);
 
-      // 4. ONLY NOW download PDF
+      // 5. ONLY NOW download PDF
       setTimeout(() => {
         pdfDoc.save("Invoice_" + invoiceData.invoiceId + ".pdf");
       }, 800);
@@ -1160,6 +1198,24 @@ confirmBtn.addEventListener("click", async () => {
     } catch (error) {
         console.error("❌ FULL FAILURE:", error);
         console.error("CATCH TRIGGERED: " + (error?.message || error));
+
+        // 📩 Notify admin (FAILURE) — NON BLOCKING
+        sendAdminEmailSafe(
+          "failure",
+          {
+            productId: selectedProduct?.ref?.id || "unknown",
+            name,
+            email,
+            productName: selectedProduct?.name || "unknown",
+            finalPrice: "—",
+            discount: currentDiscountValue
+              ? "-" + (currentDiscountValue * 100) + "%"
+              : "",
+            orderId: "FAILED-" + Date.now(),
+            invoiceId: "FAILED"
+          },
+          error?.message || "Unknown error"
+        );
 
         console.log("🧨 ABOUT TO ROLLBACK");
 

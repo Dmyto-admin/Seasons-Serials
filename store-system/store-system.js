@@ -4,6 +4,9 @@ import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/f
 import { deleteDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 
+// 🚫 Prevent spam: same product + same error
+const adminFailureTracker = {};
+
 const filters = document.querySelectorAll(".filter-type-all-products");
 
 const holders = {
@@ -1044,6 +1047,67 @@ confirmBtn.addEventListener("click", async () => {
         <!-- FOOTER -->
         <div style="background:#f1f5f9; padding:15px; text-align:center; font-size:12px; color:#666;">
           © Seasons Serials — All rights reserved
+        </div>
+      `;
+    }
+
+    function buildAdminSuccessEmail(data){
+      return `
+          <div style="background:#0a2540;color:white;padding:20px;">
+          <h2>Seasons Serials — Admin Notification</h2>
+          <p style="opacity:0.8;">Successful Order</p>
+        </div>
+
+        <div style="padding:20px;color:#333;">
+          <h3>Order Details</h3>
+
+          <p><strong>Customer:</strong> ${data.name}</p>
+          <p><strong>Email:</strong> ${data.email}</p>
+
+          <p><strong>Product:</strong> ${data.productName}</p>
+
+          <p><strong>Original Price:</strong> ${data.originalPrice}</p>
+          <p><strong>Final Price:</strong> ${data.finalPrice}</p>
+
+          <p><strong>Promocode:</strong> ${data.discount || "None"}</p>
+
+          <hr>
+
+          <p><strong>Order ID:</strong> ${data.orderId}</p>
+          <p><strong>Invoice ID:</strong> ${data.invoiceId}</p>
+        </div>
+      `;
+    }
+
+    function buildAdminFailureEmail(data, errorMsg){
+      return `
+        <div style="background:#7f1d1d;color:white;padding:20px;">
+          <h2>Seasons Serials — Admin Alert</h2>
+          <p style="opacity:0.8;">Order Failed</p>
+        </div>
+
+        <div style="padding:20px;color:#333;">
+          <h3>Failure Details</h3>
+
+          <p><strong>Customer:</strong> ${data.name}</p>
+          <p><strong>Email:</strong> ${data.email}</p>
+
+          <p><strong>Product:</strong> ${data.productName}</p>
+
+          <p><strong>Final Price:</strong> ${data.finalPrice}</p>
+
+          <p><strong>Promocode:</strong> ${data.discount || "None"}</p>
+
+          <hr>
+
+          <p><strong>Order ID:</strong> ${data.orderId}</p>
+          <p><strong>Invoice ID:</strong> ${data.invoiceId}</p>
+
+          <hr>
+
+          <p style="color:red;">
+            ❌ Failure reason: ${errorMsg}
+          </p>
         </div>
       `;
     }

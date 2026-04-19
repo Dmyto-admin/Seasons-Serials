@@ -840,6 +840,7 @@ async function sendAdminEmailSafe(type, data, errorMsg = "") {
   } catch (err) {
     // 🔥 ABSOLUTE RULE: NEVER BREAK CUSTOMER FLOW
     console.error("Admin email failed (ignored):", err);
+    alert("Admin email failed: " + err.message); // TEMP DEBUG
   }
 }
     
@@ -1182,7 +1183,7 @@ confirmBtn.addEventListener("click", async () => {
         ]);
 
       // 2. 📩 Notify admin (SUCCESS) — NON BLOCKING
-      sendAdminEmailSafe("success", invoiceData);
+      await sendAdminEmailSafe("success", invoiceData);
       
       // 3. close UI immediately after
       closeModal();
@@ -1200,7 +1201,7 @@ confirmBtn.addEventListener("click", async () => {
         console.error("CATCH TRIGGERED: " + (error?.message || error));
 
         // 📩 Notify admin (FAILURE) — NON BLOCKING
-        sendAdminEmailSafe(
+        await sendAdminEmailSafe(
           "failure",
           {
             productId: selectedProduct?.ref?.id || "unknown",

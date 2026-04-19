@@ -1024,33 +1024,37 @@ header {
 
 /* FILTERS BOX (clickable) */
 .filters-box {
-    height: 35px;
+    height: 48px;
     width: 885px;
-    margin-right: 20px;
-    padding: 15px;
-    display: inline-flex;
+    padding: 0 18px;
+
+    display: flex;
     align-items: center;
-    gap: 2px;
-    cursor: pointer;
+    justify-content: space-between;
+
     margin-top: 20px;
-    background: #e0e3e2;
-    border: 2px solid rgba(225, 225, 225, .5);
-    border-radius: 20px;
-    box-shadow: 0 0 30px rgba(0, 0, 0, .5);
+
+    background: #ffffff;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 14px;
+
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.filters-box:hover {
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
 }
 
 .filter {
-    height: 25px;
-    width: 135px;
-    cursor: pointer;
-    user-select: none;
-    background: #c4c6c5;
-    border: 1px solid rgba(225, 225, 225, .5);
+    background: #f5f7f6;
+    padding: 6px 14px;
     border-radius: 20px;
-    display: inline-flex;
-    justify-content: center;
+    font-size: 0.95em;
+    font-weight: 500;
 }
-
 .dropdown-sign {
     font-size: 17px;
 }
@@ -1058,23 +1062,28 @@ header {
 /* FILTERS DROPDOWN — SAME STYLE AS MORE MENU */
 .filters-menu {
     position: absolute;
-    top: calc(100% + 10px);
-    left: 50%;
-    transform: translateX(-50%);
+    top: calc(100% + 8px);
+    left: 0;                 /* 🔥 align to left of box */
+    width: 100%;             /* 🔥 same width as filters-box */
+    
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    width: 180px;
-    padding: 12px 0;
-    background: #e0e3e2;
-    border: 2px solid rgba(225, 225, 225, .5);
-    border-radius: 20px;
-    box-shadow: 0 0 30px rgba(0, 0, 0, .5);
+    gap: 8px;
+
+    padding: 12px;
+    background: #ffffff;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 14px;
+
+    box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+
     z-index: 5000;
+
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
+
+    transition: 0.25s ease;
 }
 
 /* ACTIVE STATE */
@@ -1102,9 +1111,41 @@ header {
 }
 
 .active-filter {
-    color: #fff;
-    font-weight: 600;
-    border-bottom: 2px solid #fff;
+    font-weight: 700;
+    color: #111;
+    border-bottom: 4px solid #111; /* 🔥 thicker */
+    padding-bottom: 2px;
+}
+
+.search-box {
+    margin-top: 12px;
+    width: 885px;
+    height: 45px;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    padding: 0 15px;
+
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid rgba(0,0,0,0.08);
+
+    box-shadow: 0 5px 15px rgba(0,0,0,0.06);
+}
+
+.search-box ion-icon {
+    font-size: 18px;
+    color: #666;
+}
+
+.search-box input {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 0.95em;
+    background: transparent;
 }
 
 

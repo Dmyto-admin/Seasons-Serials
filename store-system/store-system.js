@@ -145,7 +145,8 @@ async function runAutomationChecks() {
     if (
       data.status === "reserved" &&
       !data.reminderSent &&
-      now >= data.reminderAt
+      now >= data.reminderAt &&
+      !data.isPaid // 🔥 THIS STOPS EMAIL
     ) {
       await emailjs.send("service_newemail1", "template_tan46u4", {
         to_email: data.reservedBy,
@@ -160,7 +161,8 @@ async function runAutomationChecks() {
     if (
       data.status === "reserved" &&
       !data.warningSent &&
-      now >= data.warningAt
+      now >= data.warningAt &&
+      !data.isPaid // 🔥 THIS STOPS EMAIL
     ) {
       await emailjs.send("service_newemail1", "template_tan46u4", {
         to_email: data.reservedBy,
@@ -900,6 +902,7 @@ confirmBtn.addEventListener("click", async () => {
     const invoiceData = {
       orderId,
       invoiceId,
+      productId: selectedProduct.ref.id, // ✅ ADD THIS
       name,
       email,
       productName: selectedProduct.name,

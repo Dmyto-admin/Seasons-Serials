@@ -235,13 +235,19 @@ async function loadAllInvoices() {
 
         await updateDoc(
           doc(db, "users", data.userEmail, "invoices", data.id),
-          { status: "payed" }
+          { status: "payed" 
+            autoDeleteCancelled: true   // 🔥 THIS IS THE KEY
+          }
         );
 
         // 🔥 ADD THIS
         await updateDoc(
           doc(db, "products", data.productId), // ← you MUST store this!
-          { isPaid: true }
+          { status: "sold",        // ✅ THIS is what hides it in UI
+            isPaid: true,
+            reservedUntil: 0,
+            reservedBy: ""
+          }
         );
 
         // cancel auto delete if exists
@@ -302,7 +308,7 @@ async function loadAllInvoices() {
         // stop condition
         if (timeLeft <= 0 || data.autoDeleteCancelled) {
           clearInterval(interval);
-          timerEl.textContent = "Stopped";
+          timerEl.textContent = "Auto-delete stopped";
         }
       };
 
@@ -431,13 +437,19 @@ function renderInvoices(list) {
 
       await updateDoc(
         doc(db, "users", data.userEmail, "invoices", data.id),
-        { status: "payed" }
+        { status: "payed" 
+          autoDeleteCancelled: true   // 🔥 THIS IS THE KEY
+        }
       );
 
       // 🔥 ADD THIS
       await updateDoc(
         doc(db, "products", data.productId), // ← you MUST store this!
-        { isPaid: true }
+        { status: "sold",        // ✅ THIS is what hides it in UI
+          isPaid: true,
+          reservedUntil: 0,
+          reservedBy: "" 
+        }
       );
 
         // cancel auto delete if exists
@@ -495,7 +507,7 @@ function renderInvoices(list) {
       // stop condition
       if (timeLeft <= 0 || data.autoDeleteCancelled) {
         clearInterval(interval);
-        timerEl.textContent = "Stopped";
+        timerEl.textContent = "Auto-delete stopped";
       }
     };
 

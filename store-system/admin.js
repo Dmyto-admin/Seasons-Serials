@@ -238,6 +238,12 @@ async function loadAllInvoices() {
           { status: "payed" }
         );
 
+        // 🔥 ADD THIS
+        await updateDoc(
+          doc(db, "products", data.productId), // ← you MUST store this!
+          { isPaid: true }
+        );
+
         // cancel auto delete if exists
         if (autoDeleteMap.has(data.id)) {
           clearTimeout(autoDeleteMap.get(data.id));
@@ -426,6 +432,12 @@ function renderInvoices(list) {
       await updateDoc(
         doc(db, "users", data.userEmail, "invoices", data.id),
         { status: "payed" }
+      );
+
+      // 🔥 ADD THIS
+      await updateDoc(
+        doc(db, "products", data.productId), // ← you MUST store this!
+        { isPaid: true }
       );
 
         // cancel auto delete if exists

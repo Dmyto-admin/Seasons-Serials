@@ -235,7 +235,7 @@ async function loadAllInvoices() {
 
         await updateDoc(
           doc(db, "users", data.userEmail, "invoices", data.id),
-          { status: "payed" 
+          { status: "payed",
             autoDeleteCancelled: true   // 🔥 THIS IS THE KEY
           }
         );
@@ -437,7 +437,7 @@ function renderInvoices(list) {
 
       await updateDoc(
         doc(db, "users", data.userEmail, "invoices", data.id),
-        { status: "payed" 
+        { status: "payed",
           autoDeleteCancelled: true   // 🔥 THIS IS THE KEY
         }
       );

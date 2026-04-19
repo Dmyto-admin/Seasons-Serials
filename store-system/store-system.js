@@ -60,6 +60,38 @@ filters.forEach(filter => {
     });
 });
 
+const searchInput = document.getElementById("searchInput");
+const allProducts = document.querySelectorAll(".sale-product-box");
+
+searchInput.addEventListener("input", () => {
+    const query = searchInput.value.trim().toLowerCase();
+
+    // If empty → restore category filtering
+    if (query === "") {
+        document.querySelector('[data-category="all"]').click();
+        return;
+    }
+
+    // When searching → show ALL holders first
+    showAllHolders();
+
+    allProducts.forEach(product => {
+        const nameEl = product.querySelector(".product-name");
+
+        if (!nameEl) return;
+
+        const productName = nameEl.textContent.replace(/"/g, "").toLowerCase();
+
+        // 🔥 MATCH (partial, case-insensitive)
+        if (productName.includes(query)) {
+            product.style.display = "block";
+        } else {
+            product.style.display = "none";
+        }
+    });
+});
+
+
 async function saveInvoiceToUser(email, invoiceData) {
   try {
     console.log("🔥 START SAVING", email, invoiceData);

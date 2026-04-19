@@ -153,7 +153,7 @@ async function runAutomationChecks() {
     ) {
       await emailjs.send("service_newemail1", "template_tan46u4", {
         to_email: data.reservedBy,
-        subject: `Reminder: "${data.productName}" expires in 12 hours`
+        subject: `Reminder: "${data.productName}" expires in 12 hours`,
         content: buildReminderEmail(data)
       });
 
@@ -169,7 +169,7 @@ async function runAutomationChecks() {
     ) {
       await emailjs.send("service_newemail1", "template_tan46u4", {
         to_email: data.reservedBy,
-        subject: `Reservation for "${data.productName}" expires in 2 hours`
+        subject: `Reservation for "${data.productName}" expires in 2 hours`,
         content: buildWarningEmail(data)
       });
 

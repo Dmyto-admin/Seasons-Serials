@@ -1930,15 +1930,22 @@ input:-webkit-autofill:focus {
     font-weight: 500;
 }
 
-.no-payments-yet-img {
+.no-results {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.no-payment-yet-img {
     width: 190px;
     height: 150px;
     display: block;
-    margin: 20px auto 0;
-    margin-top: -25px;
+    margin: 0 auto;
 }
 
-.no-results {
-    justify-content: center;
-    align-items: center;
+.no-payment-yet-text {
+    display: block;
+    text-align: center;
+    margin-top: 10px;
 }

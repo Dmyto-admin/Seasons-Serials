@@ -1036,7 +1036,7 @@ header {
 
     background: #ffffff;
     border: 1px solid rgba(0,0,0,0.08);
-    border-radius: 14px;
+    border-radius: 12px;
 
     box-shadow: 0 6px 20px rgba(0,0,0,0.08);
 
@@ -1046,6 +1046,11 @@ header {
 
 .filters-box:hover {
     box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+.filters-box.open {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
 }
 
 .filter {
@@ -1063,32 +1068,34 @@ header {
 .filters-menu {
     position: absolute;
     top: calc(100% + 6px);
-    left: 0;                 /* 🔥 align to left of box */
-    width: 100%;             /* 🔥 same width as filters-box */
-    
+    left: 0;
+    width: 100%;
+
+    padding: 10px;
+
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.06);
+
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
 
-    padding: 12px;
-    background: #ffffff;
-    border: 1px solid rgba(0,0,0,0.08);
-    border-radius: 14px;
-
-    box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-
-    z-index: 5000;
+    z-index: 1000;
 
     opacity: 0;
+    transform: translateY(-5px);
     visibility: hidden;
     pointer-events: none;
 
-    transition: 0.25s ease;
+    transition: 0.2s ease;
 }
 
-/* ACTIVE STATE */
 .filters-menu.active {
     opacity: 1;
+    transform: translateY(0);
     visibility: visible;
     pointer-events: auto;
 }
@@ -1102,19 +1109,24 @@ header {
 }
 
 .filter-type-all-products {
-    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 8px;
     transition: 0.2s;
+    font-weight: 500;
 }
 
 .filter-type-all-products:hover {
-    color: #aaa;
+    background: rgba(0,0,0,0.05);
 }
 
 .active-filter {
-    font-weight: 700;
-    color: #111;
-    border-bottom: 4px solid #111; /* 🔥 thicker */
-    padding-bottom: 2px;
+    font-weight: 600;
+    color: #0f172a;
+
+    background: rgba(0,0,0,0.05);
+    border-radius: 8px;
+
+    padding: 6px 10px;
 }
 
 .search-box {

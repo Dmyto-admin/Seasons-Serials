@@ -67,32 +67,100 @@ const searchInput = document.getElementById("searchInput");
 const allProducts = document.querySelectorAll(".sale-product-box");
 
 searchInput.addEventListener("input", () => {
-    const query = searchInput.value.trim().toLowerCase();
+    let query = searchInput.value.trim().toLowerCase();
 
-    // If empty → restore category filtering
+    // 🔥 replace ’ with '
+    query = query.replace(/’/g, "'");
+
+    // 👉 EMPTY → FULL RESET (REAL RESET)
     if (query === "") {
-        document.querySelector('[data-category="all"]').click();
+        allProducts.forEach(p => p.style.display = "block");
+
+        Object.values(holders).forEach(holder => {
+            if (holder) holder.style.display = "block";
+        });
+
+        document.querySelectorAll(".products-type").forEach(t => {
+            t.style.display = "block";
+        });
+
+        removeNoResultsMessages();
+
         return;
     }
 
-    // When searching → show ALL holders first
-    showAllHolders();
-
-    allProducts.forEach(product => {
-        const nameEl = product.querySelector(".product-name");
-
-        if (!nameEl) return;
-
-        const productName = nameEl.textContent.replace(/"/g, "").toLowerCase();
-
-        // 🔥 MATCH (partial, case-insensitive)
-        if (productName.includes(query)) {
-            product.style.display = "block";
-        } else {
-            product.style.display = "none";
-        }
+    // 👉 SEARCH MODE
+    Object.values(holders).forEach(holder => {
+        if (holder) holder.style.display = "block";
     });
+
+    let anyGlobalMatch = false;
+
+    Object.values(holders).forEach(holder => {
+        if (!holder) return;
+
+        const products = holder.querySelectorAll(".sale-product-box");
+        const title = holder.querySelector(".products-type");
+
+        let categoryMatch = false;
+
+        products.forEach(product => {
+            const nameEl = product.querySelector(".product-name");
+            if (!nameEl) return;
+
+            let productName = nameEl.textContent
+                .replace(/"/g, "")
+                .replace(/’/g, "'")
+                .toLowerCase();
+
+            if (productName.includes(query)) {
+                product.style.display = "block";
+                categoryMatch = true;
+                anyGlobalMatch = true;
+            } else {
+                product.style.display = "none";
+            }
+        });
+
+        // 🔥 SHOW / HIDE CATEGORY TITLE
+        if (title) {
+            title.style.display = categoryMatch ? "block" : "none";
+        }
+
+        // 🔥 SHOW EMPTY STATE
+        handleEmptyCategory(holder, categoryMatch, query);
+    });
+
+    if (!anyGlobalMatch) {
+        // optional: global "no results"
+    }
 });
+
+function handleEmptyCategory(holder, hasMatch, query) {
+    let emptyBox = holder.querySelector(".empty-category");
+
+    if (!hasMatch) {
+        if (!emptyBox) {
+            emptyBox = document.createElement("div");
+            emptyBox.className = "empty-category";
+
+            emptyBox.innerHTML = `
+                <img src="no-payment-yet.png" alt="no-results">
+                <span class="no-payment-yet-text">
+                    No product matching "${query}"
+                </span>
+            `;
+
+            holder.appendChild(emptyBox);
+        }
+    } else {
+        if (emptyBox) emptyBox.remove();
+    }
+}
+
+function removeNoResultsMessages() {
+    document.querySelectorAll(".empty-category").forEach(el => el.remove());
+}
 
 
 async function saveInvoiceToUser(email, invoiceData) {
@@ -640,10 +708,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (success) {
     loadTitle.innerText = "Order Successful!";
-    resultIcon.innerHTML = "✅";
+    resultIcon.innerHTML = `
+        <div class="result-icon success">
+            <ion-icon name="checkmark"></ion-icon>
+        </div>
+    `;
   } else {
     loadTitle.innerText = "Order Failed";
-    resultIcon.innerHTML = "❌";
+    resultIcon.innerHTML = `
+        <div class="result-icon failure">
+            <ion-icon name="close"></ion-icon>
+        </div>
+    `;
   }
 
   loadModal.classList.add("show");

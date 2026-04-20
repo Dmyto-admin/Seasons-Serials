@@ -1148,11 +1148,16 @@ confirmBtn.addEventListener("click", async () => {
     // 🔵 STEP 5 — SAVE TO FIREBASE
 
         // create user FIRST inside transaction
+        let userCreated = false;
+      
         await setDoc(doc(db, "users", email), { email }, { merge: true });
+        let userCreated = false;
 
         // rollback user creation
         tx.addRollback(async () => {
-            await deleteDoc(doc(db, "users", email));
+            if (userCreated) {
+                await deleteDoc(doc(db, "users", email));
+            }
         });
 
         // save invoice

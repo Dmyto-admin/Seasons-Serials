@@ -119,13 +119,32 @@ async function generateSmartReply(input) {
 
   const msg = normalize(input);
 
-  if (msg.includes("thanks") || msg.includes("gracias") || msg.includes("merci")) {
+  // 🙏 THANKS
+  if (hasIntent(msg, ["thanks", "thank you", "gracias", "merci", "дякую"])) {
     return {
-      en: "You're welcome 😊",
-      es: "¡De nada! 😊",
-      fr: "Avec plaisir 😊",
-      ua: "Будь ласка 😊" 
+      en: "You're welcome 😊 If you need anything else, just ask.",
+      es: "¡De nada! 😊 Si necesitas algo más, dime.",
+      fr: "Avec plaisir 😊 Si vous avez besoin d'autre chose, dites-moi.",
+      ua: "Будь ласка 😊 Якщо потрібно ще щось — звертайтесь."
     }[currentLang];
+  }
+
+  const INTENTS = {
+    login: ["login", "log in", "sign in", "iniciar sesión", "connexion", "увійти"],
+    payment: ["pay", "payment", "pago", "paiement", "оплата"],
+    delivery: ["delivery", "shipping", "envío", "livraison", "доставка"],
+    products: ["buy", "product", "shop", "comprar", "producto", "produit", "купити"],
+    help: ["help", "ayuda", "aide", "допомога"],
+    report: ["error", "bug", "problem", "issue", "problema", "erreur", "помилка"]
+  };
+
+  function detectIntent(msg) {
+    for (let intent in INTENTS) {
+      if (INTENTS[intent].some(word => msg.includes(word))) {
+        return intent;
+      }
+    }
+    return "unknown";
   }
 
   // 🚨 REPORT FLOW
@@ -244,7 +263,49 @@ function t(key) {
       es: "Lo siento 😔 ¿Qué tipo de problema?\n• Pago\n• Producto\n• Sitio web",
       fr: "Désolé 😔 Quel type de problème ?\n• Paiement\n• Produit\n• Site web",
       ua: "Вибачте 😔 Яка проблема?\n• Оплата\n• Товар\n• Сайт"
-    }
+    },
+
+    thanks: {
+      en: "You're welcome 😊 Always happy to help.",
+      es: "¡De nada! 😊 Siempre encantado de ayudar.",
+      fr: "Avec plaisir 😊 Toujours là pour aider.",
+      ua: "Будь ласка 😊 Завжди радий допомогти."
+    },
+
+    loginHelp: {
+      en: "To log in, click on 'Login' in the navigation bar at the top of the page. Enter your credentials and you'll be inside your account.",
+      es: "Para iniciar sesión, haz clic en 'Login' en la barra superior.",
+      fr: "Pour vous connecter, cliquez sur 'Login' dans la barre de navigation.",
+      ua: "Щоб увійти, натисніть 'Login' у верхньому меню."
+    },
+
+payment: {
+  en: "Payments are completed via bank transfer. After placing an order, you have 24 hours to complete the payment.",
+  es: "El pago se realiza por transferencia bancaria en 24h.",
+  fr: "Le paiement se fait par virement bancaire sous 24h.",
+  ua: "Оплата здійснюється банківським переказом протягом 24 годин."
+},
+
+delivery: {
+  en: "After payment confirmation, your order is processed and details are sent via email.",
+  es: "Después del pago, recibirás los detalles por correo.",
+  fr: "Après paiement, vous recevrez les détails par email.",
+  ua: "Після оплати ви отримаєте деталі на email."
+},
+
+productFound: {
+  en: "Here are some relevant products:",
+  es: "Aquí tienes algunos productos:",
+  fr: "Voici quelques produits:",
+  ua: "Ось кілька товарів:"
+},
+
+confused: {
+  en: "Could you clarify a bit more? I'm here to help 😊",
+  es: "¿Puedes explicar un poco más?",
+  fr: "Pouvez-vous préciser ?",
+  ua: "Можеш уточнити?"
+}
   };
 
   return dict[key]?.[currentLang] || dict[key]?.en;
@@ -315,4 +376,29 @@ function handleReportFlow(msg) {
   }
 
   return "Something went wrong with reporting. Let's start again.";
+}
+
+function smartFallback(msg) {
+
+  // detect question style
+  if (msg.includes("?")) {
+    return {
+      en: "I understand you're asking a question. I can help with products, orders, or how the store works. Try something like 'How do I log in?' or 'What can I buy?'",
+      es: "Entiendo que haces una pregunta. Puedo ayudarte con productos o pedidos.",
+      fr: "Je comprends que vous posez une question. Je peux vous aider avec les produits.",
+      ua: "Я бачу, що це питання. Я можу допомогти з товарами або замовленнями."
+    }[currentLang];
+  }
+
+  // detect confusion
+  if (msg.length < 4) {
+    return t("confused");
+  }
+
+  return {
+    en: "I'm here to help with shopping, orders, or any issue on the website. Try asking something more specific 😊",
+    es: "Estoy aquí para ayudarte con compras o problemas en la web.",
+    fr: "Je suis là pour vous aider avec vos achats.",
+    ua: "Я тут, щоб допомогти з покупками або проблемами."
+  }[currentLang];
 }

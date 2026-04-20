@@ -115,6 +115,33 @@ searchInput.addEventListener("input", () => {
 
     let anyGlobalMatch = false;
 
+    // 🔥 GLOBAL NO RESULTS
+    let globalBox = document.getElementById("globalNoResults");
+
+    if (!anyGlobalMatch) {
+
+        if (!globalBox) {
+            globalBox = document.createElement("div");
+            globalBox.id = "globalNoResults";
+            globalBox.className = "empty-category";
+
+            globalBox.innerHTML = `
+                <div class="no-results">
+                    <img src="no-payment-yet.png" alt="no-results" class="no-payment-yet-img">
+                    <span class="no-payment-yet-text">
+                        No products matching "${query}"
+                    </span>
+                </div>
+            `;
+
+            document.body.appendChild(globalBox); // or main container
+        }
+
+    } else {
+        if (globalBox) globalBox.remove();
+    }
+
+
     Object.values(holders).forEach(holder => {
         if (!holder) return;
 
@@ -160,32 +187,6 @@ searchInput.addEventListener("input", () => {
     }
 });
 
-// 🔥 GLOBAL NO RESULTS
-let globalBox = document.getElementById("globalNoResults");
-
-if (!anyGlobalMatch) {
-
-    if (!globalBox) {
-        globalBox = document.createElement("div");
-        globalBox.id = "globalNoResults";
-        globalBox.className = "empty-category";
-
-        globalBox.innerHTML = `
-            <div class="no-results">
-                <img src="no-payment-yet.png" alt="no-results" class="no-payment-yet-img">
-                <span class="no-payment-yet-text">
-                    No products matching "${query}"
-                </span>
-            </div>
-        `;
-
-        document.body.appendChild(globalBox); // or main container
-    }
-
-} else {
-    if (globalBox) globalBox.remove();
-}
-
 function removeNoResultsMessages() {
     document.querySelectorAll(".empty-category").forEach(el => el.remove());
 
@@ -218,10 +219,6 @@ function handleEmptyCategory(holder, hasMatch, query = "") {
     } else {
         if (emptyBox) emptyBox.remove();
     }
-}
-
-function removeNoResultsMessages() {
-    document.querySelectorAll(".empty-category").forEach(el => el.remove());
 }
 
 

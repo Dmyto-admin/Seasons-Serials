@@ -147,6 +147,8 @@ searchInput.addEventListener("input", () => {
     // ✅ NOW check global result (AFTER loop)
     let globalBox = document.getElementById("globalNoResults");
 
+    const wrapper = document.getElementById("productsWrapper");
+
     if (!anyGlobalMatch) {
         if (!globalBox) {
             globalBox = document.createElement("div");
@@ -162,11 +164,15 @@ searchInput.addEventListener("input", () => {
                 </div>
             `;
 
-            document.body.appendChild(globalBox);
+            wrapper.appendChild(globalBox);
         }
-    } else {
-        if (globalBox) globalBox.remove();
-    }
+
+    // 🔥 HIDE ALL HOLDERS
+    Object.values(holders).forEach(h => h.style.display = "none");
+
+} else {
+    if (globalBox) globalBox.remove();
+}
 });
 
 function removeNoResultsMessages() {

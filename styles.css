@@ -1993,3 +1993,146 @@ input:-webkit-autofill:focus {
 #chatButton ion-icon {
   pointer-events: none;
 }
+
+/* PANEL */
+#chatPanel {
+  position: fixed;
+  bottom: 100px; /* 👈 above chat button */
+  right: 25px;
+
+  width: 320px;
+  height: 420px;
+
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  transform: translateY(20px) scale(0.95);
+  opacity: 0;
+  pointer-events: none;
+
+  transition: all 0.25s ease;
+
+  z-index: 9998;
+}
+
+#chatPanel.show {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* HEADER */
+#chatHeader {
+  background: #0a2540;
+  color: white;
+  padding: 12px 15px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  font-weight: 600;
+}
+
+#chatHeader ion-icon {
+  cursor: pointer;
+  font-size: 20px;
+}
+
+/* MESSAGES */
+#chatMessages {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* MESSAGE BUBBLES */
+.chat-msg {
+  max-width: 75%;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.user-msg {
+  background: #0a2540;
+  color: white;
+  align-self: flex-end;
+}
+
+.bot-msg {
+  background: #f1f5f9;
+  color: #333;
+  align-self: flex-start;
+}
+
+/* INPUT */
+#chatInputBox {
+  display: flex;
+  border-top: 1px solid #eee;
+}
+
+#chatInput {
+  flex: 1;
+  border: none;
+  padding: 10px;
+  outline: none;
+  font-size: 14px;
+}
+
+#sendBtn {
+  background: #0a2540;
+  color: white;
+  border: none;
+  padding: 0 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+/* SUGGESTIONS */
+#chatSuggestions {
+  padding: 8px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.chat-suggestion {
+  background: #e2e8f0;
+  border: none;
+  padding: 5px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+/* LOADING DOTS */
+.loading {
+  display: flex;
+  gap: 4px;
+}
+
+.loading span {
+  width: 6px;
+  height: 6px;
+  background: #555;
+  border-radius: 50%;
+  animation: bounce 1.2s infinite;
+}
+
+.loading span:nth-child(2) { animation-delay: 0.2s; }
+.loading span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}

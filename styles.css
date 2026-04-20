@@ -1955,8 +1955,8 @@ input:-webkit-autofill:focus {
   bottom: 25px;
   right: 25px;
 
-  width: 80px;
-  height: 80px;
+  width: 69px;
+  height: 69px;
 
   background: #0045bc; /* same vibe as your UI */
   color: white;
@@ -1966,7 +1966,7 @@ input:-webkit-autofill:focus {
   align-items: center;
   justify-content: center;
 
-  font-size: 34px;
+  font-size: 32px;
   cursor: pointer;
 
   box-shadow: 0 8px 25px rgba(0,0,0,0.25);
@@ -1997,7 +1997,7 @@ input:-webkit-autofill:focus {
 /* PANEL */
 #chatPanel {
   position: fixed;
-  bottom: 100px; /* 👈 above chat button */
+  bottom: 145px; /* 👈 above chat button */
   right: 25px;
 
   width: 320px;

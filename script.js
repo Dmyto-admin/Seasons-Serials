@@ -144,12 +144,10 @@ if (moreBtn && moreMenu) {
         e.stopPropagation();
         closeAllWrappers();
         moreMenu.classList.toggle("active");
-        filtersBox.classList.toggle("open");
     });
 
     document.addEventListener("click", () => {
         moreMenu.classList.remove("active");
-        filtersBox.classList.remove("open");
     });
 }
 
@@ -167,10 +165,12 @@ if (filterBtn && filtersMenu) {
         moreMenu?.classList.remove("active");
 
         filtersMenu.classList.toggle("active");
+        filtersBox.classList.toggle("open");
     });
 
     document.addEventListener("click", () => {
         filtersMenu.classList.remove("active");
+        filtersBox.classList.remove("open");
     });
 }
 

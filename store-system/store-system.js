@@ -169,7 +169,7 @@ function handleEmptyCategory(holder, hasMatch, query = "") {
             emptyBox.className = "empty-category";
 
             emptyBox.innerHTML = `
-                <img src="no-payment-yet.png" alt="no-results">
+                <img src="no-payment-yet.png" alt="no-results" class="no-payment-yet-img">
                 <span class="no-payment-yet-text">
                     ${query === "this category"
                         ? "No products in this category"

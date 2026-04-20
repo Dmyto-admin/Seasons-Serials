@@ -45,7 +45,7 @@ function addLoading() {
 }
 
 // SEND MESSAGE
-function sendMessage(text) {
+async function sendMessage(text) {
   if (!text.trim()) return;
 
   addMessage(text, "user");
@@ -53,9 +53,11 @@ function sendMessage(text) {
 
   const loading = addLoading();
 
+  const response = await generateSmartReply(text);
+  
   setTimeout(() => {
     loading.remove();
-    addMessage("Hello, how can I help?", "bot");
+    addMessage(response, "bot");
   }, 1000);
 }
 
@@ -77,3 +79,55 @@ suggestions.forEach(btn => {
     sendMessage(btn.innerText);
   });
 });
+
+async function generateSmartReply(input) {
+  const msg = input.toLowerCase();
+
+  // 🛍 PRODUCT SEARCH INTENT
+  if (msg.includes("buy") || msg.includes("product") || msg.includes("shop")) {
+    const results = searchProducts(msg);
+
+    if (results.length > 0) {
+      return "Here are some products you might like:\n\n" + results.join("\n");
+    } else {
+      return "I couldn't find matching products, but you can explore all categories above 👆";
+    }
+  }
+
+  // ℹ️ ABOUT STORE
+  if (msg.includes("what are you") || msg.includes("what is this")) {
+    return "I'm your AI assistant for Seasons Serials. I help you find products, answer questions, and guide your shopping experience.";
+  }
+
+  // 💳 PAYMENT
+  if (msg.includes("pay") || msg.includes("payment")) {
+    return "You can complete your purchase via bank transfer. After ordering, you have 24 hours to complete the payment.";
+  }
+
+  // 🚚 DELIVERY / PROCESS
+  if (msg.includes("how long") || msg.includes("delivery")) {
+    return "After payment, your order is processed quickly. Check your email for full details after checkout.";
+  }
+
+  // 🔁 DEFAULT (AI-like fallback)
+  return "That's a great question! I'm here to help with products, orders, and anything related to Seasons Serials 😊";
+}
+
+function searchProducts(query) {
+  const products = document.querySelectorAll(".sale-product-box");
+  const matches = [];
+
+  products.forEach(p => {
+    const nameEl = p.querySelector(".product-name");
+    if (!nameEl) return;
+
+    const name = nameEl.textContent.toLowerCase();
+
+    if (name.includes(query)) {
+      matches.push("• " + nameEl.textContent);
+    }
+  });
+
+  return matches.slice(0, 3); // limit results
+}
+

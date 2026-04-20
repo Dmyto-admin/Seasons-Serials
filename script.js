@@ -174,6 +174,61 @@ if (filterBtn && filtersMenu) {
     });
 }
 
+// Keyboard-contlolled
+
+const filterItems = Array.from(document.querySelectorAll(".filter-type-all-products"));
+let currentIndex = -1;
+
+// Open dropdown → reset selection
+filterBtn.addEventListener("click", () => {
+    currentIndex = -1;
+});
+
+// Keyboard control
+document.addEventListener("keydown", (e) => {
+    if (!filtersMenu.classList.contains("active")) return;
+
+    if (e.key === "ArrowDown") {
+        e.preventDefault();
+        currentIndex++;
+        if (currentIndex >= filterItems.length) currentIndex = 0;
+        updateKeyboardSelection();
+    }
+
+    if (e.key === "ArrowUp") {
+        e.preventDefault();
+        currentIndex--;
+        if (currentIndex < 0) currentIndex = filterItems.length - 1;
+        updateKeyboardSelection();
+    }
+
+    if (e.key === "Enter") {
+        e.preventDefault();
+        if (currentIndex >= 0) {
+            filterItems[currentIndex].click();
+            closeDropdown();
+        }
+    }
+
+    if (e.key === "Escape") {
+        closeDropdown();
+    }
+});
+
+function updateKeyboardSelection() {
+    filterItems.forEach(item => item.classList.remove("keyboard-selected"));
+
+    if (currentIndex >= 0) {
+        filterItems[currentIndex].classList.add("keyboard-selected");
+    }
+}
+
+function closeDropdown() {
+    filtersMenu.classList.remove("active");
+    filtersBox.classList.remove("open");
+}
+
+
 /* ---------- XXXXX ---------- */
 
 

@@ -122,13 +122,18 @@ searchInput.addEventListener("input", () => {
             }
         });
 
-        // 🔥 SHOW / HIDE CATEGORY TITLE
-        if (title) {
-            title.style.display = categoryMatch ? "block" : "none";
-        }
+        // 🔥 FULL CATEGORY CONTROL
+        if (categoryMatch) {
+            holder.style.display = "block";   // ✅ show category
+            if (title) title.style.display = "block";
 
-        // 🔥 SHOW EMPTY STATE
-        handleEmptyCategory(holder, categoryMatch, query);
+            // remove empty message if exists
+            const emptyBox = holder.querySelector(".empty-category");
+            if (emptyBox) emptyBox.remove();
+
+        } else {
+            holder.style.display = "none";    // ❌ hide entire category
+        }
     });
 
     if (!anyGlobalMatch) {

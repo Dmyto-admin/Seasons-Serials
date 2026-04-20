@@ -119,6 +119,15 @@ async function generateSmartReply(input) {
 
   const msg = normalize(input);
 
+  if (msg.includes("thanks") || msg.includes("gracias") || msg.includes("merci")) {
+    return {
+      en: "You're welcome 😊",
+      es: "¡De nada! 😊",
+      fr: "Avec plaisir 😊",
+      ua: "Будь ласка 😊" 
+    }[currentLang];
+  }
+
   // 🚨 REPORT FLOW
   if (chatState.mode === "reporting") {
     return handleReportFlow(msg);
@@ -186,15 +195,6 @@ function hasIntent(msg, keywords) {
 
 function isGreeting(msg) {
   return ["hi", "hello", "hey", "good morning", "good evening"].some(g => msg.includes(g));
-}
-
-if (msg.includes("thanks") || msg.includes("gracias") || msg.includes("merci")) {
-  return {
-    en: "You're welcome 😊",
-    es: "¡De nada! 😊",
-    fr: "Avec plaisir 😊",
-    ua: "Будь ласка 😊"
-  }[currentLang];
 }
 
 function correctTypos(text) {

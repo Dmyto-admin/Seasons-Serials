@@ -160,7 +160,7 @@ searchInput.addEventListener("input", () => {
     }
 });
 
-function handleEmptyCategory(holder, hasMatch, query) {
+function handleEmptyCategory(holder, hasMatch, query = "") {
     let emptyBox = holder.querySelector(".empty-category");
 
     if (!hasMatch) {
@@ -171,7 +171,10 @@ function handleEmptyCategory(holder, hasMatch, query) {
             emptyBox.innerHTML = `
                 <img src="no-payment-yet.png" alt="no-results">
                 <span class="no-payment-yet-text">
-                    No product matching "${query}"
+                    ${query === "this category"
+                        ? "No products in this category"
+                        : `No product matching "${query}"`
+                    }
                 </span>
             `;
 

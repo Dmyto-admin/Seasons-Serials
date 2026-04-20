@@ -1937,3 +1937,8 @@ input:-webkit-autofill:focus {
     margin: 20px auto 0;
     margin-top: -25px;
 }
+
+.no-results {
+    justify-content: center;
+    align-items: center;
+}

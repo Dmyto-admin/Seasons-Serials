@@ -516,7 +516,26 @@ document.addEventListener("DOMContentLoaded", () => {
       setDiscountMessage("Failed to apply promocode", "red");
     }
   });
-  
+
+function setupReservationEvents() {
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && reservationBox.classList.contains("show")) {
+      closeReservation();
+    }
+  });
+
+  reservationBox.addEventListener("click", function (e) {
+    if (e.target === reservationBox) {
+      closeReservation();
+    }
+  });
+
+  if (closeReservationBtn) {
+    closeReservationBtn.onclick = closeReservation;
+  }
+}
+    
   products.forEach(product => {
 
     const productRef = doc(db, "products", product.id);
@@ -639,19 +658,8 @@ document.addEventListener("DOMContentLoaded", () => {
         closeReservationBtn.addEventListener("click", closeReservation);
       }
 
-      // Close on ESC key
-      document.addEventListener("keydown", function (e) {
-        if (e.key === "Escape" && reservationBox.classList.contains("show")) {
-          closeReservation();
-        }
-      });
-
-      // Close when clicking outside the checkout box
-      reservationBox.addEventListener("click", function (e) {
-        if (e.target === reservationBox) {
-          closeReservation();
-        }
-      });
+      // RESERVATION EVENTS
+      setupReservationEvents();
 
       // NORMAL FLOW 
 

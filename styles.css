@@ -1929,3 +1929,11 @@ input:-webkit-autofill:focus {
     color: #ffb74d;
     font-weight: 500;
 }
+
+.no-payments-yet-img {
+    width: 190px;
+    height: 150px;
+    display: block;
+    margin: 20px auto 0;
+    margin-top: -25px;
+}

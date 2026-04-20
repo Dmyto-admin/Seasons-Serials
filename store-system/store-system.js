@@ -1151,7 +1151,7 @@ confirmBtn.addEventListener("click", async () => {
         let userCreated = false;
       
         await setDoc(doc(db, "users", email), { email }, { merge: true });
-        let userCreated = false;
+        userCreated = true;
 
         // rollback user creation
         tx.addRollback(async () => {

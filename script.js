@@ -144,10 +144,12 @@ if (moreBtn && moreMenu) {
         e.stopPropagation();
         closeAllWrappers();
         moreMenu.classList.toggle("active");
+        filtersBox.classList.toggle("open");
     });
 
     document.addEventListener("click", () => {
         moreMenu.classList.remove("active");
+        filtersBox.classList.remove("open");
     });
 }
 

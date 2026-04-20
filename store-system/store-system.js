@@ -5,7 +5,7 @@ import { deleteDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-fi
 
 
 // 🚫 Prevent spam: same product + same error
-const adminFailureTracker = {};
+const adminFailureTracker = JSON.parse(localStorage.getItem("adminFailures") || "{}");
 
 const filters = document.querySelectorAll(".filter-type-all-products");
 
@@ -160,6 +160,39 @@ searchInput.addEventListener("input", () => {
     }
 });
 
+// 🔥 GLOBAL NO RESULTS
+let globalBox = document.getElementById("globalNoResults");
+
+if (!anyGlobalMatch) {
+
+    if (!globalBox) {
+        globalBox = document.createElement("div");
+        globalBox.id = "globalNoResults";
+        globalBox.className = "empty-category";
+
+        globalBox.innerHTML = `
+            <div class="no-results">
+                <img src="no-payment-yet.png" alt="no-results" class="no-payment-yet-img">
+                <span class="no-payment-yet-text">
+                    No products matching "${query}"
+                </span>
+            </div>
+        `;
+
+        document.body.appendChild(globalBox); // or main container
+    }
+
+} else {
+    if (globalBox) globalBox.remove();
+}
+
+function removeNoResultsMessages() {
+    document.querySelectorAll(".empty-category").forEach(el => el.remove());
+
+    const globalBox = document.getElementById("globalNoResults");
+    if (globalBox) globalBox.remove();
+}
+
 function handleEmptyCategory(holder, hasMatch, query = "") {
     let emptyBox = holder.querySelector(".empty-category");
 
@@ -171,13 +204,13 @@ function handleEmptyCategory(holder, hasMatch, query = "") {
             emptyBox.innerHTML = `
                 <div class="no-results">
                     <img src="no-payment-yet.png" alt="no-results" class="no-payment-yet-img">
+                    <span class="no-payment-yet-text">
+                        ${query === "this category"
+                            ? "No products in this category"
+                            : `No product matching "${query}"`
+                        }
+                    </span>
                 </div>
-                <span class="no-payment-yet-text">
-                    ${query === "this category"
-                        ? "No products in this category"
-                        : `No product matching "${query}"`
-                    }
-                </span>
             `;
 
             holder.appendChild(emptyBox);
@@ -195,16 +228,6 @@ function removeNoResultsMessages() {
 async function saveInvoiceToUser(email, invoiceData) {
   try {
     console.log("🔥 START SAVING", email, invoiceData);
-
-    const userRef = doc(db, "users", email);
-    
-    await setDoc(userRef, { email: email }, { merge: true })
-      .then(() => {
-        console.log("WRITE SUCCESS");
-      })
-      .catch((err) => {
-        alert("WRITE FAILED: " + err.message);
-      });
 
     console.log("DOCUMENT OKAY");
     
@@ -917,15 +940,16 @@ async function sendAdminEmailSafe(type, data, errorMsg = "") {
   try {
 
     // 🚫 BLOCK duplicate failure spam
-    if (type === "failure") {
-      const key = data.productId + "_" + errorMsg;
+      if (type === "failure") {
+        const key = data.productId + "_" + errorMsg;
 
-      if (adminFailureTracker[key]) {
-        console.warn("⛔ Duplicate admin failure blocked:", key);
-        return;
-      }
+        if (adminFailureTracker[key]) {
+            console.warn("⛔ Duplicate admin failure blocked:", key);
+            return;
+        }
 
-      adminFailureTracker[key] = true;
+        adminFailureTracker[key] = true;
+        localStorage.setItem("adminFailures", JSON.stringify(adminFailureTracker));
     }
 
     const html =
@@ -1125,15 +1149,25 @@ confirmBtn.addEventListener("click", async () => {
     const pdfBase64 = pdfDoc.output("datauristring");
 
     // 🔵 STEP 5 — SAVE TO FIREBASE
-    await saveInvoiceToUser(email, {
-      ...invoiceData,
-      pdf: pdfBase64
-    });
+
+        // create user FIRST inside transaction
+        await setDoc(doc(db, "users", email), { email }, { merge: true });
+
+        // rollback user creation
+        tx.addRollback(async () => {
+            await deleteDoc(doc(db, "users", email));
+        });
+
+        // save invoice
+        await saveInvoiceToUser(email, {
+            ...invoiceData,
+            pdf: pdfBase64
+        });
     
-    // ✅ ROLLBACK (delete invoice)
-    tx.addRollback(async () => {
-      await deleteDoc(doc(db, "users", email, "invoices", invoiceId));
-    });
+        // ✅ ROLLBACK (delete invoice)
+        tx.addRollback(async () => {
+          await deleteDoc(doc(db, "users", email, "invoices", invoiceId));
+        });
 
     // 🔵 STEP 6 — SEND EMAIL
 

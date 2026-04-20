@@ -916,7 +916,7 @@ async function sendAdminEmailSafe(type, data, errorMsg = "") {
   } catch (err) {
     // 🔥 ABSOLUTE RULE: NEVER BREAK CUSTOMER FLOW
     console.error("Admin email failed (ignored):", err);
-    alert("Admin email failed: " + err.message);
+    // alert("Admin email failed: " + err.message);
   }
 }
 

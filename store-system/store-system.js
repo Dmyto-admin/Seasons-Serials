@@ -12,9 +12,9 @@ const filters = document.querySelectorAll(".filter-type-all-products");
 const holders = {
     pictures: document.getElementById("picturesProductHolder"),
     stories: document.getElementById("storiesProductHolder"),
-    handcrafts: null,
-    decorations: null,
-    tickets: null
+    handcrafts: document.getElementById("handcraftsProductHolder"),
+    decorations: document.getElementById("decorationsProductHolder"),
+    tickets: document.getElementById("ticketsProductHolder")
 };
 
 const filterBtn = document.getElementById("filterBtn");
@@ -58,7 +58,26 @@ filters.forEach(filter => {
         hideAllHolders();
 
         if (holders[category]) {
-            holders[category].style.display = "block";
+            const holder = holders[category];
+
+            holder.style.display = "block";
+
+            const products = holder.querySelectorAll(".sale-product-box");
+
+            let hasVisibleProducts = false;
+
+            products.forEach(p => {
+                if (p.style.display !== "none") {
+                    hasVisibleProducts = true;
+                }
+            });
+
+            // 🔥 SHOW EMPTY MESSAGE IF NOTHING INSIDE
+            if (!hasVisibleProducts) {
+                handleEmptyCategory(holder, false, "this category");
+            } else {
+                handleEmptyCategory(holder, true);
+            }
         }
     });
 });

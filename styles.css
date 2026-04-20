@@ -1112,7 +1112,7 @@ header {
     padding: 6px 10px;
     border-radius: 8px;
     transition: 0.2s;
-    font-weight: 500;
+    font-weight: 400;
 }
 
 .filter-type-all-products:hover {

@@ -1,3 +1,26 @@
+const LANG = {
+  EN: "en",
+  ES: "es",
+  FR: "fr",
+  UA: "ua"
+};
+
+function detectLanguage(text) {
+  const t = text.toLowerCase();
+
+  if (/[іїєґ]/.test(t)) return LANG.UA;
+
+  if (t.includes("hola") || t.includes("comprar") || t.includes("producto"))
+    return LANG.ES;
+
+  if (t.includes("bonjour") || t.includes("produit"))
+    return LANG.FR;
+
+  return LANG.EN;
+}
+
+let currentLang = LANG.EN;
+
 let chatState = {
   mode: "normal", // normal | reporting
   step: null,
@@ -91,64 +114,69 @@ suggestions.forEach(btn => {
 });
 
 async function generateSmartReply(input) {
+
+  currentLang = detectLanguage(input);
+
   const msg = normalize(input);
 
-  // 🚨 HANDLE ACTIVE FLOWS FIRST
+  // 🚨 REPORT FLOW
   if (chatState.mode === "reporting") {
     return handleReportFlow(msg);
   }
 
-  // 👋 GREETINGS
+  // 👋 GREETING
   if (isGreeting(msg)) {
-    return "Hello! 👋 I'm your Seasons Serials assistant. How can I help you today?";
+    return t("greeting");
   }
 
   // 🙋 HELP
-  if (msg.includes("help")) {
-    return "I can help you find products, explain how the store works, or report a problem. Try asking something like 'What can I buy?' 😊";
+  if (msg.includes("help") || msg.includes("ayuda") || msg.includes("aide")) {
+    return t("help");
   }
 
   // 🛍 PRODUCT SEARCH
-  if (hasIntent(msg, ["buy", "product", "shop", "recommend"])) {
+  if (hasIntent(msg, ["buy", "product", "shop", "comprar", "producto"])) {
     const results = searchProductsSmart(msg);
 
     if (results.length > 0) {
-      return "Here are some products you might like:\n\n" + results.join("\n");
+      return results.join("\n");
     } else {
-      return "I couldn't find matching products. Try using simpler words like 'story', 'ticket', or 'decoration'.";
+      return t("noProducts");
     }
   }
 
-  // ℹ️ ABOUT
-  if (hasIntent(msg, ["what are you", "who are you"])) {
-    return "I'm your AI assistant for Seasons Serials. I help you find products, answer questions, and guide your shopping.";
-  }
-
   // 💳 PAYMENT
-  if (hasIntent(msg, ["pay", "payment", "how to pay"])) {
-    return "You can complete your order via bank transfer. You have 24 hours after reservation.";
+  if (hasIntent(msg, ["pay", "payment", "pago", "paiement"])) {
+    return {
+      en: "You can pay via bank transfer within 24 hours.",
+      es: "Puedes pagar por transferencia bancaria en 24h.",
+      fr: "Paiement par virement bancaire sous 24h.",
+      ua: "Оплата банківським переказом протягом 24 годин."
+    }[currentLang];
   }
 
-  // 🚚 DELIVERY
-  if (hasIntent(msg, ["delivery", "how long", "when"])) {
-    return "Orders are processed after payment. You'll receive full details by email.";
-  }
-
-  // 🚨 REPORT SYSTEM TRIGGER
-  if (hasIntent(msg, ["error", "bug", "problem", "issue"])) {
+  // 🚨 REPORT
+  if (hasIntent(msg, ["error", "bug", "problem", "issue", "problema"])) {
     chatState.mode = "reporting";
     chatState.step = "ask_type";
-    return "I'm sorry something went wrong 😔\n\nWhat kind of problem is it?\n• Payment\n• Product\n• Website bug";
+    return t("reportStart");
   }
 
-  // 🔁 DEFAULT
-  return "That's interesting! I can help with products, orders, or issues. Try asking 'What can I buy?' or 'I have a problem'.";
+  // 🧠 SMART FALLBACK
+  return {
+    en: "Interesting! Ask me about products or report a problem.",
+    es: "Interesante. Pregúntame sobre productos o problemas.",
+    fr: "Intéressant. Demandez-moi des produits ou problèmes.",
+    ua: "Цікаво! Запитайте про товари або проблему."
+  }[currentLang];
 }
 
 function normalize(text) {
+  text = correctTypos(text);
+
   return text
     .toLowerCase()
-    .replace(/[^\w\s]/g, "")
+    .replace(/[^\w\sáéíóúüñіїєґ]/gi, "")
     .trim();
 }
 
@@ -158,6 +186,68 @@ function hasIntent(msg, keywords) {
 
 function isGreeting(msg) {
   return ["hi", "hello", "hey", "good morning", "good evening"].some(g => msg.includes(g));
+}
+
+if (msg.includes("thanks") || msg.includes("gracias") || msg.includes("merci")) {
+  return {
+    en: "You're welcome 😊",
+    es: "¡De nada! 😊",
+    fr: "Avec plaisir 😊",
+    ua: "Будь ласка 😊"
+  }[currentLang];
+}
+
+function correctTypos(text) {
+  const corrections = {
+    "hllo": "hello",
+    "helo": "hello",
+    "byu": "buy",
+    "prodct": "product",
+    "pament": "payment",
+    "envio": "envío",
+    "holaa": "hola",
+    "bonjor": "bonjour"
+  };
+
+  let words = text.split(" ");
+
+  words = words.map(w => corrections[w] || w);
+
+  return words.join(" ");
+}
+
+function t(key) {
+  const dict = {
+    greeting: {
+      en: "Hello! 👋 I'm your Seasons Serials assistant. How can I help you?",
+      es: "¡Hola! 👋 Soy tu asistente de Seasons Serials. ¿En qué puedo ayudarte?",
+      fr: "Bonjour ! 👋 Je suis votre assistant Seasons Serials. Comment puis-je vous aider ?",
+      ua: "Привіт! 👋 Я асистент Seasons Serials. Чим можу допомогти?"
+    },
+
+    noProducts: {
+      en: "I couldn't find matching products.",
+      es: "No encontré productos coincidentes.",
+      fr: "Je n'ai trouvé aucun produit correspondant.",
+      ua: "Я не знайшов відповідних товарів."
+    },
+
+    help: {
+      en: "I can help you find products, explain the store, or report a problem.",
+      es: "Puedo ayudarte a encontrar productos o reportar un problema.",
+      fr: "Je peux vous aider à trouver des produits ou signaler un problème.",
+      ua: "Я можу допомогти знайти товари або повідомити про проблему."
+    },
+
+    reportStart: {
+      en: "I'm sorry 😔 What type of problem?\n• Payment\n• Product\n• Website",
+      es: "Lo siento 😔 ¿Qué tipo de problema?\n• Pago\n• Producto\n• Sitio web",
+      fr: "Désolé 😔 Quel type de problème ?\n• Paiement\n• Produit\n• Site web",
+      ua: "Вибачте 😔 Яка проблема?\n• Оплата\n• Товар\n• Сайт"
+    }
+  };
+
+  return dict[key]?.[currentLang] || dict[key]?.en;
 }
 
 function searchProductsSmart(query) {

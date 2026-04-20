@@ -1033,6 +1033,7 @@ header {
     justify-content: space-between;
 
     margin-top: 20px;
+    margin-bottom: 11px;
 
     background: #ffffff;
     border: 1px solid rgba(0,0,0,0.08);
@@ -1067,7 +1068,7 @@ header {
 /* FILTERS DROPDOWN — SAME STYLE AS MORE MENU */
 .filters-menu {
     position: absolute;
-    top: calc(100% - 25px);   /* small gap under button */
+    top: calc(100% - 40px);   /* small gap under button */
     right: 0;                 /* align to the RIGHT (looks cleaner) */
 
     width: 220px;             /* 🔥 FIXED WIDTH (not full width) */

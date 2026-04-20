@@ -87,11 +87,8 @@ const allProducts = document.querySelectorAll(".sale-product-box");
 
 searchInput.addEventListener("input", () => {
     let query = searchInput.value.trim().toLowerCase();
-
-    // 🔥 replace ’ with '
     query = query.replace(/’/g, "'");
 
-    // 👉 EMPTY → FULL RESET (REAL RESET)
     if (query === "") {
         allProducts.forEach(p => p.style.display = "block");
 
@@ -104,43 +101,10 @@ searchInput.addEventListener("input", () => {
         });
 
         removeNoResultsMessages();
-
         return;
     }
 
-    // 👉 SEARCH MODE
-    Object.values(holders).forEach(holder => {
-        if (holder) holder.style.display = "block";
-    });
-
     let anyGlobalMatch = false;
-
-    // 🔥 GLOBAL NO RESULTS
-    let globalBox = document.getElementById("globalNoResults");
-
-    if (!anyGlobalMatch) {
-
-        if (!globalBox) {
-            globalBox = document.createElement("div");
-            globalBox.id = "globalNoResults";
-            globalBox.className = "empty-category";
-
-            globalBox.innerHTML = `
-                <div class="no-results">
-                    <img src="no-payment-yet.png" alt="no-results" class="no-payment-yet-img">
-                    <span class="no-payment-yet-text">
-                        No products matching "${query}"
-                    </span>
-                </div>
-            `;
-
-            document.body.appendChild(globalBox); // or main container
-        }
-
-    } else {
-        if (globalBox) globalBox.remove();
-    }
-
 
     Object.values(holders).forEach(holder => {
         if (!holder) return;
@@ -168,22 +132,40 @@ searchInput.addEventListener("input", () => {
             }
         });
 
-        // 🔥 FULL CATEGORY CONTROL
         if (categoryMatch) {
-            holder.style.display = "block";   // ✅ show category
+            holder.style.display = "block";
             if (title) title.style.display = "block";
 
-            // remove empty message if exists
             const emptyBox = holder.querySelector(".empty-category");
             if (emptyBox) emptyBox.remove();
 
         } else {
-            holder.style.display = "none";    // ❌ hide entire category
+            holder.style.display = "none";
         }
     });
 
+    // ✅ NOW check global result (AFTER loop)
+    let globalBox = document.getElementById("globalNoResults");
+
     if (!anyGlobalMatch) {
-        // optional: global "no results"
+        if (!globalBox) {
+            globalBox = document.createElement("div");
+            globalBox.id = "globalNoResults";
+            globalBox.className = "empty-category";
+
+            globalBox.innerHTML = `
+                <div class="no-results">
+                    <img src="no-payment-yet.png" class="no-payment-yet-img">
+                    <span class="no-payment-yet-text">
+                        No products matching "${query}"
+                    </span>
+                </div>
+            `;
+
+            document.body.appendChild(globalBox);
+        }
+    } else {
+        if (globalBox) globalBox.remove();
     }
 });
 
@@ -1148,17 +1130,18 @@ confirmBtn.addEventListener("click", async () => {
     // 🔵 STEP 5 — SAVE TO FIREBASE
 
         // create user FIRST inside transaction
-        let userCreated = false;
-      
-        await setDoc(doc(db, "users", email), { email }, { merge: true });
-        userCreated = true;
+        const userRef = doc(db, "users", email);
+        const userSnap = await getDoc(userRef);
 
-        // rollback user creation
-        tx.addRollback(async () => {
-            if (userCreated) {
-                await deleteDoc(doc(db, "users", email));
-            }
-        });
+        const userAlreadyExists = userSnap.exists();
+
+        if (!userAlreadyExists) {
+            await setDoc(userRef, { email });
+
+            tx.addRollback(async () => {
+                await deleteDoc(userRef);
+            });
+        }
 
         // save invoice
         await saveInvoiceToUser(email, {

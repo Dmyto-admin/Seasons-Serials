@@ -1067,12 +1067,16 @@ header {
 /* FILTERS DROPDOWN — SAME STYLE AS MORE MENU */
 .filters-menu {
     position: absolute;
-    top: calc(100% + 10px);   /* small gap under button */
+    top: calc(100% - 7px);   /* small gap under button */
     right: 0;                 /* align to the RIGHT (looks cleaner) */
 
     width: 220px;             /* 🔥 FIXED WIDTH (not full width) */
 
     padding: 8px;
+
+    justify-content: center;
+    align-items: center;
+    align-content: center;
 
     background: #ffffff;
     border-radius: 12px;
@@ -1115,6 +1119,9 @@ header {
     font-weight: 400;
     font-size: 0.95em;
     transition: 0.15s ease;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
 }
 
 .filter-type-all-products:hover {

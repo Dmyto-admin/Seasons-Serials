@@ -1062,7 +1062,7 @@ header {
 /* FILTERS DROPDOWN — SAME STYLE AS MORE MENU */
 .filters-menu {
     position: absolute;
-    top: calc(100% + 8px);
+    top: calc(100% + 6px);
     left: 0;                 /* 🔥 align to left of box */
     width: 100%;             /* 🔥 same width as filters-box */
     

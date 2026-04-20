@@ -1258,11 +1258,11 @@ confirmBtn.addEventListener("click", async () => {
           showResultModal(true, 3500)
         ]);
 
-      // 2. 📩 Notify admin (SUCCESS) — NON BLOCKING
-      await sendAdminEmailSafe("success", invoiceData);
-      
-      // 3. close UI immediately after
+      // 2. close UI immediately after
       closeModal();
+
+      // 3. 📩 Notify admin (SUCCESS) — NON BLOCKING
+      await sendAdminEmailSafe("success", invoiceData);
 
       // 4. wait for UI to settle (iPad fix)
       await sleep(800);
@@ -1303,6 +1303,7 @@ confirmBtn.addEventListener("click", async () => {
           alert("ROLLBACK CRASH: " + (e?.message || e));
         }
         await showResultModal(false);
+        closeModal();
       }
 });
   }

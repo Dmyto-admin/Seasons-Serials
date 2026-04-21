@@ -491,22 +491,70 @@ function smartFallback(msg) {
 
 function analyzeIntent(msg) {
 
-  if (msg.match(/(hi|hello|hey)/)) return "greeting";
+  if (msg.includes("what are you used for") ||
+    msg.includes("what can you do")) {
+    return generateResponse("about_assistant", msg);
+  }
+  
+  const m = msg.toLowerCase();
 
-  if (msg.match(/(error|problem|issue|not working)/)) return "report";
+  // 🧠 1. ABOUT ASSISTANT (HIGHEST PRIORITY)
+  if (m.includes("what are you") ||
+      m.includes("what can you do") ||
+      m.includes("what is this") ||
+      m.includes("help me") ||
+      m.includes("your purpose")) {
+    return "about_assistant";
+  }
 
-  if (msg.match(/(buy|available|in stock|can i buy)/)) return "availability";
+  // 👋 greeting
+  if (/(hi|hello|hey|how are you)/.test(m)) return "greeting";
 
-  if (msg.match(/(what|which|show|recommend)/)) return "product_search";
+  // 🚨 report
+  if (/(error|problem|issue|not working)/.test(m)) return "report";
 
-  if (msg.match(/(pay|payment)/)) return "payment";
+  // 💳 payment
+  if (/(pay|payment)/.test(m)) return "payment";
 
-  if (msg.match(/(delivery|shipping)/)) return "delivery";
+  // 🚚 delivery
+  if (/(delivery|shipping)/.test(m)) return "delivery";
+
+  // 🛒 availability (STRICTER)
+  if (/(available|in stock|can i buy)\b/.test(m)) return "availability";
+
+  // 📦 product search (ONLY explicit shopping intent)
+  if (/(buy|show me|recommend|products|list)/.test(m)) {
+    return "product_search";
+  }
 
   return "unknown";
 }
 
 async function generateResponse(intent, msg) {
+
+  if (intent === "about_assistant") {
+  return {
+    en: `I am your Seasons Serials assistant
+
+I can:
+• Help you find products
+• Check product's availability
+• Explain how the store works
+• Report store issues and errors
+• Help with orders
+
+Just ask me anything 😊`,
+
+    es: `Soy tu asistente de Seasons Serials
+Puedo ayudarte con productos, pedidos y problemas.`,
+
+    fr: `Je suis votre assistant Seasons Serial
+Je peux aider avec les produits et les commandes.`,
+
+    ua: `Я ваш асистент Seasons Serials
+Я допомагаю з товарами та замовленнями.`
+  }[currentLang];
+}
 
   // 🔥 availability check
   if (intent === "availability") {
@@ -540,6 +588,10 @@ async function generateResponse(intent, msg) {
 
   // 🔥 product search (FIXED async loop)
   if (intent === "product_search") {
+
+    if (msg.length < 4 || msg.includes("what are you")) {
+      return smartFallback(msg);
+    }
 
     const products = document.querySelectorAll(".sale-product-box");
     const results = [];

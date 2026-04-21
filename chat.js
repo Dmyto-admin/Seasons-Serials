@@ -1,6 +1,7 @@
 import { db } from "./firebase-config.js";
 import { addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
+document.addEventListener("DOMContentLoaded", () => {
 
 const LANG = {
   EN: "en",
@@ -140,14 +141,20 @@ async function sendMessage(text) {
 
   const loading = addLoading();
 
-  const response = await generateSmartReply(text);
+  let response;
+
+  try {
+    response = await generateSmartReply(text);
+  } catch (err) {
+    console.error(err);
+    response = "Something went wrong. Please try again.";
+  }
 
   setTimeout(() => {
     loading.remove();
     addMessage(response, "bot");
   }, getTypingDelay(response));
 }
-
 // INPUT SEND
 sendBtn.addEventListener("click", () => {
   sendMessage(chatInput.value);
@@ -537,3 +544,5 @@ function formatResponse(text) {
     .replace(/\n\s+/g, "\n")
     .replace(/\*\*(.*?)\*\*/g, "$1");
 }
+
+});

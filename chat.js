@@ -12,6 +12,17 @@ function saveMemory() {
   localStorage.setItem("chatMemory", JSON.stringify(memory));
 }
 
+function safeError(msg, err) {
+  console.error(msg, err);
+
+  return {
+    en: "I couldn't complete that request. Please try again.",
+    es: "No pude completar la solicitud. Inténtalo de nuevo.",
+    fr: "Impossible de compléter la demande.",
+    ua: "Не вдалося виконати запит."
+  }[currentLang];
+}
+
 const LANG = {
   EN: "en",
   ES: "es",
@@ -500,10 +511,10 @@ async function generateResponse(intent, msg) {
   // 🔥 availability check
   if (intent === "availability") {
 
-    const productId = extractProductName(msg) || msg;
+    const productId = extractProductName(msg);
 
     if (!productId) {
-      return "Tell me the exact product name 😊";
+      return t("confused") + "\n\nTry using a product name from the store.";
     }
 
     const status = await getProductStatus(productId);

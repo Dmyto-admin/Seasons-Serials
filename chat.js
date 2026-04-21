@@ -26,17 +26,20 @@ const DICTIONARY = {
   }
 };
 
-function expandWords(words) {
+async function expandWordsAI(words) {
   let expanded = [...words];
 
-  words.forEach(w => {
-    Object.values(DICTIONARY).forEach(group => {
-      if (group.core.includes(w) || group.related.includes(w)) {
-        expanded.push(...group.core);
-        expanded.push(...group.related);
-      }
-    });
-  });
+  for (let w of words) {
+    try {
+      const res = await fetch(`https://api.datamuse.com/words?ml=${w}`);
+      const data = await res.json();
+
+      data.slice(0, 5).forEach(d => {
+        expanded.push(d.word);
+      });
+
+    } catch {}
+  }
 
   return [...new Set(expanded)];
 }
@@ -115,6 +118,13 @@ function addMessage(text, type) {
   const wrapper = document.createElement("div");
   wrapper.className = `chat-msg-wrapper ${type}`;
 
+  const time = new Date().toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  wrapper.dataset.time = time;
+
   const msg = document.createElement("div");
   msg.className = `chat-msg ${type}-msg`;
   msg.innerText = text;
@@ -131,7 +141,6 @@ function addMessage(text, type) {
   wrapper.appendChild(actions);
 
   chatMessages.appendChild(wrapper);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 document.addEventListener("click", e => {
@@ -142,13 +151,10 @@ document.addEventListener("click", e => {
 
   navigator.clipboard.writeText(msg.innerText);
 
-  const icon = btn.querySelector("ion-icon");
-  icon.name = "checkmark-outline";
-  icon.style.color = "lime";
+  btn.innerText = "Copied";
 
   setTimeout(() => {
-    icon.name = "copy-outline";
-    icon.style.color = "";
+    btn.innerHTML = '<ion-icon name="copy-outline"></ion-icon>';
   }, 1500);
 });
 
@@ -177,10 +183,20 @@ document.getElementById("confirmDeleteBtn").onclick = () => {
 };
 
 document.addEventListener("click", e => {
-  if (e.target.classList.contains("more-btn")) {
-    alert("Coming soon: edit, regenerate, explain");
-  }
+  const btn = e.target.closest(".more-btn");
+  if (!btn) return;
+
+  const wrapper = btn.closest(".chat-msg-wrapper");
+  const time = wrapper.dataset.time;
+
+  alert(`Sent at: ${time}`);
 });
+
+function formatResponse(text) {
+  return text
+    .trim()
+    .replace(/\n/g, "\n\n"); // spacing like ChatGPT
+}
 
 // LOADING MESSAGE
 function addLoading() {
@@ -570,19 +586,22 @@ function smartFallback(msg) {
 function analyzeIntent(msg) {
   const m = msg.toLowerCase();
 
-  const productId = extractProductName(m);
+    const isQuestion = /\b(what|how|is|can|do|does|where|why)\b/.test(m);
+    const isDescription = m.split(" ").length >= 3;
 
-  // 🔥 PRIORITY: product always wins
-  if (productId) {
-    memory.lastProduct = productId;
-    saveMemory();
+    const productId = extractProductName(m);
 
-    if (/(price|cost|how much)/.test(m)) return "price";
-    if (/(describe|info|details|what is)/.test(m)) return "product_info";
+    // 🧠 1. EXPLICIT product question ONLY
+    if (productId && isQuestion) {
+      memory.lastProduct = productId;
+      saveMemory();
 
-    return "availability";
-  }
+      if (/(price|cost|how much)/.test(m)) return "price";
+      if (/(describe|info|details|what is)/.test(m)) return "product_info";
 
+      return "availability";
+    }
+  
   // assistant
   if (/(what.*you|help|purpose|who are you)/.test(m)) return "about_assistant";
 

@@ -534,7 +534,7 @@ function analyzeIntent(msg) {
   if (/(delivery|shipping)/.test(m)) return "delivery";
 
   // 🛒 availability (STRICTER)
-  if (/(available|in stock|can i buy)\b/.test(m)) return "availability";
+  if (/(available|in stock)\b/.test(m)) return "availability";
 
   // 📦 product search (ONLY explicit shopping intent)
   if (
@@ -650,7 +650,6 @@ Je peux aider avec les produits et les commandes.`,
     chatState.step = "ask_type";
 
     return t("reportStart");
-  }
   }
 
   return smartFallback(msg);

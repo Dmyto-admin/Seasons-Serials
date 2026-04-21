@@ -93,6 +93,52 @@
 <div id="chatButton">
   <ion-icon name="chatbubbles"></ion-icon>
 </div>
+
+<!-- 💬 CHAT PANEL -->
+<div id="chatPanel">
+
+  <!-- HEADER -->
+  <div id="chatHeader">
+    <span>Store AI Assistant</span>
+    <ion-icon name="close" id="closeChat"></ion-icon>
+  </div>
+
+  <!-- MESSAGES -->
+  <div id="chatMessages"></div>
+
+  <!-- SUGGESTIONS -->
+  <div id="chatSuggestions">
+    <button class="chat-suggestion">What can I buy?</button>
+    <button class="chat-suggestion">What are you used for?</button>
+    <button class="chat-suggestion">Report error</button>
+  </div>
+
+  <!-- INPUT -->
+  <div id="chatInputBox">
+    <input 
+      type="text" 
+      id="chatInput" 
+      placeholder="Ask anything about Seasons Serials"
+    >
+    <button id="sendBtn">
+      <ion-icon name="send"></ion-icon>
+    </button>
+  </div>
+
+  <!-- DELETE MESSAGE MODAL -->
+  <div id="deleteModal" class="chat-modal hidden">
+      <div class="chat-modal-box">
+        <h3>Delete message?</h3>
+        <p>This cannot be undone.</p>
+
+        <div class="modal-actions">
+          <button id="cancelDelete">Cancel</button>
+          <button id="confirmDeleteBtn">Delete</button>
+        </div>
+      </div>
+    </div>
+
+</div>
     
 <script src="script.js"></script>
 <script type="module" src="chat.js"></script>

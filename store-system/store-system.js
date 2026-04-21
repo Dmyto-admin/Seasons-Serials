@@ -605,6 +605,7 @@ function setupReservationEvents() {
     }
 
     btn.addEventListener("click", async () => {
+      alert("BUY CLICKED");
 
       const snap = await getDoc(productRef);
       const data = snap.data();

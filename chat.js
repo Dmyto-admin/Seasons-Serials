@@ -228,8 +228,19 @@ How may I assist you today?
 
   const intent = analyzeIntent(msg);
 
+  // ✅ MEMORY SAVE (CORRECT PLACE)
+  memory.lastIntent = intent;
+  memory.lastMessage = msg;
+  saveMemory();
+
+  // ✅ CONTEXT UNDERSTANDING ("it")
+  if (msg.includes("it") && memory.lastProduct) {
+    return generateResponse("availability", memory.lastProduct);
+  }
+
   return generateResponse(intent, msg);
 }
+
 function normalize(text) {
   text = correctTypos(text);
 
@@ -482,14 +493,6 @@ function analyzeIntent(msg) {
   if (msg.match(/(delivery|shipping)/)) return "delivery";
 
   return "unknown";
-}
-
-memory.lastIntent = intent;
-memory.lastMessage = msg;
-saveMemory();
-
-if (msg.includes("it") && memory.lastProduct) {
-  return generateResponse("availability", memory.lastProduct);
 }
 
 async function generateResponse(intent, msg) {

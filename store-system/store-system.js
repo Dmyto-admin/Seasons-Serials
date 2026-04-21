@@ -672,6 +672,7 @@ function setupReservationEvents() {
       document.getElementById("checkoutProductPrice").innerText = productPrice;
 
       document.getElementById("checkoutModal").classList.add("show");;
+      alert("MODAL OPENED");
 
       // ✅ RESET CONFIRM BUTTON STATE
       confirmBtn.disabled = false;

@@ -607,7 +607,7 @@ Je peux aider avec les produits et les commandes.`,
   // 🔥 product search (FIXED async loop)
   if (intent === "product_search") {
 
-    if (msg.length < 4 || msg.includes("what are you")) {
+    if (msg.length < 4) {
       return smartFallback(msg);
     }
 
@@ -651,30 +651,6 @@ Je peux aider avec les produits et les commandes.`,
 
     return t("reportStart");
   }
-
-    let category = "website";
-
-    if (msg.includes("pay")) category = "payment";
-    if (msg.includes("product")) category = "product";
-
-    const countRef = doc(db, "meta", "errorsCount");
-    const countSnap = await getDoc(countRef);
-
-    let count = 1;
-
-    if (countSnap.exists()) {
-      count = countSnap.data().count + 1;
-    }
-
-    await setDoc(countRef, { count });
-
-    await setDoc(doc(db, "errors", "Error" + count), {
-      message: msg,
-      createdAt: serverTimestamp(),
-      category
-    });
-
-    return "I detected a problem and reported it automatically. Our team will review it.";
   }
 
   return smartFallback(msg);

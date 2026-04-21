@@ -72,8 +72,8 @@ function addMessage(text, type) {
   const actions = document.createElement("div");
   actions.className = "msg-actions";
   actions.innerHTML = `
-    <button class="copy-btn"><ion-icon name="copy-outline" class="copy-btn"></ion-icon></button>
-    <button class="delete-btn"><ion-icon name="trash-outline" class="delete-btn"></ion-icon></button>
+    <button class="copy-btn"><ion-icon name="copy-outline"></ion-icon></button>
+    <button class="delete-btn"><ion-icon name="trash-outline"></ion-icon></button>
     <button class="more-btn"><ion-icon name="ellipsis-horizontal"></ion-icon></button>
   `;
 
@@ -85,18 +85,21 @@ function addMessage(text, type) {
 }
 
 document.addEventListener("click", e => {
-  if (e.target.classList.contains("copy-btn")) {
-    const msg = e.target.closest(".chat-msg-wrapper").querySelector(".chat-msg");
-    navigator.clipboard.writeText(msg.innerText);
+  const btn = e.target.closest(".copy-btn");
+  if (!btn) return;
 
-    e.target.innerText = "Copied!";
-    e.target.style.color = "lime";
+  const msg = btn.closest(".chat-msg-wrapper").querySelector(".chat-msg");
 
-    setTimeout(() => {
-      e.target.innerHTML = `<ion-icon name="copy-outline" class="copy-btn">`;
-      e.target.style.color = "";
-    }, 1500);
-  }
+  navigator.clipboard.writeText(msg.innerText);
+
+  const icon = btn.querySelector("ion-icon");
+  icon.name = "checkmark-outline";
+  icon.style.color = "lime";
+
+  setTimeout(() => {
+    icon.name = "copy-outline";
+    icon.style.color = "";
+  }, 1500);
 });
 
 function openDeleteModal() {
@@ -481,6 +484,14 @@ function analyzeIntent(msg) {
   return "unknown";
 }
 
+memory.lastIntent = intent;
+memory.lastMessage = msg;
+saveMemory();
+
+if (msg.includes("it") && memory.lastProduct) {
+  return generateResponse("availability", memory.lastProduct);
+}
+
 async function generateResponse(intent, msg) {
 
   // 🔥 availability check
@@ -507,39 +518,64 @@ async function generateResponse(intent, msg) {
     }
 
     return "I couldn't determine the product status.";
+
+    memory.lastProduct = productId;
+    saveMemory();
+    
   }
 
   // 🔥 product search (ONLY AVAILABLE)
   if (intent === "product_search") {
 
+    const products = document.querySelectorAll(".sale-product-box");
     const results = [];
 
-    document.querySelectorAll(".sale-product-box").forEach(async p => {
+    for (let p of products) {
       const status = await getProductStatus(p.id);
 
       if (status === "available") {
         results.push("• " + p.querySelector(".product-name").innerText);
       }
-    });
+    }
 
     if (results.length) {
-      return "Here are available products:\n\n" + results.join("\n");
+      return randomize([
+        "Here are available products:\n\n" + results.join("\n"),
+        "I found these products for you:\n\n" + results.join("\n"),
+        "You can buy these right now:\n\n" + results.join("\n")
+      ]);
     }
 
     return "No available products right now.";
   }
 
   // 🔥 report auto-detect
-  if (intent === "report") {
+  if (intent === "report" || (msg.includes("problem") && msg.includes("buy"))) {
 
-    await addDoc(collection(db, "errors"), {
+    const countRef = doc(db, "meta", "errorsCount");
+    const countSnap = await getDoc(countRef);
+
+    let count = 1;
+
+    if (countSnap.exists()) {
+      count = countSnap.data().count + 1;
+    }
+
+    await setDoc(countRef, { count });
+
+    await setDoc(doc(db, "errors", "Error" + count), {
       message: msg,
       createdAt: serverTimestamp(),
-      category: "website"
+      category
     });
 
     return "I detected a problem and reported it automatically. Our team will review it.";
   }
+
+    let category = "website";
+
+    if (msg.includes("pay")) category = "payment";
+    if (msg.includes("product")) category = "product";
 
   return smartFallback(msg);
 }

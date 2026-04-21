@@ -506,6 +506,19 @@ function smartFallback(msg) {
 function analyzeIntent(msg) {
   const m = msg.toLowerCase();
 
+  const productId = extractProductName(m);
+
+  // 🚨 PRIORITY: if product detected → it's about THAT product
+  if (productId) {
+    memory.lastProduct = productId;
+    saveMemory();
+
+    if (/(price|cost|how much)/.test(m)) return "price";
+    if (/(describe|what is it|info|details)/.test(m)) return "product_info";
+
+    return "availability"; // default fallback for product mention
+  }
+
   // assistant
   if (/(what.*you|help|purpose|who are you)/.test(m)) return "about_assistant";
 
@@ -515,31 +528,57 @@ function analyzeIntent(msg) {
   // report
   if (/(error|problem|issue|bug|not working|fail)/.test(m)) return "report";
 
-  // payment (MUCH smarter)
+  // payment
   if (/(pay|payment|paid|paying|pago|transfer|bank|money)/.test(m)) {
     return "payment";
   }
 
-  // delivery (MUCH smarter)
+  // delivery
   if (/(delivery|shipping|ship|arrive|arrival|envio|entrega)/.test(m)) {
     return "delivery";
   }
 
-  // availability
-  if (/(available|in stock|can i buy|left)/.test(m)) {
-    return "availability";
+  // suggestion mode trigger
+  if (/(what can i buy|recommend|suggest)/.test(m)) {
+    return "suggest";
   }
 
-  // product search
-  if (
-    /(buy|show|recommend|product|products|catalog|shop|offer)/.test(m) ||
-    m.includes("what can i buy") ||
-    m.includes("what can i get")
-  ) {
-    return "product_search";
+  // description search mode
+  if (msg.length > 8) {
+    return "semantic_search";
   }
 
   return "unknown";
+}
+
+function getProductData() {
+  const products = document.querySelectorAll(".sale-product-box");
+
+  return Array.from(products).map(p => {
+    const id = p.id;
+    const name = p.querySelector(".product-name")?.innerText || "";
+    const price = p.querySelector(".product-price")?.innerText || "";
+
+    // find description via wrapper
+    const link = p.querySelector(".more-info-product");
+    let description = "";
+
+    if (link) {
+      const wrapperId = link.dataset.wrapper;
+      const wrapper = document.getElementById(wrapperId);
+
+      if (wrapper) {
+        description = wrapper.innerText.toLowerCase();
+      }
+    }
+
+    return {
+      id,
+      name,
+      price,
+      description
+    };
+  });
 }
 
 async function generateResponse(intent, msg) {
@@ -574,52 +613,47 @@ async function generateResponse(intent, msg) {
   }
 
   // 🛒 PRODUCT SEARCH
-  if (intent === "product_search") {
+  if (intent === "suggest") {
 
-    const products = document.querySelectorAll(".sale-product-box");
-    const results = [];
+    const products = getProductData();
 
-    for (let p of products) {
-      try {
-        const status = await getProductStatus(p.id);
+    const shuffled = products.sort(() => 0.5 - Math.random());
 
-        if (status === "available") {
-          results.push("• " + p.querySelector(".product-name").innerText);
-        }
+    const selected = shuffled.slice(0, 4);
 
-      } catch (err) {
-        console.error("Product error:", p.id, err);
-      }
-    }
+    memory.expectingDescription = true;
+    saveMemory();
 
-    if (results.length) {
-      return `Here’s what you can buy right now:\n\n${results.join("\n")}`;
-    }
+    return `Here are some products you might like:
 
-    return "There are currently no available products.";
+  ${selected.map(p => `• ${p.name} — ${p.price}`).join("\n")}
+
+  💡 Describe what you want (example: "something with mountains or nature")`;
   }
 
   // 📦 AVAILABILITY
   if (intent === "availability") {
 
-    const productId = extractProductName(msg);
-
+    const productId = memory.lastProduct || extractProductName(msg);
+  
     if (!productId) {
-      return "Tell me the product name and I’ll check it for you.";
+      return "Tell me the product name and I’ll check it.";
     }
 
     const status = await getProductStatus(productId);
 
-    memory.lastProduct = productId;
-    saveMemory();
+    const data = getProductData().find(p => p.id === productId);
 
-    const map = {
-      available: "Yes ✅ it's available right now.",
-      reserved: "⚠️ It's currently reserved.",
-      sold: "❌ It's already sold."
+    const base = {
+      available: "Yes ✅ it's available.",
+      reserved: "⚠️ It's reserved.",
+      sold: "❌ It's sold."
     };
 
-    return map[status] || "I couldn’t check the product status.";
+    return `${base[status] || "Unknown status."}
+
+  ${data ? `Product: ${data.name}
+  Price: ${data.price}` : ""}`;
   }
 
   // 🚨 REPORT
@@ -629,6 +663,54 @@ async function generateResponse(intent, msg) {
     return "I’m sorry about that 😔 What type of issue is it?\n• Payment\n• Product\n• Website";
   }
 
+  if (intent === "price") {
+    const data = getProductData().find(p => p.id === memory.lastProduct);
+    return data ? `💰 ${data.name} costs ${data.price}` : "I couldn't find the price.";
+  }
+
+  if (intent === "product_info") {
+    const data = getProductData().find(p => p.id === memory.lastProduct);
+    return data ? `📦 ${data.name}
+
+  ${data.description.slice(0, 300)}...` : "No info found.";
+  }
+
+  if (intent === "semantic_search" || memory.expectingDescription) {
+
+    const products = getProductData();
+
+    const words = msg.split(" ");
+
+    let best = null;
+    let bestScore = 0;
+
+    products.forEach(p => {
+      let score = 0;
+
+      words.forEach(w => {
+        if (p.description.includes(w)) score++;
+      });
+
+      if (score > bestScore) {
+        bestScore = score;
+        best = p;
+      }
+    });
+
+    memory.expectingDescription = false;
+    saveMemory();
+
+    if (best && bestScore > 1) {
+      return `🎯 I found something for you:
+
+  ${best.name} — ${best.price}
+
+  ${best.description.slice(0, 200)}...`;
+    }
+
+    return "I'm sorry, but I couldn’t find any product that matches your request.";
+  }
+  
   return smartFallback(msg);
 }
 

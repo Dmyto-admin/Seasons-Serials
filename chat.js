@@ -1,8 +1,6 @@
 import { db } from "./firebase-config.js";
 import { addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-document.addEventListener("DOMContentLoaded", () => {
-
 const LANG = {
   EN: "en",
   ES: "es",
@@ -544,5 +542,3 @@ function formatResponse(text) {
     .replace(/\n\s+/g, "\n")
     .replace(/\*\*(.*?)\*\*/g, "$1");
 }
-
-});

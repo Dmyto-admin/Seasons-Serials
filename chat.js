@@ -1,5 +1,16 @@
 import { db } from "./store-system/firebase-config.js";
 import { addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+let memory = JSON.parse(localStorage.getItem("chatMemory")) || {
+  lastProduct: null,
+  lastIntent: null,
+  language: "en"
+};
+
+function saveMemory() {
+  localStorage.setItem("chatMemory", JSON.stringify(memory));
+}
 
 const LANG = {
   EN: "en",
@@ -98,24 +109,25 @@ let messageToDelete = null;
 
 document.addEventListener("click", e => {
   if (e.target.classList.contains("delete-btn")) {
-    messageToDelete = e.target.closest(".chat-msg");
-    openDeleteModal();
+    messageToDelete = e.target.closest(".chat-msg-wrapper");
+    document.getElementById("deleteModal").classList.remove("hidden");
   }
 });
 
-function confirmDelete() {
-  if (!messageToDelete) return;
+document.getElementById("cancelDelete").onclick = () => {
+  document.getElementById("deleteModal").classList.add("hidden");
+};
 
-  const next = messageToDelete.nextElementSibling;
+document.getElementById("confirmDeleteBtn").onclick = () => {
+  if (messageToDelete) messageToDelete.remove();
+  document.getElementById("deleteModal").classList.add("hidden");
+};
 
-  messageToDelete.remove();
-
-  if (next && next.classList.contains("bot-msg")) {
-    next.remove();
+document.addEventListener("click", e => {
+  if (e.target.classList.contains("more-btn")) {
+    alert("Coming soon: edit, regenerate, explain");
   }
-}
-
-
+});
 
 // LOADING MESSAGE
 function addLoading() {
@@ -180,6 +192,15 @@ suggestions.forEach(btn => {
   });
 });
 
+async function getProductStatus(productId) {
+  const ref = doc(db, "products", productId);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) return "unknown";
+
+  return snap.data().status; // available | reserved | sold
+}
+
 async function generateSmartReply(input) {
 
   currentLang = detectLanguage(input);
@@ -213,6 +234,20 @@ function normalize(text) {
     .toLowerCase()
     .replace(/[^\w\sáéíóúüñіїєґ]/gi, "")
     .trim();
+}
+
+function extractProductName(msg) {
+  const products = document.querySelectorAll(".product-name");
+
+  for (let p of products) {
+    const name = p.innerText.toLowerCase().replace(/"/g, "");
+
+    if (msg.includes(name.toLowerCase())) {
+      return p.closest(".sale-product-box").id;
+    }
+  }
+
+  return null;
 }
 
 function hasIntent(msg, keywords) {
@@ -431,117 +466,82 @@ function smartFallback(msg) {
 
 function analyzeIntent(msg) {
 
-  const intents = [
-    {
-      name: "login",
-      patterns: ["login", "log in", "sign in", "account access"]
-    },
-    {
-      name: "payment",
-      patterns: ["pay", "payment", "how to pay", "checkout"]
-    },
-    {
-      name: "delivery",
-      patterns: ["delivery", "shipping", "when will", "how long"]
-    },
-    {
-      name: "product_search",
-      patterns: ["buy", "product", "recommend", "looking for"]
-    },
-    {
-      name: "report",
-      patterns: ["error", "bug", "problem", "issue", "not working"]
-    }
-  ];
+  if (msg.match(/(hi|hello|hey)/)) return "greeting";
 
-  let bestMatch = { name: "unknown", score: 0 };
+  if (msg.match(/(error|problem|issue|not working)/)) return "report";
 
-  intents.forEach(intent => {
-    let score = 0;
+  if (msg.match(/(buy|available|in stock|can i buy)/)) return "availability";
 
-    intent.patterns.forEach(p => {
-      if (msg.includes(p)) score++;
-    });
+  if (msg.match(/(what|which|show|recommend)/)) return "product_search";
 
-    if (score > bestMatch.score) {
-      bestMatch = { name: intent.name, score };
-    }
-  });
+  if (msg.match(/(pay|payment)/)) return "payment";
 
-  return bestMatch.name;
+  if (msg.match(/(delivery|shipping)/)) return "delivery";
+
+  return "unknown";
 }
 
-function generateResponse(intent, msg) {
+async function generateResponse(intent, msg) {
 
-  switch (intent) {
+  // 🔥 availability check
+  if (intent === "availability") {
 
-    case "login":
-      return formatResponse(`
-To access your account, simply click on the **"Login"** button located in the top navigation bar.
+    const productId = extractProductName(msg);
 
-Once opened:
-• Enter your email and password  
-• Confirm to access your account  
+    if (!productId) {
+      return "Tell me the exact product name 😊";
+    }
 
-If the button does not respond, it may indicate a temporary interface issue.
-      `);
+    const status = await getProductStatus(productId);
 
-    case "payment":
-      return formatResponse(`
-Payments are processed via **bank transfer**.
+    if (status === "available") {
+      return "Yes ✅ This product is available to buy right now.";
+    }
 
-After reserving a product:
-• You have **24 hours** to complete the payment  
-• Instructions are provided after checkout  
+    if (status === "reserved") {
+      return "⚠️ This product is currently reserved.";
+    }
 
-If the payment confirmation does not appear, please report the issue.
-      `);
+    if (status === "sold") {
+      return "❌ This product has already been sold.";
+    }
 
-    case "delivery":
-      return formatResponse(`
-Once your payment is confirmed:
-
-• Your order is processed immediately  
-• Details are sent via email  
-• No physical shipping delays apply  
-
-Please ensure your email is correct during checkout.
-      `);
-
-    case "product_search":
-      const results = searchProductsSmart(msg);
-
-      if (results.length) {
-        return formatResponse(
-          "Based on your request, here are the most relevant products:\n\n" +
-          results.join("\n")
-        );
-      }
-
-      return formatResponse(`
-I could not find an exact match.
-
-Try searching using keywords like:
-• "picture"
-• "story"
-• "decoration"
-      `);
-
-    case "report":
-      chatState.mode = "reporting";
-      chatState.step = "ask_type";
-      return formatResponse(`
-I understand you encountered an issue.
-
-Please specify the type:
-• Payment
-• Product
-• Website
-      `);
-
-    default:
-      return smartFallback(msg);
+    return "I couldn't determine the product status.";
   }
+
+  // 🔥 product search (ONLY AVAILABLE)
+  if (intent === "product_search") {
+
+    const results = [];
+
+    document.querySelectorAll(".sale-product-box").forEach(async p => {
+      const status = await getProductStatus(p.id);
+
+      if (status === "available") {
+        results.push("• " + p.querySelector(".product-name").innerText);
+      }
+    });
+
+    if (results.length) {
+      return "Here are available products:\n\n" + results.join("\n");
+    }
+
+    return "No available products right now.";
+  }
+
+  // 🔥 report auto-detect
+  if (intent === "report") {
+
+    await addDoc(collection(db, "errors"), {
+      message: msg,
+      createdAt: serverTimestamp(),
+      category: "website"
+    });
+
+    return "I detected a problem and reported it automatically. Our team will review it.";
+  }
+
+  return smartFallback(msg);
 }
 
 function formatResponse(text) {
@@ -549,4 +549,8 @@ function formatResponse(text) {
     .trim()
     .replace(/\n\s+/g, "\n")
     .replace(/\*\*(.*?)\*\*/g, "$1");
+}
+
+function randomize(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
 }

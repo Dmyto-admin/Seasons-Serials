@@ -2155,24 +2155,6 @@ input:-webkit-autofill:focus {
   40% { transform: scale(1); }
 }
 
-.chat-modal {
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
-}
-
-.chat-modal-box {
-  background: #111;
-  padding: 20px;
-  border-radius: 12px;
-  width: 260px;
-  text-align: center;
-}
-
 .hidden {
   display: none;
 }
@@ -2216,4 +2198,40 @@ input:-webkit-autofill:focus {
 .msg-actions button:hover ion-icon {
   color: white;
   transform: scale(1.1);
+}
+
+.chat-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.chat-modal.hidden {
+  display: none;
+}
+
+.chat-modal-box {
+  background: #1e1e1e;
+  padding: 20px;
+  border-radius: 14px;
+  width: 260px;
+  color: white;
+  text-align: center;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+.modal-actions button {
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
 }

@@ -51,32 +51,40 @@ closeChat.addEventListener("click", () => {
 
 // ADD MESSAGE
 function addMessage(text, type) {
+  const wrapper = document.createElement("div");
+  wrapper.className = `chat-msg-wrapper ${type}`;
+
   const msg = document.createElement("div");
   msg.className = `chat-msg ${type}-msg`;
-
-  const content = document.createElement("div");
-  content.className = "msg-text";
-  content.innerText = text;
+  msg.innerText = text;
 
   const actions = document.createElement("div");
   actions.className = "msg-actions";
   actions.innerHTML = `
-    <ion-icon name="copy-outline" class="copy-btn"></ion-icon>
-    <ion-icon name="trash-outline" class="delete-btn"></ion-icon>
-    <ion-icon name="ellipsis-horizontal"></ion-icon>
+    <button class="copy-btn"><ion-icon name="copy-outline" class="copy-btn"></ion-icon></button>
+    <button class="delete-btn"><ion-icon name="trash-outline" class="delete-btn"></ion-icon></button>
+    <button class="more-btn"><ion-icon name="ellipsis-horizontal"></ion-icon></button>
   `;
 
-  msg.appendChild(content);
-  msg.appendChild(actions);
+  wrapper.appendChild(msg);
+  wrapper.appendChild(actions);
 
-  chatMessages.appendChild(msg);
+  chatMessages.appendChild(wrapper);
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 document.addEventListener("click", e => {
   if (e.target.classList.contains("copy-btn")) {
-    const text = e.target.closest(".chat-msg").innerText;
-    navigator.clipboard.writeText(text);
+    const msg = e.target.closest(".chat-msg-wrapper").querySelector(".chat-msg");
+    navigator.clipboard.writeText(msg.innerText);
+
+    e.target.innerText = "Copied!";
+    e.target.style.color = "lime";
+
+    setTimeout(() => {
+      e.target.innerHTML = `<ion-icon name="copy-outline" class="copy-btn">`;
+      e.target.style.color = "";
+    }, 1500);
   }
 });
 

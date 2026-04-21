@@ -1,4 +1,4 @@
-import { db } from "./firebase-config.js";
+import { db } from "./store-system/firebase-config.js";
 import { addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const LANG = {

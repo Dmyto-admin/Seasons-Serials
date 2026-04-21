@@ -504,41 +504,35 @@ function smartFallback(msg) {
 }
 
 function analyzeIntent(msg) {
-
-  if (msg.includes("what are you used for") ||
-    msg.includes("what can you do")) {
-    return "about_assistant";
-  }
-  
   const m = msg.toLowerCase();
 
-  // 🧠 1. ABOUT ASSISTANT (HIGHEST PRIORITY)
-  if (m.includes("what are you") ||
-      m.includes("what can you do") ||
-      m.includes("what is this") ||
-      m.includes("help me") ||
-      m.includes("your purpose")) {
-    return "about_assistant";
+  // assistant
+  if (/(what.*you|help|purpose|who are you)/.test(m)) return "about_assistant";
+
+  // greeting
+  if (/(hi|hello|hey|hola|bonjour)/.test(m)) return "greeting";
+
+  // report
+  if (/(error|problem|issue|bug|not working|fail)/.test(m)) return "report";
+
+  // payment (MUCH smarter)
+  if (/(pay|payment|paid|paying|pago|transfer|bank|money)/.test(m)) {
+    return "payment";
   }
 
-  // 👋 greeting
-  if (/(hi|hello|hey|how are you)/.test(m)) return "greeting";
+  // delivery (MUCH smarter)
+  if (/(delivery|shipping|ship|arrive|arrival|envio|entrega)/.test(m)) {
+    return "delivery";
+  }
 
-  // 🚨 report
-  if (/(error|problem|issue|not working)/.test(m)) return "report";
+  // availability
+  if (/(available|in stock|can i buy|left)/.test(m)) {
+    return "availability";
+  }
 
-  // 💳 payment
-  if (/(pay|payment)/.test(m)) return "payment";
-
-  // 🚚 delivery
-  if (/(delivery|shipping)/.test(m)) return "delivery";
-
-  // 🛒 availability (STRICTER)
-  if (/(available|in stock)\b/.test(m)) return "availability";
-
-  // 📦 product search (ONLY explicit shopping intent)
+  // product search
   if (
-  /(buy|show|recommend|product|products|list|catalog|shop|offer)/.test(m) ||
+    /(buy|show|recommend|product|products|catalog|shop|offer)/.test(m) ||
     m.includes("what can i buy") ||
     m.includes("what can i get")
   ) {
@@ -550,66 +544,37 @@ function analyzeIntent(msg) {
 
 async function generateResponse(intent, msg) {
 
+  const random = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+  // 🧠 ABOUT
   if (intent === "about_assistant") {
-  return {
-    en: `I am your Seasons Serials assistant
-
-I can:
-• Help you find products
-• Check product's availability
-• Explain how the store works
-• Report store issues and errors
-• Help with orders
-
-Just ask me anything 😊`,
-
-    es: `Soy tu asistente de Seasons Serials
-Puedo ayudarte con productos, pedidos y problemas.`,
-
-    fr: `Je suis votre assistant Seasons Serial
-Je peux aider avec les produits et les commandes.`,
-
-    ua: `Я ваш асистент Seasons Serials
-Я допомагаю з товарами та замовленнями.`
-  }[currentLang];
-}
-
-  // 🔥 availability check
-  if (intent === "availability") {
-
-    const productId = extractProductName(msg);
-
-    if (!productId) {
-      return t("confused") + "\n\nTry using a product name from the store.";
-    }
-
-    const status = await getProductStatus(productId);
-
-    // ✅ SAVE PRODUCT MEMORY BEFORE RETURN
-    memory.lastProduct = productId;
-    saveMemory();
-
-    if (status === "available") {
-      return "Yes ✅ This product is available to buy right now.";
-    }
-
-    if (status === "reserved") {
-      return "⚠️ This product is currently reserved.";
-    }
-
-    if (status === "sold") {
-      return "❌ This product has already been sold.";
-    }
-
-    return "I couldn't determine the product status.";
+    return random([
+      "I'm your assistant. I help you find products, check availability, and solve issues.",
+      "I can guide you through products, payments, delivery, and problems on this store.",
+      "Think of me as your shopping assistant. Ask me anything about products or orders."
+    ]);
   }
 
-  // 🔥 product search (FIXED async loop)
-  if (intent === "product_search") {
+  // 💳 PAYMENT (NOW WORKS)
+  if (intent === "payment") {
+    return random([
+      "Payments are done via bank transfer. You have 24 hours after placing an order.",
+      "To complete a purchase, you’ll receive payment instructions after ordering.",
+      "We currently use bank transfer. Make sure to complete it within 24 hours."
+    ]);
+  }
 
-    if (msg.length < 4) {
-      return smartFallback(msg);
-    }
+  // 🚚 DELIVERY (NOW WORKS)
+  if (intent === "delivery") {
+    return random([
+      "After payment confirmation, you’ll receive all delivery details by email.",
+      "We process your order after payment and send instructions directly to your email.",
+      "Delivery details are shared once your payment is confirmed."
+    ]);
+  }
+
+  // 🛒 PRODUCT SEARCH
+  if (intent === "product_search") {
 
     const products = document.querySelectorAll(".sale-product-box");
     const results = [];
@@ -618,38 +583,50 @@ Je peux aider avec les produits et les commandes.`,
       try {
         const status = await getProductStatus(p.id);
 
-        if (!status) {
-          console.warn("Missing status for:", p.id);
-          continue;
-        }
-
         if (status === "available") {
           results.push("• " + p.querySelector(".product-name").innerText);
         }
 
       } catch (err) {
-        console.error("Product fetch failed:", p.id, err);
-        alert("Product fetch failed:" + p.id + err);
+        console.error("Product error:", p.id, err);
       }
     }
 
     if (results.length) {
-      return randomize([
-        "Here are available products:\n\n" + results.join("\n"),
-        "I found these products for you:\n\n" + results.join("\n"),
-        "You can buy these right now:\n\n" + results.join("\n")
-      ]);
+      return `Here’s what you can buy right now:\n\n${results.join("\n")}`;
     }
 
-    return "No available products right now.";
+    return "There are currently no available products.";
   }
 
-  // 🔥 report system (FIXED ORDER)
+  // 📦 AVAILABILITY
+  if (intent === "availability") {
+
+    const productId = extractProductName(msg);
+
+    if (!productId) {
+      return "Tell me the product name and I’ll check it for you.";
+    }
+
+    const status = await getProductStatus(productId);
+
+    memory.lastProduct = productId;
+    saveMemory();
+
+    const map = {
+      available: "Yes ✅ it's available right now.",
+      reserved: "⚠️ It's currently reserved.",
+      sold: "❌ It's already sold."
+    };
+
+    return map[status] || "I couldn’t check the product status.";
+  }
+
+  // 🚨 REPORT
   if (intent === "report") {
     chatState.mode = "reporting";
     chatState.step = "ask_type";
-
-    return t("reportStart");
+    return "I’m sorry about that 😔 What type of issue is it?\n• Payment\n• Product\n• Website";
   }
 
   return smartFallback(msg);

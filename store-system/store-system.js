@@ -516,26 +516,7 @@ document.addEventListener("DOMContentLoaded", () => {
       setDiscountMessage("Failed to apply promocode", "red");
     }
   });
-
-function setupReservationEvents() {
-
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape" && reservationBox.classList.contains("show")) {
-      closeReservation();
-    }
-  });
-
-  reservationBox.addEventListener("click", function (e) {
-    if (e.target === reservationBox) {
-      closeReservation();
-    }
-  });
-
-  if (closeReservationBtn) {
-    closeReservationBtn.onclick = closeReservation;
-  }
-}
-    
+  
   products.forEach(product => {
 
     const productRef = doc(db, "products", product.id);
@@ -605,7 +586,6 @@ function setupReservationEvents() {
     }
 
     btn.addEventListener("click", async () => {
-      alert("BUY CLICKED");
 
       const snap = await getDoc(productRef);
       const data = snap.data();
@@ -659,8 +639,19 @@ function setupReservationEvents() {
         closeReservationBtn.addEventListener("click", closeReservation);
       }
 
-      // RESERVATION EVENTS
-      setupReservationEvents();
+      // Close on ESC key
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && reservationBox.classList.contains("show")) {
+          closeReservation();
+        }
+      });
+
+      // Close when clicking outside the checkout box
+      reservationBox.addEventListener("click", function (e) {
+        if (e.target === reservationBox) {
+          closeReservation();
+        }
+      });
 
       // NORMAL FLOW 
 
@@ -672,7 +663,6 @@ function setupReservationEvents() {
       document.getElementById("checkoutProductPrice").innerText = productPrice;
 
       document.getElementById("checkoutModal").classList.add("show");;
-      alert("MODAL OPENED");
 
       // ✅ RESET CONFIRM BUTTON STATE
       confirmBtn.disabled = false;

@@ -1,6 +1,6 @@
 import { db } from "./store-system/firebase-config.js";
 import { addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 let memory = JSON.parse(localStorage.getItem("chatMemory")) || {
   lastProduct: null,
@@ -497,13 +497,17 @@ async function generateResponse(intent, msg) {
   // 🔥 availability check
   if (intent === "availability") {
 
-    const productId = extractProductName(msg);
+    const productId = extractProductName(msg) || msg;
 
     if (!productId) {
       return "Tell me the exact product name 😊";
     }
 
     const status = await getProductStatus(productId);
+
+    // ✅ SAVE PRODUCT MEMORY BEFORE RETURN
+    memory.lastProduct = productId;
+    saveMemory();
 
     if (status === "available") {
       return "Yes ✅ This product is available to buy right now.";
@@ -518,13 +522,9 @@ async function generateResponse(intent, msg) {
     }
 
     return "I couldn't determine the product status.";
-
-    memory.lastProduct = productId;
-    saveMemory();
-    
   }
 
-  // 🔥 product search (ONLY AVAILABLE)
+  // 🔥 product search (FIXED async loop)
   if (intent === "product_search") {
 
     const products = document.querySelectorAll(".sale-product-box");
@@ -549,8 +549,13 @@ async function generateResponse(intent, msg) {
     return "No available products right now.";
   }
 
-  // 🔥 report auto-detect
+  // 🔥 report system (FIXED ORDER)
   if (intent === "report" || (msg.includes("problem") && msg.includes("buy"))) {
+
+    let category = "website";
+
+    if (msg.includes("pay")) category = "payment";
+    if (msg.includes("product")) category = "product";
 
     const countRef = doc(db, "meta", "errorsCount");
     const countSnap = await getDoc(countRef);
@@ -571,11 +576,6 @@ async function generateResponse(intent, msg) {
 
     return "I detected a problem and reported it automatically. Our team will review it.";
   }
-
-    let category = "website";
-
-    if (msg.includes("pay")) category = "payment";
-    if (msg.includes("product")) category = "product";
 
   return smartFallback(msg);
 }

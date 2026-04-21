@@ -1,3 +1,6 @@
+import { addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+
 const LANG = {
   EN: "en",
   ES: "es",
@@ -54,7 +57,39 @@ function addMessage(text, type) {
 
   chatMessages.appendChild(msg);
   chatMessages.scrollTop = chatMessages.scrollHeight;
+
+  msg.innerHTML += `
+    <div class="msg-actions">
+      <ion-icon name="copy-outline" class="copy-btn"></ion-icon>
+      <ion-icon name="trash-outline" class="delete-btn"></ion-icon>
+      <ion-icon name="ellipsis-horizontal"></ion-icon>
+    </div>
+`;
 }
+
+document.addEventListener("click", e => {
+  if (e.target.classList.contains("copy-btn")) {
+    const text = e.target.closest(".chat-msg").innerText;
+    navigator.clipboard.writeText(text);
+  }
+});
+
+let messageToDelete = null;
+
+document.addEventListener("click", e => {
+  if (e.target.classList.contains("delete-btn")) {
+    messageToDelete = e.target.closest(".chat-msg");
+    openDeleteModal();
+  }
+});
+
+function confirmDelete() {
+  if (messageToDelete) {
+    messageToDelete.remove();
+  }
+}
+
+
 
 // LOADING MESSAGE
 function addLoading() {
@@ -116,89 +151,29 @@ suggestions.forEach(btn => {
 async function generateSmartReply(input) {
 
   currentLang = detectLanguage(input);
-
   const msg = normalize(input);
 
-  // 🙏 THANKS
-  if (hasIntent(msg, ["thanks", "thank you", "gracias", "merci", "дякую"])) {
-    return {
-      en: "You're welcome 😊 If you need anything else, just ask.",
-      es: "¡De nada! 😊 Si necesitas algo más, dime.",
-      fr: "Avec plaisir 😊 Si vous avez besoin d'autre chose, dites-moi.",
-      ua: "Будь ласка 😊 Якщо потрібно ще щось — звертайтесь."
-    }[currentLang];
-  }
-
-  const INTENTS = {
-    login: ["login", "log in", "sign in", "iniciar sesión", "connexion", "увійти"],
-    payment: ["pay", "payment", "pago", "paiement", "оплата"],
-    delivery: ["delivery", "shipping", "envío", "livraison", "доставка"],
-    products: ["buy", "product", "shop", "comprar", "producto", "produit", "купити"],
-    help: ["help", "ayuda", "aide", "допомога"],
-    report: ["error", "bug", "problem", "issue", "problema", "erreur", "помилка"]
-  };
-
-  function detectIntent(msg) {
-    for (let intent in INTENTS) {
-      if (INTENTS[intent].some(word => msg.includes(word))) {
-        return intent;
-      }
-    }
-    return "unknown";
-  }
-
-  // 🚨 REPORT FLOW
   if (chatState.mode === "reporting") {
     return handleReportFlow(msg);
   }
 
-  // 👋 GREETING
   if (isGreeting(msg)) {
-    return t("greeting");
+    return formatResponse(`
+Hello, and welcome to Seasons Serials.
+
+How may I assist you today?
+    `);
   }
 
-  // 🙋 HELP
-  if (msg.includes("help") || msg.includes("ayuda") || msg.includes("aide")) {
-    return t("help");
+  if (msg.includes("same in spanish")) {
+    currentLang = LANG.ES;
+    return "Claro. A partir de ahora responderé en español.";
   }
 
-  // 🛍 PRODUCT SEARCH
-  if (hasIntent(msg, ["buy", "product", "shop", "comprar", "producto"])) {
-    const results = searchProductsSmart(msg);
+  const intent = analyzeIntent(msg);
 
-    if (results.length > 0) {
-      return results.join("\n");
-    } else {
-      return t("noProducts");
-    }
-  }
-
-  // 💳 PAYMENT
-  if (hasIntent(msg, ["pay", "payment", "pago", "paiement"])) {
-    return {
-      en: "You can pay via bank transfer within 24 hours.",
-      es: "Puedes pagar por transferencia bancaria en 24h.",
-      fr: "Paiement par virement bancaire sous 24h.",
-      ua: "Оплата банківським переказом протягом 24 годин."
-    }[currentLang];
-  }
-
-  // 🚨 REPORT
-  if (hasIntent(msg, ["error", "bug", "problem", "issue", "problema"])) {
-    chatState.mode = "reporting";
-    chatState.step = "ask_type";
-    return t("reportStart");
-  }
-
-  // 🧠 SMART FALLBACK
-  return {
-    en: "Interesting! Ask me about products or report a problem.",
-    es: "Interesante. Pregúntame sobre productos o problemas.",
-    fr: "Intéressant. Demandez-moi des produits ou problèmes.",
-    ua: "Цікаво! Запитайте про товари або проблему."
-  }[currentLang];
+  return generateResponse(intent, msg);
 }
-
 function normalize(text) {
   text = correctTypos(text);
 
@@ -279,33 +254,33 @@ function t(key) {
       ua: "Щоб увійти, натисніть 'Login' у верхньому меню."
     },
 
-payment: {
-  en: "Payments are completed via bank transfer. After placing an order, you have 24 hours to complete the payment.",
-  es: "El pago se realiza por transferencia bancaria en 24h.",
-  fr: "Le paiement se fait par virement bancaire sous 24h.",
-  ua: "Оплата здійснюється банківським переказом протягом 24 годин."
-},
+  payment: {
+    en: "Payments are completed via bank transfer. After placing an order, you have 24 hours to complete the payment.",
+    es: "El pago se realiza por transferencia bancaria en 24h.",
+    fr: "Le paiement se fait par virement bancaire sous 24h.",
+    ua: "Оплата здійснюється банківським переказом протягом 24 годин."
+  },
 
-delivery: {
-  en: "After payment confirmation, your order is processed and details are sent via email.",
-  es: "Después del pago, recibirás los detalles por correo.",
-  fr: "Après paiement, vous recevrez les détails par email.",
-  ua: "Після оплати ви отримаєте деталі на email."
-},
+  delivery: {
+    en: "After payment confirmation, your order is processed and details are sent via email.",
+    es: "Después del pago, recibirás los detalles por correo.",
+    fr: "Après paiement, vous recevrez les détails par email.",
+    ua: "Після оплати ви отримаєте деталі на email."
+  },
 
-productFound: {
-  en: "Here are some relevant products:",
-  es: "Aquí tienes algunos productos:",
-  fr: "Voici quelques produits:",
-  ua: "Ось кілька товарів:"
-},
+  productFound: {
+    en: "Here are some relevant products:",
+    es: "Aquí tienes algunos productos:",
+    fr: "Voici quelques produits:",
+    ua: "Ось кілька товарів:"
+  },
 
-confused: {
-  en: "Could you clarify a bit more? I'm here to help 😊",
-  es: "¿Puedes explicar un poco más?",
-  fr: "Pouvez-vous préciser ?",
-  ua: "Можеш уточнити?"
-}
+  confused: {
+    en: "Could you clarify a bit more? I'm here to help 😊",
+    es: "¿Puedes explicar un poco más?",
+    fr: "Pouvez-vous préciser ?",
+    ua: "Можеш уточнити?"
+  }
   };
 
   return dict[key]?.[currentLang] || dict[key]?.en;
@@ -401,4 +376,147 @@ function smartFallback(msg) {
     fr: "Je suis là pour vous aider avec vos achats.",
     ua: "Я тут, щоб допомогти з покупками або проблемами."
   }[currentLang];
+}
+
+function analyzeIntent(msg) {
+
+  const intents = [
+    {
+      name: "login",
+      patterns: ["login", "log in", "sign in", "account access"]
+    },
+    {
+      name: "payment",
+      patterns: ["pay", "payment", "how to pay", "checkout"]
+    },
+    {
+      name: "delivery",
+      patterns: ["delivery", "shipping", "when will", "how long"]
+    },
+    {
+      name: "product_search",
+      patterns: ["buy", "product", "recommend", "looking for"]
+    },
+    {
+      name: "report",
+      patterns: ["error", "bug", "problem", "issue", "not working"]
+    }
+  ];
+
+  let bestMatch = { name: "unknown", score: 0 };
+
+  intents.forEach(intent => {
+    let score = 0;
+
+    intent.patterns.forEach(p => {
+      if (msg.includes(p)) score++;
+    });
+
+    if (score > bestMatch.score) {
+      bestMatch = { name: intent.name, score };
+    }
+  });
+
+  return bestMatch.name;
+}
+
+function generateResponse(intent, msg) {
+
+  switch (intent) {
+
+    case "login":
+      return formatResponse(`
+To access your account, simply click on the **"Login"** button located in the top navigation bar.
+
+Once opened:
+• Enter your email and password  
+• Confirm to access your account  
+
+If the button does not respond, it may indicate a temporary interface issue.
+      `);
+
+    case "payment":
+      return formatResponse(`
+Payments are processed via **bank transfer**.
+
+After reserving a product:
+• You have **24 hours** to complete the payment  
+• Instructions are provided after checkout  
+
+If the payment confirmation does not appear, please report the issue.
+      `);
+
+    case "delivery":
+      return formatResponse(`
+Once your payment is confirmed:
+
+• Your order is processed immediately  
+• Details are sent via email  
+• No physical shipping delays apply  
+
+Please ensure your email is correct during checkout.
+      `);
+
+    case "product_search":
+      const results = searchProductsSmart(msg);
+
+      if (results.length) {
+        return formatResponse(
+          "Based on your request, here are the most relevant products:\n\n" +
+          results.join("\n")
+        );
+      }
+
+      return formatResponse(`
+I could not find an exact match.
+
+Try searching using keywords like:
+• "picture"
+• "story"
+• "decoration"
+      `);
+
+    case "report":
+      chatState.mode = "reporting";
+      chatState.step = "ask_type";
+      return formatResponse(`
+I understand you encountered an issue.
+
+Please specify the type:
+• Payment
+• Product
+• Website
+      `);
+
+    default:
+      return smartFallback(msg);
+  }
+}
+
+function formatResponse(text) {
+  return text
+    .trim()
+    .replace(/\n\s+/g, "\n")
+    .replace(/\*\*(.*?)\*\*/g, "$1");
+}
+
+if (chatState.step === "ask_email") {
+
+  chatState.report.email = msg === "skip" ? null : msg;
+
+  await addDoc(collection(db, "chat"), {
+    type: chatState.report.type,
+    description: chatState.report.description,
+    email: chatState.report.email,
+    createdAt: serverTimestamp()
+  });
+
+  chatState = { mode: "normal", step: null, report: {} };
+
+  return formatResponse(`
+Your report has been successfully submitted.
+
+Our team will review the issue promptly.
+Thank you for helping improve the platform.
+  `);
 }

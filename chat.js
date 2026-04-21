@@ -97,8 +97,14 @@ document.addEventListener("click", e => {
 });
 
 function confirmDelete() {
-  if (messageToDelete) {
-    messageToDelete.remove();
+  if (!messageToDelete) return;
+
+  const next = messageToDelete.nextElementSibling;
+
+  messageToDelete.remove();
+
+  if (next && next.classList.contains("bot-msg")) {
+    next.remove();
   }
 }
 
@@ -330,14 +336,14 @@ function searchProductsSmart(query) {
     .map(p => "• " + p.name);
 }
 
-async function handleReportFlow(msg)
+async function handleReportFlow(msg) {
 
   // STEP 1 — TYPE
   if (chatState.step === "ask_type") {
     chatState.report.type = msg;
     chatState.step = "ask_desc";
 
-    return "Got it 👍\n\nPlease describe the problem in a few words.";
+    return "Understood. Please briefly describe the issue.";
   }
 
   // STEP 2 — DESCRIPTION
@@ -345,46 +351,44 @@ async function handleReportFlow(msg)
     chatState.report.description = msg;
     chatState.step = "ask_email";
 
-    return "Thanks! 📩\n\nIf you want a reply, enter your email. Or type 'skip'.";
+    return "Thank you. If you would like a response, please provide your email, or type 'skip'.";
   }
 
-  // STEP 3 — EMAIL
+  // STEP 3 — EMAIL + SAVE TO FIREBASE
   if (chatState.step === "ask_email") {
-    chatState.report.email = msg === "skip" ? "not provided" : msg;
 
-    // 🔥 HERE you will later send to Firestore or email
-    if (chatState.step === "ask_email") {
+    chatState.report.email = msg === "skip" ? null : msg;
 
-      chatState.report.email = msg === "skip" ? null : msg;
-
+    try {
       await addDoc(collection(db, "chat"), {
         type: chatState.report.type,
         description: chatState.report.description,
         email: chatState.report.email,
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
+        status: "new"
       });
 
-      chatState = { mode: "normal", step: null, report: {} };
+    } catch (err) {
+      console.error("Firestore error:", err);
+      return "An error occurred while submitting the report. Please try again.";
+    }
 
-      return formatResponse(`
+    // RESET STATE
+    chatState = {
+      mode: "normal",
+      step: null,
+      report: {}
+    };
+
+    return formatResponse(`
 Your report has been successfully submitted.
 
-Our team will review the issue promptly.
-Thank you for helping improve the platform.
- `);
-    }
-    
-    console.log("REPORT:", chatState.report);
-
-    // RESET
-    chatState.mode = "normal";
-    chatState.step = null;
-    chatState.report = {};
-
-    return "✅ Your report has been sent! Thank you for helping improve the store 🙌";
+Our team will review it as soon as possible.
+Thank you for helping us improve the platform.
+    `);
   }
 
-  return "Something went wrong with reporting. Let's start again.";
+  return "Unexpected state. Restarting report process.";
 }
 
 function smartFallback(msg) {

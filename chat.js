@@ -1,3 +1,4 @@
+import { db } from "./firebase-config.js";
 import { addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 
@@ -53,18 +54,24 @@ closeChat.addEventListener("click", () => {
 function addMessage(text, type) {
   const msg = document.createElement("div");
   msg.className = `chat-msg ${type}-msg`;
-  msg.innerText = text;
+
+  const content = document.createElement("div");
+  content.className = "msg-text";
+  content.innerText = text;
+
+  const actions = document.createElement("div");
+  actions.className = "msg-actions";
+  actions.innerHTML = `
+    <ion-icon name="copy-outline" class="copy-btn"></ion-icon>
+    <ion-icon name="trash-outline" class="delete-btn"></ion-icon>
+    <ion-icon name="ellipsis-horizontal"></ion-icon>
+  `;
+
+  msg.appendChild(content);
+  msg.appendChild(actions);
 
   chatMessages.appendChild(msg);
   chatMessages.scrollTop = chatMessages.scrollHeight;
-
-  msg.innerHTML += `
-    <div class="msg-actions">
-      <ion-icon name="copy-outline" class="copy-btn"></ion-icon>
-      <ion-icon name="trash-outline" class="delete-btn"></ion-icon>
-      <ion-icon name="ellipsis-horizontal"></ion-icon>
-    </div>
-`;
 }
 
 document.addEventListener("click", e => {
@@ -73,6 +80,12 @@ document.addEventListener("click", e => {
     navigator.clipboard.writeText(text);
   }
 });
+
+function openDeleteModal() {
+  if (confirm("Are you sure you want to delete this message?")) {
+    confirmDelete();
+  }
+}
 
 let messageToDelete = null;
 
@@ -317,7 +330,7 @@ function searchProductsSmart(query) {
     .map(p => "• " + p.name);
 }
 
-function handleReportFlow(msg) {
+async function handleReportFlow(msg)
 
   // STEP 1 — TYPE
   if (chatState.step === "ask_type") {
@@ -340,6 +353,27 @@ function handleReportFlow(msg) {
     chatState.report.email = msg === "skip" ? "not provided" : msg;
 
     // 🔥 HERE you will later send to Firestore or email
+    if (chatState.step === "ask_email") {
+
+      chatState.report.email = msg === "skip" ? null : msg;
+
+      await addDoc(collection(db, "chat"), {
+        type: chatState.report.type,
+        description: chatState.report.description,
+        email: chatState.report.email,
+        createdAt: serverTimestamp()
+      });
+
+      chatState = { mode: "normal", step: null, report: {} };
+
+      return formatResponse(`
+Your report has been successfully submitted.
+
+Our team will review the issue promptly.
+Thank you for helping improve the platform.
+ `);
+    }
+    
     console.log("REPORT:", chatState.report);
 
     // RESET
@@ -498,25 +532,4 @@ function formatResponse(text) {
     .trim()
     .replace(/\n\s+/g, "\n")
     .replace(/\*\*(.*?)\*\*/g, "$1");
-}
-
-if (chatState.step === "ask_email") {
-
-  chatState.report.email = msg === "skip" ? null : msg;
-
-  await addDoc(collection(db, "chat"), {
-    type: chatState.report.type,
-    description: chatState.report.description,
-    email: chatState.report.email,
-    createdAt: serverTimestamp()
-  });
-
-  chatState = { mode: "normal", step: null, report: {} };
-
-  return formatResponse(`
-Your report has been successfully submitted.
-
-Our team will review the issue promptly.
-Thank you for helping improve the platform.
-  `);
 }

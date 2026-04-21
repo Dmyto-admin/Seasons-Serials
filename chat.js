@@ -442,9 +442,18 @@ async function handleReportFlow(msg) {
       });
 
     } catch (err) {
-      console.error("Firestore error:", err);
-      return "An error occurred while submitting the report. Please try again.";
-    }
+    console.error("Firestore error:", err);
+
+    return `Report failed ❌
+
+Reason:
+${err.message || err}
+
+Check:
+• Internet connection
+• Firebase rules
+• Firestore initialization`;
+}
 
     // RESET STATE
     chatState = {
@@ -493,7 +502,7 @@ function analyzeIntent(msg) {
 
   if (msg.includes("what are you used for") ||
     msg.includes("what can you do")) {
-    return generateResponse("about_assistant", msg);
+    return "about_assistant";
   }
   
   const m = msg.toLowerCase();
@@ -523,7 +532,10 @@ function analyzeIntent(msg) {
   if (/(available|in stock|can i buy)\b/.test(m)) return "availability";
 
   // 📦 product search (ONLY explicit shopping intent)
-  if (/(buy|show me|recommend|products|list)/.test(m)) {
+  if (
+    /(buy|show|recommend|product|products|list|catalog|shop|offer|What can I buy?)/.test(m)
+    && !/(what are you|what can you do|who are you)/.test(m)
+  ) {
     return "product_search";
   }
 
@@ -597,10 +609,21 @@ Je peux aider avec les produits et les commandes.`,
     const results = [];
 
     for (let p of products) {
-      const status = await getProductStatus(p.id);
+      try {
+        const status = await getProductStatus(p.id);
 
-      if (status === "available") {
-        results.push("• " + p.querySelector(".product-name").innerText);
+        if (!status) {
+          console.warn("Missing status for:", p.id);
+          continue;
+        }
+
+        if (status === "available") {
+          results.push("• " + p.querySelector(".product-name").innerText);
+        }
+
+      } catch (err) {
+        console.error("Product fetch failed:", p.id, err);
+        alert("Product fetch failed:" + p.id + err);
       }
     }
 

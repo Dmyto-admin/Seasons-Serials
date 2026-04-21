@@ -179,7 +179,12 @@ async function sendMessage(text) {
     response = await generateSmartReply(text);
   } catch (err) {
     console.error(err);
-    response = "Something went wrong. Please try again.";
+
+    response = `Critical error ❌
+
+  ${err.message || err}
+
+  Check console for details.`;
   }
 
   setTimeout(() => {
@@ -533,8 +538,9 @@ function analyzeIntent(msg) {
 
   // 📦 product search (ONLY explicit shopping intent)
   if (
-    /(buy|show|recommend|product|products|list|catalog|shop|offer|What can I buy?)/.test(m)
-    && !/(what are you|what can you do|who are you)/.test(m)
+  /(buy|show|recommend|product|products|list|catalog|shop|offer)/.test(m) ||
+    m.includes("what can i buy") ||
+    m.includes("what can i get")
   ) {
     return "product_search";
   }
@@ -639,7 +645,12 @@ Je peux aider avec les produits et les commandes.`,
   }
 
   // 🔥 report system (FIXED ORDER)
-  if (intent === "report" || (msg.includes("problem") && msg.includes("buy"))) {
+  if (intent === "report") {
+    chatState.mode = "reporting";
+    chatState.step = "ask_type";
+
+    return t("reportStart");
+  }
 
     let category = "website";
 

@@ -399,17 +399,20 @@ How may I assist you today?
 
   const intent = analyzeIntent(msg);
 
+  const greet = isGreeting(msg);
+
+  let response = await generateResponse(intent, msg);
+
+  if (greet) {
+    response = "👋 Hello!\n\n" + response;
+  }
+
   // ✅ MEMORY SAVE (CORRECT PLACE)
   memory.lastIntent = intent;
   memory.lastMessage = msg;
   saveMemory();
 
-  // ✅ CONTEXT UNDERSTANDING ("it")
-  if (msg.includes("it") && memory.lastProduct) {
-    return generateResponse("availability", memory.lastProduct);
-  }
-
-  return generateResponse(intent, msg);
+  return response;
 }
 
 function normalize(text) {
@@ -646,27 +649,25 @@ Thank you for helping us improve the platform.
 }
 
 function smartFallback(msg) {
+  const words = msg.split(" ");
 
-  // detect question style
-  if (msg.includes("?")) {
-    return {
-      en: "I understand you're asking a question. I can help with products, orders, or how the store works. Try something like 'How do I log in?' or 'What can I buy?'",
-      es: "Entiendo que haces una pregunta. Puedo ayudarte con productos o pedidos.",
-      fr: "Je comprends que vous posez une question. Je peux vous aider avec les produits.",
-      ua: "Я бачу, що це питання. Я можу допомогти з товарами або замовленнями."
-    }[currentLang];
-  }
+  const hints = [];
 
-  // detect confusion
-  if (msg.length < 4) {
-    return t("confused");
+  if (msg.includes("?")) hints.push("This looks like a question.");
+  if (words.length < 3) hints.push("Try adding more details.");
+  if (!/\b(buy|price|order|help)\b/.test(msg)) {
+    hints.push("Try mentioning what you want to do (buy, ask, report).");
   }
 
   return {
-    en: "I'm here to help with shopping, orders, or any issue on the website. Try asking something more specific 😊",
-    es: "Estoy aquí para ayudarte con compras o problemas en la web.",
-    fr: "Je suis là pour vous aider avec vos achats.",
-    ua: "Я тут, щоб допомогти з покупками або проблемами."
+    en: `I couldn’t match your request to a clear intent.
+
+${hints.join("\n")}
+
+Try: “What can I buy?” or “Help with payment”`,
+    es: "No pude entender bien tu mensaje.",
+    fr: "Je n'ai pas compris clairement.",
+    ua: "Я не зрозумів запит."
   }[currentLang];
 }
 
@@ -691,54 +692,61 @@ async function fallbackAI(msg) {
   }
 }
 
+const INTENTS = {
+  suggest: {
+    keywords: ["buy", "recommend", "suggest", "what can i get"],
+    required: ["buy", "get"],
+    responseType: "products"
+  },
+
+  about_assistant: {
+    keywords: ["who are you", "what are you", "purpose", "use", "what are you used for"],
+    required: [],
+    responseType: "text"
+  },
+
+  payment: {
+    keywords: ["pay", "payment", "money", "transfer"],
+    required: ["pay"],
+    responseType: "text"
+  }
+};
+
 function analyzeIntent(msg) {
-  const m = msg.toLowerCase();
+  const words = msg.split(" ");
 
-  const productId = extractProductName(m);
-  const isQuestion = /\b(what|how|is|can|do|does|where|why)\b/.test(m);
-  const isSuggest = /(recommend|suggest|what can i buy)/.test(m);
-  const isDescription = m.split(" ").length >= 3;
+  let scores = {};
 
-  // 🧠 PRIORITY ORDER
+  for (let intentName in INTENTS) {
+    const intent = INTENTS[intentName];
 
-  if (/(what.*you.*use|what.*you.*for|your purpose|who are you)/.test(m)) {
-    return "about_assistant";
+    let score = 0;
+
+    for (let word of words) {
+      if (intent.keywords.some(k => msg.includes(k))) {
+        score++;
+      }
+    }
+
+    scores[intentName] = score;
   }
 
-  // 1. Explicit suggestion request
-  if (isSuggest) return "suggest";
+  // find best match
+  const sorted = Object.entries(scores).sort((a,b) => b[1]-a[1]);
 
-  // LANGUAGE SWITCH
-  if (/(switch language|parle|habla|українською|english|french)/.test(m)) {
-    return "language_switch";
+  const [bestIntent, bestScore] = sorted[0];
+  const secondScore = sorted[1]?.[1] ?? 0;
+
+  // ❗ TIE RULE (your requirement)
+  if (bestScore === 0) return "chat";
+
+  const tied = sorted.filter(s => s[1] === bestScore);
+
+  if (tied.length > 1) {
+    return "clarify";
   }
 
-  // 2. Question about product ONLY
-  if (productId && isQuestion) {
-    memory.lastProduct = productId;
-    saveMemory();
-
-    if (/(price|cost|how much)/.test(m)) return "price";
-    if (/(describe|info|details|what is)/.test(m)) return "product_info";
-
-    return "availability";
-  }
-
-  // 3. Description → ALWAYS semantic search
-  if (isDescription) {
-    return "semantic_search";
-  }
-
-  // 4. Other intents
-  if (/(hi|hello|hey|hola|bonjour)/.test(m)) return "greeting";
-  if (/(error|problem|issue|bug|fail)/.test(m)) return "report";
-  if (/(pay|payment|transfer|money)/.test(m)) return "payment";
-  if (/(delivery|shipping|arrive)/.test(m)) return "delivery";
-
-  // GENERAL QUESTION
-  if (/\?/.test(m)) return "question";
-
-  return "chat";
+  return bestIntent;
 }
 
 function getProductData() {

@@ -76,6 +76,8 @@ function saveMemory() {
   localStorage.setItem("chatMemory", JSON.stringify(memory));
 }
 
+const responseHistory = new Map();
+
 function safeError(msg, err) {
   console.error(msg, err);
 
@@ -97,6 +99,13 @@ const LANG = {
 function detectLanguage(text) {
   const t = text.toLowerCase();
 
+  const forced = detectForcedLanguage(text);
+  if (forced) {
+    languageState.current = forced;
+    languageState.locked = true;
+    return forced;
+  }
+  
   if (t.includes("switch to english")) return LANG.EN;
   if (t.includes("français") || t.includes("parle français")) return LANG.FR;
   if (t.includes("español") || t.includes("habla español")) return LANG.ES;
@@ -110,6 +119,11 @@ function detectLanguage(text) {
 
   return languageState.current;
 }
+
+let languageState = {
+  current: LANG.EN,
+  locked: false
+};
 
 let currentLang = LANG.EN;
 
@@ -236,36 +250,38 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-document.addEventListener("click", e => {
-  const btn = e.target.closest(".more-btn");
-  if (!btn) return;
-
-  const wrapper = btn.closest(".chat-msg-wrapper");
-  const time = wrapper.dataset.time;
-
-  actions.innerHTML = `
-    <div class="menu-wrapper">
-      <button class="more-btn">⋯</button>
-
-      <div class="menu-dropdown hidden">
-        <div class="menu-item copy-btn">Copy</div>
-        <div class="menu-item delete-btn">Delete</div>
-        <div class="menu-item time-btn">Show time</div>
-      </div>
-    </div>
-  `;
-});
-
 document.addEventListener("click", (e) => {
+
+  // TOGGLE MENU
   const more = e.target.closest(".more-btn");
   if (more) {
-    const menu = more.nextElementSibling;
+    const wrapper = more.closest(".menu-wrapper");
+    const menu = wrapper.querySelector(".menu-dropdown");
     menu.classList.toggle("hidden");
+    return;
   }
 
-  const timeBtn = e.target.closest(".time-btn");
-  if (timeBtn) {
-    const wrapper = timeBtn.closest(".chat-msg-wrapper");
+  // COPY
+  const copy = e.target.closest(".copy-btn");
+  if (copy) {
+    const msg = copy.closest(".chat-msg-wrapper").querySelector(".chat-msg");
+    navigator.clipboard.writeText(msg.innerText);
+    showToast("Copied");
+    return;
+  }
+
+  // DELETE
+  const del = e.target.closest(".menu-item.delete-btn");
+  if (del) {
+    messageToDelete = del.closest(".chat-msg-wrapper");
+    document.getElementById("deleteModal").classList.remove("hidden");
+    return;
+  }
+
+  // TIME
+  const time = e.target.closest(".time-btn");
+  if (time) {
+    const wrapper = time.closest(".chat-msg-wrapper");
     showToast(`Sent at ${wrapper.dataset.time}`);
   }
 });
@@ -319,14 +335,13 @@ async function sendMessage(text) {
 
   try {
     response = await generateSmartReply(text);
+
+    if (!response) throw new Error("Empty AI response");
+
   } catch (err) {
     console.error(err);
 
-    response = `Critical error ❌
-
-  ${err.message || err}
-
-  Check console for details.`;
+    response = smartFallback(text);
   }
 
   setTimeout(() => {
@@ -664,17 +679,20 @@ function smartFallback(msg) {
 
 async function fallbackAI(msg) {
   try {
-    const res = await fetch("https://YOUR-AI-ENDPOINT", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: msg,
-        lang: languageState.current
-      })
-    });
+    const res = await fetch(
+      "https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium",
+      {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer YOUR_HF_TOKEN",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ inputs: msg })
+      }
+    );
 
     const data = await res.json();
-    return data.reply || "I couldn't process that.";
+    return data?.generated_text || "I couldn't respond.";
   } catch {
     return smartFallback(msg);
   }
@@ -762,9 +780,11 @@ function getProductData() {
 
 async function generateResponse(intent, msg) {
 
-  const responseHistory = new Map();
-
   function random(key, arr) {
+    if (!Array.isArray(arr) || arr.length === 0) {
+      return "I couldn't generate a response.";
+    }
+
     const last = responseHistory.get(key);
 
     let filtered = arr;
@@ -773,11 +793,17 @@ async function generateResponse(intent, msg) {
     }
 
     const chosen = filtered[Math.floor(Math.random() * filtered.length)];
-    responseHistory.set(key, chosen);
 
+    responseHistory.set(key, chosen);
     return chosen;
   }
 
+  if (intent === "semantic_search") {
+    if (msg.includes("what are you used for")) {
+      return "I'm a shopping assistant that helps you find products and manage orders.";
+    }
+  }
+  
   // 🧠 ABOUT
   if (intent === "about_assistant") {
     return random([

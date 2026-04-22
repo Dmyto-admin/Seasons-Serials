@@ -216,6 +216,7 @@ document.getElementById("cancelDelete").onclick = closeModal;
 document.getElementById("confirmDeleteBtn").onclick = () => {
   if (messageToDelete) {
     messageToDelete.remove();
+    showToast("Message deleted");
   }
   closeModal();
 };

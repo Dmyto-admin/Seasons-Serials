@@ -480,27 +480,29 @@ function normalize(text) {
     .trim();
 }
 
-function extractProductName(msg) {
-  const products = document.querySelectorAll(".sale-product-box");
+function extractProduct(msg) {
+  const products = getProductData();
 
-  for (let p of products) {
-    const name = p.querySelector(".product-name")?.innerText
-      .toLowerCase()
-      .replace(/"/g, "");
+  let best = null;
+  let bestScore = 0;
 
-    const words = name.split(" ");
+  products.forEach(p => {
+    const name = p.name.toLowerCase();
+    let score = 0;
 
-    // 🔥 smarter matching (partial match)
-    if (
-      msg.includes(name) ||
-      words.some(w => msg.includes(w))
-    ) {
-      return p.id;
+    name.split(" ").forEach(word => {
+      if (msg.includes(word)) score++;
+    });
+
+    if (score > bestScore) {
+      bestScore = score;
+      best = p;
     }
-  }
+  });
 
-  return null;
+  return bestScore > 0 ? best : null;
 }
+
 function hasIntent(msg, keywords) {
   return keywords.some(k => msg.includes(k));
 }
@@ -656,23 +658,19 @@ if (msg.includes("expensive")) {
   return `💎 Most expensive: ${expensive.name} — ${expensive.price}`;
 }
 
-  if (!msg.includes("problem") && !msg.includes("issue") && !msg.includes("error") && chatState.step === "ask_type") {
-    chatState = { mode: "normal", step: null, report: {} };
-    return generateSmartReply(msg);
-  }
-
   // STEP 1 — TYPE
   if (chatState.step === "ask_type") {
 
-  if (msg.includes("pay")) chatState.report.type = "payment";
-    else if (msg.includes("product")) chatState.report.type = "product";
-    else if (msg.includes("site") || msg.includes("bug")) chatState.report.type = "website";
-    else chatState.report.type = msg;
-
-    chatState.step = "ask_desc";
-
-    return "Got it. Please describe the issue in detail.";
+  if (/pay|payment/.test(msg)) chatState.report.type = "payment";
+  else if (/product|item/.test(msg)) chatState.report.type = "product";
+  else if (/site|website|bug/.test(msg)) chatState.report.type = "website";
+  else {
+    return "Please choose: payment, product, or website.";
   }
+
+  chatState.step = "ask_desc";
+  return "Got it. Describe the issue.";
+}
 
   // STEP 2 — DESCRIPTION
   if (chatState.step === "ask_desc") {
@@ -781,71 +779,31 @@ async function fallbackAI(msg) {
 }
 
 const INTENTS = {
-  suggest: {
-    keywords: ["buy", "recommend", "suggest", "what can i get"],
-    required: ["buy", "get"],
-    responseType: "products"
-  },
-
-  about_assistant: {
-    keywords: ["who are you", "what are you", "purpose", "use", "what are you used for"],
-    required: [],
-    responseType: "text"
-  },
-
-  payment: {
-    keywords: ["pay", "payment", "money", "transfer"],
-    required: ["pay"],
-    responseType: "text"
-  },
-
-  report: {
-    keywords: ["report", "error", "bug", "problem", "issue"],
-    required: [],
-    responseType: "text"
-  },
-
-  delivery: {
-    keywords: ["delivery", "shipping"],
-    required: ["delivery"],
-    responseType: "text"
-  },
-
-  product_query: {
-    keywords: [],
-    required: [],
-    responseType: "products"
-  }
-
+  suggest: ["buy", "recommend", "suggest"],
+  payment: ["pay", "payment", "transfer"],
+  delivery: ["delivery", "shipping"],
+  report: ["report", "error", "bug", "issue"],
+  help: ["help", "menu"],
+  cheapest: ["cheapest", "lowest price"],
+  expensive: ["expensive", "highest price"],
+  describe: ["describe", "details", "info"],
 };
 
 function analyzeIntent(msg) {
-  const normalized = msg.toLowerCase();
+  let scores = {};
 
-  let bestIntent = "chat";
-  let bestScore = 0;
+  for (let intent in INTENTS) {
+    scores[intent] = 0;
 
-  for (let intentName in INTENTS) {
-    const intent = INTENTS[intentName];
-
-    let score = 0;
-
-    intent.keywords.forEach(k => {
-      if (normalized.includes(k)) score += 3;
+    INTENTS[intent].forEach(k => {
+      if (msg.includes(k)) scores[intent] += 2;
     });
-
-    const words = normalized.split(" ");
-    words.forEach(w => {
-      if (intent.keywords.some(k => k.includes(w))) score += 1;
-    });
-
-    if (score > bestScore) {
-      bestScore = score;
-      bestIntent = intentName;
-    }
   }
 
-  return bestScore === 0 ? "chat" : bestIntent;
+  const best = Object.entries(scores)
+    .sort((a,b)=>b[1]-a[1])[0];
+
+  return best[1] > 0 ? best[0] : "none";
 }
 
 function getProductData() {
@@ -1114,4 +1072,32 @@ function formatResponse(text) {
 
 function randomize(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
+}
+
+async function semanticSearch(msg) {
+  const products = getProductData();
+
+  let words = msg.split(" ");
+  words = await expandWordsAI(words);
+
+  let scored = [];
+
+  products.forEach(p => {
+    let score = 0;
+    const text = (p.name + " " + p.description).toLowerCase();
+
+    words.forEach(w => {
+      if (text.includes(w)) score += 1;
+    });
+
+    if (score > 1) { // 🔥 threshold fix
+      scored.push({ ...p, score });
+    }
+  });
+
+  if (!scored.length) return null;
+
+  scored.sort((a,b)=>b.score-a.score);
+
+  return scored.slice(0, 2); // 🔥 MAX 2 RESULTS
 }

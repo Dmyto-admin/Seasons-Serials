@@ -189,20 +189,29 @@ function addMessage(text, type) {
 
   const actions = document.createElement("div");
   actions.className = "msg-actions";
-  actions.innerHTML = `
-    <button class="copy-btn"><ion-icon name="copy-outline"></ion-icon></button>
-    <button class="delete-btn"><ion-icon name="trash-outline"></ion-icon></button>
-    <button class="more-btn"><ion-icon name="ellipsis-horizontal"></ion-icon></button>
-  `;
+  
+  if (type === "user") {
+    actions.innerHTML = `
+      <button class="copy-btn"><ion-icon name="copy-outline"></ion-icon></button>
+      <button class="delete-btn"><ion-icon name="trash-outline"></ion-icon></button>
+      <button class="more-btn"><ion-icon name="ellipsis-horizontal"></ion-icon></button>
+    `;
+  } else {
+    actions.innerHTML = `
+      <button class="copy-btn"><ion-icon name="copy-outline"></ion-icon></button>
+      <button class="like-btn"><ion-icon name="thumbs-up-outline"></ion-icon></button>
+      <button class="dislike-btn"><ion-icon name="thumbs-down-outline"></ion-icon></button>
+    `;
+  }
 
   const menu = document.createElement("div");
   menu.className = "menu-dropdown hidden";
   menu.innerHTML = `
-    <div class="menu-item delete-btn">Delete</div>
-    <div class="menu-item time-btn">Show time</div>
+    <div class="menu-item edit-btn">Edit</div>
+    <div class="menu-item time-btn">Show details</div>
   `;
 
-wrapper.appendChild(menu);
+  wrapper.appendChild(menu);
 
   wrapper.appendChild(msg);
   wrapper.appendChild(actions);
@@ -294,8 +303,31 @@ document.addEventListener("click", (e) => {
 
   // TIME
   if (e.target.closest(".time-btn")) {
-    showToast(`Sent at ${wrapper.dataset.time}`);
+    const modal = document.createElement("div");
+    modal.className = "time-modal";
+    modal.innerHTML = `
+      <div class="time-box">
+        <h3>Message details</h3>
+        <p>${new Date().toLocaleString()}</p>
+        <button onclick="this.parentElement.parentElement.remove()">Close</button>
+      </div>
+    `;
+    document.body.appendChild(modal);
   }
+
+  if (e.target.closest(".edit-btn")) {
+  alert("Coming soon...");
+}
+
+if (e.target.closest(".like-btn")) {
+  const icon = e.target.closest("ion-icon");
+  icon.setAttribute("name", "thumbs-up");
+}
+
+if (e.target.closest(".dislike-btn")) {
+  const icon = e.target.closest("ion-icon");
+  icon.setAttribute("name", "thumbs-down");
+}
 
   // click outside closes menus
   document.querySelectorAll(".menu-dropdown").forEach(m => {
@@ -612,6 +644,18 @@ async function handleReportFlow(msg) {
     return generateResponse("suggest", msg);
   }
 
+  if (msg.includes("cheapest")) {
+  const products = getProductData();
+  const cheapest = products.sort((a,b)=>parseFloat(a.price)-parseFloat(b.price))[0];
+  return `💸 Cheapest: ${cheapest.name} — ${cheapest.price}`;
+}
+
+if (msg.includes("expensive")) {
+  const products = getProductData();
+  const expensive = products.sort((a,b)=>parseFloat(b.price)-parseFloat(a.price))[0];
+  return `💎 Most expensive: ${expensive.name} — ${expensive.price}`;
+}
+
   if (!msg.includes("problem") && !msg.includes("issue") && !msg.includes("error") && chatState.step === "ask_type") {
     chatState = { mode: "normal", step: null, report: {} };
     return generateSmartReply(msg);
@@ -753,7 +797,26 @@ const INTENTS = {
     keywords: ["pay", "payment", "money", "transfer"],
     required: ["pay"],
     responseType: "text"
+  },
+
+  report: {
+    keywords: ["report", "error", "bug", "problem", "issue"],
+    required: [],
+    responseType: "text"
+  },
+
+  delivery: {
+    keywords: ["delivery", "shipping"],
+    required: ["delivery"],
+    responseType: "text"
+  },
+
+  product_query: {
+    keywords: [],
+    required: [],
+    responseType: "products"
   }
+
 };
 
 function analyzeIntent(msg) {
@@ -872,20 +935,38 @@ async function generateResponse(intent, msg) {
   }
 
   // 🛒 PRODUCT SEARCH
-  if (intent === "suggest") {
+  if (intent === "suggest" && !memory.expectingChoice) {
 
-    const products = getProductData();
+     const products = getProductData();
 
-    const shuffled = products.sort(() => 0.5 - Math.random());
+    let words = msg.split(" ");
+    words = await expandWordsAI(words);
 
-    const selected = shuffled.slice(0, 4);
+    let scored = [];
 
-    memory.expectingDescription = true;
-    saveMemory();
+    products.forEach(p => {
+      let score = 0;
+      const text = (p.name + " " + p.description).toLowerCase();
+
+      words.forEach(w => {
+        if (text.includes(w)) score++;
+      });
+
+      if (score > 0) scored.push({ ...p, score });
+    });
+
+    if (scored.length) {
+      scored.sort((a, b) => b.score - a.score);
+
+      const best = scored.slice(0, 3);
+
+      memory.lastSuggested = best;
+      memory.expectingChoice = true;
+      saveMemory();
 
     return `Here are some products you might like:
 
-    ${selected.map(p => `• ${p.name} — ${p.price}`).join("\n")}
+    ${best.map(p => `• ${p.name} — ${p.price}`).join("\n")}
 
     💡 Try describing what you’re looking for:
 For example:
@@ -893,6 +974,7 @@ For example:
 • "a colorful summer picture"
 • "a story for kids"`;
   }
+}
 
   // 📦 AVAILABILITY
   if (intent === "availability") {
@@ -940,70 +1022,89 @@ For example:
 
   if (memory.expectingChoice) {
 
-    if (/yes|yeah|ok|sure|yep/.test(msg)) {
-      const p = memory.lastSuggested?.[0];
+  if (/yes|yeah|ok|sure|yep/.test(msg)) {
+    const p = memory.lastSuggested?.[0];
 
-      if (!p) return "I lost track of the product 😅";
+    if (!p) return "Something went wrong 😅";
 
-      const full = getProductData().find(x => x.name === p.name);
+    memory.expectingChoice = false;
+    saveMemory();
 
-      memory.expectingChoice = false;
-      saveMemory();
+    return `📦 ${p.name}
 
-      return `📦 ${full.name}
-
-${full.description}`;
-    }
-
-    if (/something else|another|different/.test(msg)) {
-      memory.expectingChoice = false;
-      saveMemory();
-      return generateResponse("suggest", msg);
-    }
+${p.description}`;
   }
 
-  if (intent === "semantic_search" || memory.expectingDescription) {
+  if (/something else|another|different/.test(msg)) {
+    memory.expectingChoice = false;
+    saveMemory();
+    return generateResponse("suggest", msg);
+  }
+}
+  
+  if (intent === "sematic_search" && !memory.expectingChoice) {
 
-    const products = getProductData();
+  const products = getProductData();
 
-    let words = msg.split(" ");
-    words = await expandWordsAI(words);
+  let words = msg.split(" ");
+  words = await expandWordsAI(words);
 
-    let scored = [];
+  let scored = [];
 
-    products.forEach(p => {
-      let score = 0;
-      const text = (p.name + " " + p.description).toLowerCase();
+  products.forEach(p => {
+    let score = 0;
+    const text = (p.name + " " + p.description).toLowerCase();
 
-      words.forEach(w => {
-        if (text.includes(w)) score += 1;
-      });
-
-      if (score > 0) {
-        scored.push({ ...p, score });
-      }
+    words.forEach(w => {
+      if (text.includes(w)) score++;
     });
 
-    memory.expectingDescription = false;
+    if (score > 0) scored.push({ ...p, score });
+  });
 
-    if (scored.length) {
-      scored.sort((a, b) => b.score - a.score);
+  if (scored.length) {
+    scored.sort((a, b) => b.score - a.score);
 
-      const best = scored.slice(0, 3);
+    const best = scored.slice(0, 3);
 
-      return `✨ I’ve found something that might match your idea:
-
-${best.map(p => `• ${p.name}`).join("\n")}
-
-Tell me if you'd like details about one of them.`;
-    }
-
-    memory.lastSuggested = selected;
+    memory.lastSuggested = best;
     memory.expectingChoice = true;
     saveMemory();
 
-    return "I couldn’t quite match that description. Try describing colors, theme, or mood.";
+    return `✨ I found something based on your description:
+
+${best.map(p => `• ${p.name}`).join("\n")}
+
+👉 Say "yes" to see details or "something else"`;
   }
+}
+
+  if (intent === "product_query") {
+
+  const productId = extractProductName(msg);
+  const product = getProductData().find(p => p.id === productId);
+
+  if (!product) return "I couldn't find that product.";
+
+  // 🔥 SMART CONTEXT SWITCH
+  if (memory.lastIntent === "suggest" || memory.expectingChoice) {
+
+    memory.lastProduct = productId;
+    saveMemory();
+
+    return `📦 ${product.name}
+
+${product.description}`;
+  }
+
+  // otherwise → availability
+  const status = await getProductStatus(productId);
+
+  return `📦 ${product.name}
+💰 ${product.price}
+
+Status: ${status}`;
+}
 
   const interrupt = detectInterrupt(msg);
 

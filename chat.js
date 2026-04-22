@@ -2,6 +2,14 @@ import { db } from "./store-system/firebase-config.js";
 import { addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
+const STORE_KNOWLEDGE = {
+  login: "Click the 'Login' button in the top navigation bar.",
+  payment: "Payment is done via bank transfer within 24 hours after reservation.",
+  delivery: "After payment, delivery details are sent via email.",
+  reservation: "Products can be reserved temporarily before payment.",
+  products: "We sell pictures and stories created by Seasons Serials artists."
+};
+
 const DICTIONARY = {
   mountains: ["mountain", "peaks", "nature", "landscape", "hills"],
   fruit: ["fruit", "summer", "food", "healthy", "watermelon", "apple"],
@@ -187,6 +195,15 @@ function addMessage(text, type) {
     <button class="more-btn"><ion-icon name="ellipsis-horizontal"></ion-icon></button>
   `;
 
+  const menu = document.createElement("div");
+  menu.className = "menu-dropdown hidden";
+  menu.innerHTML = `
+    <div class="menu-item delete-btn">Delete</div>
+    <div class="menu-item time-btn">Show time</div>
+  `;
+
+wrapper.appendChild(menu);
+
   wrapper.appendChild(msg);
   wrapper.appendChild(actions);
 
@@ -215,7 +232,14 @@ document.getElementById("cancelDelete").onclick = closeModal;
 
 document.getElementById("confirmDeleteBtn").onclick = () => {
   if (messageToDelete) {
+    const next = messageToDelete.nextElementSibling;
+
     messageToDelete.remove();
+
+    if (next && next.classList.contains("bot")) {
+      next.remove();
+    }
+
     showToast("Message deleted");
   }
   closeModal();
@@ -581,6 +605,18 @@ function searchProductsSmart(query) {
 
 async function handleReportFlow(msg) {
 
+  const interrupt = detectInterrupt(msg);
+
+  if (interrupt === "suggest") {
+    chatState = { mode: "normal", step: null, report: {} };
+    return generateResponse("suggest", msg);
+  }
+
+  if (!msg.includes("problem") && !msg.includes("issue") && !msg.includes("error") && chatState.step === "ask_type") {
+    chatState = { mode: "normal", step: null, report: {} };
+    return generateSmartReply(msg);
+  }
+
   // STEP 1 — TYPE
   if (chatState.step === "ask_type") {
 
@@ -604,6 +640,14 @@ async function handleReportFlow(msg) {
 
   // STEP 3 — EMAIL + SAVE TO FIREBASE
   if (chatState.step === "ask_email") {
+
+    function isValidEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    if (msg !== "skip" && !isValidEmail(msg)) {
+      return "This isn't a valid email address. Please try again or type 'skip'.";
+    }
 
     chatState.report.email = msg === "skip" ? null : msg;
 
@@ -713,40 +757,32 @@ const INTENTS = {
 };
 
 function analyzeIntent(msg) {
-  const words = msg.split(" ");
+  const normalized = msg.toLowerCase();
 
-  let scores = {};
+  let bestIntent = "chat";
+  let bestScore = 0;
 
   for (let intentName in INTENTS) {
     const intent = INTENTS[intentName];
 
     let score = 0;
 
-    for (let word of words) {
-      if (intent.keywords.some(k => msg.includes(k))) {
-        score++;
-      }
+    intent.keywords.forEach(k => {
+      if (normalized.includes(k)) score += 3;
+    });
+
+    const words = normalized.split(" ");
+    words.forEach(w => {
+      if (intent.keywords.some(k => k.includes(w))) score += 1;
+    });
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestIntent = intentName;
     }
-
-    scores[intentName] = score;
   }
 
-  // find best match
-  const sorted = Object.entries(scores).sort((a,b) => b[1]-a[1]);
-
-  const [bestIntent, bestScore] = sorted[0];
-  const secondScore = sorted[1]?.[1] ?? 0;
-
-  // ❗ TIE RULE (your requirement)
-  if (bestScore === 0) return "chat";
-
-  const tied = sorted.filter(s => s[1] === bestScore);
-
-  if (tied.length > 1) {
-    return "clarify";
-  }
-
-  return bestIntent;
+  return bestScore === 0 ? "chat" : bestIntent;
 }
 
 function getProductData() {
@@ -807,7 +843,7 @@ async function generateResponse(intent, msg) {
   
   // 🧠 ABOUT
   if (intent === "about_assistant") {
-    return random([
+    return random("about_assistant", [
       "I'm your assistant. I help you find products, check availability, and solve issues.",
       "I can guide you through products, payments, delivery, and problems on this store.",
       "Think of me as your shopping assistant. Ask me anything about products or orders.",
@@ -819,7 +855,7 @@ async function generateResponse(intent, msg) {
 
   // 💳 PAYMENT (NOW WORKS)
   if (intent === "payment") {
-    return random([
+    return random("payment", [
       "Payments are done via bank transfer. You have 24 hours after placing an order.",
       "To complete a purchase, you’ll receive payment instructions after ordering.",
       "We currently use bank transfer. Make sure to complete it within 24 hours."
@@ -828,7 +864,7 @@ async function generateResponse(intent, msg) {
 
   // 🚚 DELIVERY (NOW WORKS)
   if (intent === "delivery") {
-    return random([
+    return random("delivery", [
       "After payment confirmation, you’ll receive all delivery details by email.",
       "We process your order after payment and send instructions directly to your email.",
       "Delivery details are shared once your payment is confirmed."
@@ -902,6 +938,30 @@ For example:
   ${data.description.slice(0, 300)}...` : "No info found.";
   }
 
+  if (memory.expectingChoice) {
+
+    if (/yes|yeah|ok|sure|yep/.test(msg)) {
+      const p = memory.lastSuggested?.[0];
+
+      if (!p) return "I lost track of the product 😅";
+
+      const full = getProductData().find(x => x.name === p.name);
+
+      memory.expectingChoice = false;
+      saveMemory();
+
+      return `📦 ${full.name}
+
+${full.description}`;
+    }
+
+    if (/something else|another|different/.test(msg)) {
+      memory.expectingChoice = false;
+      saveMemory();
+      return generateResponse("suggest", msg);
+    }
+  }
+
   if (intent === "semantic_search" || memory.expectingDescription) {
 
     const products = getProductData();
@@ -925,7 +985,6 @@ For example:
     });
 
     memory.expectingDescription = false;
-    saveMemory();
 
     if (scored.length) {
       scored.sort((a, b) => b.score - a.score);
@@ -939,6 +998,10 @@ ${best.map(p => `• ${p.name}`).join("\n")}
 Tell me if you'd like details about one of them.`;
     }
 
+    memory.lastSuggested = selected;
+    memory.expectingChoice = true;
+    saveMemory();
+
     return "I couldn’t quite match that description. Try describing colors, theme, or mood.";
   }
 
@@ -951,6 +1014,11 @@ Tell me if you'd like details about one of them.`;
     if (interrupt === "cancel") return "Alright, I've stopped that process. What would you like to do now?";
     if (interrupt === "help") return t("help");
   }
+
+  if (msg.includes("login")) return STORE_KNOWLEDGE.login;
+  if (msg.includes("delivery")) return STORE_KNOWLEDGE.delivery;
+  if (msg.includes("how pay")) return STORE_KNOWLEDGE.payment;
+  if (msg.includes("what do you sell")) return STORE_KNOWLEDGE.products;
   
   return smartFallback(msg);
 }

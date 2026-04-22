@@ -116,6 +116,17 @@ let chatState = {
   report: {}
 };
 
+function detectForcedLanguage(text) {
+  const t = text.toLowerCase();
+
+  if (t.includes("switch to english") || t.includes("in english")) return LANG.EN;
+  if (t.includes("en español") || t.includes("spanish")) return LANG.ES;
+  if (t.includes("français") || t.includes("french")) return LANG.FR;
+  if (t.includes("українською") || t.includes("українська")) return LANG.UA;
+
+  return null;
+}
+
 const chatBtn = document.getElementById("chatButton");
 const chatPanel = document.getElementById("chatPanel");
 const closeChat = document.getElementById("closeChat");
@@ -188,21 +199,39 @@ function openDeleteModal() {
 
 let messageToDelete = null;
 
-document.addEventListener("click", e => {
-  if (e.target.classList.contains("delete-btn")) {
-    messageToDelete = e.target.closest(".chat-msg-wrapper");
-    document.getElementById("deleteModal").classList.remove("hidden");
-  }
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".delete-btn");
+  if (!btn) return;
+
+  messageToDelete = btn.closest(".chat-msg-wrapper");
+
+  const modal = document.getElementById("deleteModal");
+  modal.classList.remove("hidden");
+
+  // ensure focus reset (fixes ESC bug)
+  modal.focus?.();
 });
 
-document.getElementById("cancelDelete").onclick = () => {
+function closeModal() {
   document.getElementById("deleteModal").classList.add("hidden");
-};
+  messageToDelete = null;
+}
+
+document.getElementById("cancelDelete").onclick = closeModal;
 
 document.getElementById("confirmDeleteBtn").onclick = () => {
-  if (messageToDelete) messageToDelete.remove();
-  document.getElementById("deleteModal").classList.add("hidden");
+  if (messageToDelete) {
+    messageToDelete.remove();
+  }
+  closeModal();
 };
+
+// FIX ESC properly
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    closeModal();
+  }
+});
 
 document.addEventListener("click", e => {
   const btn = e.target.closest(".more-btn");
@@ -293,7 +322,12 @@ async function getProductStatus(productId) {
 
 async function generateSmartReply(input) {
 
-  currentLang = detectLanguage(input);
+  const forcedLang = detectForcedLanguage(input);
+
+  if (forcedLang) {
+    currentLang = forcedLang;
+  }
+  
   const msg = normalize(input);
 
   if (chatState.mode === "reporting") {
@@ -616,7 +650,9 @@ function analyzeIntent(msg) {
   }
 
   // 4. Other intents
-  if (/(what.*you|help|purpose|who are you)/.test(m)) return "about_assistant";
+  if (/(what.*you.*use|what.*you.*for|your purpose|who are you)/.test(m)) {
+    return "about_assistant";
+  }
   if (/(hi|hello|hey|hola|bonjour)/.test(m)) return "greeting";
   if (/(error|problem|issue|bug|fail)/.test(m)) return "report";
   if (/(pay|payment|transfer|money)/.test(m)) return "payment";
@@ -657,14 +693,31 @@ function getProductData() {
 
 async function generateResponse(intent, msg) {
 
-  const random = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const responseHistory = new Map();
+
+  function random(key, arr) {
+    const last = responseHistory.get(key);
+
+    let filtered = arr;
+    if (arr.length > 1 && last) {
+      filtered = arr.filter(x => x !== last);
+    }
+
+    const chosen = filtered[Math.floor(Math.random() * filtered.length)];
+    responseHistory.set(key, chosen);
+
+    return chosen;
+  }
 
   // 🧠 ABOUT
   if (intent === "about_assistant") {
     return random([
       "I'm your assistant. I help you find products, check availability, and solve issues.",
       "I can guide you through products, payments, delivery, and problems on this store.",
-      "Think of me as your shopping assistant. Ask me anything about products or orders."
+      "Think of me as your shopping assistant. Ask me anything about products or orders.",
+      "I help you browse products, manage orders, and answer store questions.",
+      "I'm a shopping assistant for this store — I guide you through products and support.",
+      "My role is to help you find items, check availability, and solve issues."
     ]);
   }
 

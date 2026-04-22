@@ -1070,6 +1070,7 @@ ${product.description}`;
   }
   
   return smartFallback(msg);
+}
 
 function formatResponse(text) {
   return text

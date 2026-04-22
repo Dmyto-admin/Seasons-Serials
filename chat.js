@@ -193,44 +193,21 @@ function addMessage(text, type) {
   chatMessages.appendChild(wrapper);
 }
 
-document.addEventListener("click", e => {
-  const btn = e.target.closest(".copy-btn");
-  if (!btn) return;
-
-  const msg = btn.closest(".chat-msg-wrapper").querySelector(".chat-msg");
-
-  navigator.clipboard.writeText(msg.innerText);
-
-  btn.innerText = "Copied";
-
-  setTimeout(() => {
-    btn.innerHTML = '<ion-icon name="copy-outline"></ion-icon>';
-  }, 1500);
-});
-
-function openDeleteModal() {
-  if (confirm("Are you sure you want to delete this message?")) {
-    confirmDelete();
-  }
-}
-
 let messageToDelete = null;
 
-document.addEventListener("click", (e) => {
-  const btn = e.target.closest(".delete-btn");
-  if (!btn) return;
-
-  messageToDelete = btn.closest(".chat-msg-wrapper");
-
+function openModal() {
   const modal = document.getElementById("deleteModal");
-  modal.classList.remove("hidden");
+  modal.classList.add("show");
 
-  // ensure focus reset (fixes ESC bug)
-  modal.focus?.();
-});
+  // lock background scroll
+  document.body.style.overflow = "hidden";
+}
 
 function closeModal() {
-  document.getElementById("deleteModal").classList.add("hidden");
+  const modal = document.getElementById("deleteModal");
+  modal.classList.remove("show");
+
+  document.body.style.overflow = "";
   messageToDelete = null;
 }
 
@@ -251,39 +228,53 @@ document.addEventListener("keydown", (e) => {
 });
 
 document.addEventListener("click", (e) => {
+  const wrapper = e.target.closest(".chat-msg-wrapper");
+  if (!wrapper) return;
 
-  // TOGGLE MENU
-  const more = e.target.closest(".more-btn");
-  if (more) {
-    const wrapper = more.closest(".menu-wrapper");
+  // COPY
+  if (e.target.closest(".copy-btn")) {
+    const msg = wrapper.querySelector(".chat-msg");
+    navigator.clipboard.writeText(msg.innerText);
+    
+    btn.innerText = "Copied";
+    showToast("Copied");
+
+    setTimeout(() => {
+      btn.innerHTML = '<ion-icon name="copy-outline"></ion-icon>';
+    }, 1500);
+    
+    return;
+   });
+
+  // DELETE OPEN MODAL
+  if (e.target.closest(".delete-btn") || e.target.closest(".menu-item.delete-btn")) {
+    messageToDelete = wrapper;
+    openModal();
+    return;
+  }
+
+  // MENU TOGGLE (FIXED)
+  if (e.target.closest(".more-btn")) {
     const menu = wrapper.querySelector(".menu-dropdown");
+
+    // close all others first
+    document.querySelectorAll(".menu-dropdown").forEach(m => {
+      if (m !== menu) m.classList.add("hidden");
+    });
+
     menu.classList.toggle("hidden");
     return;
   }
 
-  // COPY
-  const copy = e.target.closest(".copy-btn");
-  if (copy) {
-    const msg = copy.closest(".chat-msg-wrapper").querySelector(".chat-msg");
-    navigator.clipboard.writeText(msg.innerText);
-    showToast("Copied");
-    return;
-  }
-
-  // DELETE
-  const del = e.target.closest(".menu-item.delete-btn");
-  if (del) {
-    messageToDelete = del.closest(".chat-msg-wrapper");
-    document.getElementById("deleteModal").classList.remove("hidden");
-    return;
-  }
-
   // TIME
-  const time = e.target.closest(".time-btn");
-  if (time) {
-    const wrapper = time.closest(".chat-msg-wrapper");
+  if (e.target.closest(".time-btn")) {
     showToast(`Sent at ${wrapper.dataset.time}`);
   }
+
+  // click outside closes menus
+  document.querySelectorAll(".menu-dropdown").forEach(m => {
+    if (!m.contains(e.target)) m.classList.add("hidden");
+  });
 });
 
 function showToast(text) {

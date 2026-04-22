@@ -796,7 +796,12 @@ function analyzeIntent(msg) {
     .sort((a,b)=>b[1]-a[1])[0];
 
     // 🔥 ALWAYS fallback to semantic search if nothing found
-    return best[1] > 0 ? best[0] : "semantic_search";
+    if (best[1] > 0) return best[0];
+
+// fallback only if message looks like a query
+if (msg.length > 3) return "semantic_search";
+
+return "help";
 }
 
 function getProductData() {
@@ -986,7 +991,7 @@ ${p.description}`;
 
     return `✨ I found something based on your description:
 
-${best.map(p => `• ${p.name}`).join("\n")}
+${results.map(p => `• ${p.name}`).join("\n")}
 
 👉 Say "yes" to see details or "something else"`;
   }
@@ -1079,7 +1084,7 @@ async function semanticSearch(msg) {
       if (text.includes(w)) score += 1;
     });
 
-    if (score > 1) { // 🔥 threshold fix
+    if (score >= 1) { // 🔥 threshold fix
       scored.push({ ...p, score });
     }
   });

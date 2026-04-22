@@ -234,6 +234,7 @@ document.addEventListener("click", (e) => {
   // COPY
   if (e.target.closest(".copy-btn")) {
     const msg = wrapper.querySelector(".chat-msg");
+    const btn = e.target.closest(".copy-btn");
     navigator.clipboard.writeText(msg.innerText);
     
     btn.innerText = "Copied";
@@ -244,7 +245,7 @@ document.addEventListener("click", (e) => {
     }, 1500);
     
     return;
-   });
+   };
 
   // DELETE OPEN MODAL
   if (e.target.closest(".delete-btn") || e.target.closest(".menu-item.delete-btn")) {

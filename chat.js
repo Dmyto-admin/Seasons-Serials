@@ -483,26 +483,25 @@ function normalize(text) {
 }
 
 function extractProductName(msg) {
-  const products = getProductData();
+  const products = document.querySelectorAll(".sale-product-box");
 
-  let best = null;
-  let bestScore = 0;
+  for (let p of products) {
+    const name = p.querySelector(".product-name")?.innerText
+      .toLowerCase()
+      .replace(/"/g, "");
 
-  products.forEach(p => {
-    const name = p.name.toLowerCase();
-    let score = 0;
+    const words = name.split(" ");
 
-    name.split(" ").forEach(word => {
-      if (msg.includes(word)) score++;
-    });
-
-    if (score > bestScore) {
-      bestScore = score;
-      best = p.id;
+    // 🔥 smarter matching (partial match)
+    if (
+      msg.includes(name) ||
+      words.some(w => msg.includes(w))
+    ) {
+      return p.id;
     }
-  });
+  }
 
-  return bestScore > 0 ? best : null;
+  return null;
 }
 
 function hasIntent(msg, keywords) {
@@ -977,30 +976,11 @@ ${p.description}`;
   
   if (intent === "semantic_search" && !memory.expectingChoice) {
 
-  const products = getProductData();
+    const results = await semanticSearch(msg);
 
-  let words = msg.split(" ");
-  words = await expandWordsAI(words);
+  if (results && results.length) {
 
-  let scored = [];
-
-  products.forEach(p => {
-    let score = 0;
-    const text = (p.name + " " + p.description).toLowerCase();
-
-    words.forEach(w => {
-      if (text.includes(w)) score++;
-    });
-
-    if (score > 0) scored.push({ ...p, score });
-  });
-
-  if (scored.length) {
-    scored.sort((a, b) => b.score - a.score);
-
-    const best = scored.slice(0, 3);
-
-    memory.lastSuggested = best;
+    memory.lastSuggested = results;
     memory.expectingChoice = true;
     saveMemory();
 

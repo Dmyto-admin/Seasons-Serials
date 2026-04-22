@@ -2201,6 +2201,8 @@ input:-webkit-autofill:focus {
 }
 
 .modal {
+  display: none;
+  opacity: 0;
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.4);
@@ -2211,6 +2213,7 @@ input:-webkit-autofill:focus {
 
 .modal.show {
   display: flex;
+  opacity: 1;
 }
 
 .modal-box {

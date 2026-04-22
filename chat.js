@@ -935,38 +935,20 @@ async function generateResponse(intent, msg) {
   }
 
   // 🛒 PRODUCT SEARCH
-  if (intent === "suggest" && !memory.expectingChoice) {
+  if (intent === "suggest") {
 
-     const products = getProductData();
+    const products = getProductData();
 
-    let words = msg.split(" ");
-    words = await expandWordsAI(words);
+    const shuffled = products.sort(() => 0.5 - Math.random());
 
-    let scored = [];
+    const selected = shuffled.slice(0, 4);
 
-    products.forEach(p => {
-      let score = 0;
-      const text = (p.name + " " + p.description).toLowerCase();
-
-      words.forEach(w => {
-        if (text.includes(w)) score++;
-      });
-
-      if (score > 0) scored.push({ ...p, score });
-    });
-
-    if (scored.length) {
-      scored.sort((a, b) => b.score - a.score);
-
-      const best = scored.slice(0, 3);
-
-      memory.lastSuggested = best;
-      memory.expectingChoice = true;
-      saveMemory();
+    memory.expectingDescription = true;
+    saveMemory();
 
     return `Here are some products you might like:
 
-    ${best.map(p => `• ${p.name} — ${p.price}`).join("\n")}
+    ${selected.map(p => `• ${p.name} — ${p.price}`).join("\n")}
 
     💡 Try describing what you’re looking for:
 For example:
@@ -974,8 +956,7 @@ For example:
 • "a colorful summer picture"
 • "a story for kids"`;
   }
-}
-
+  
   // 📦 AVAILABILITY
   if (intent === "availability") {
 

@@ -97,15 +97,18 @@ const LANG = {
 function detectLanguage(text) {
   const t = text.toLowerCase();
 
-  if (/[іїєґ]/.test(t)) return LANG.UA;
+  if (t.includes("switch to english")) return LANG.EN;
+  if (t.includes("français") || t.includes("parle français")) return LANG.FR;
+  if (t.includes("español") || t.includes("habla español")) return LANG.ES;
+  if (t.includes("українською") || t.includes("українська")) return LANG.UA;
 
-  if (t.includes("hola") || t.includes("comprar") || t.includes("producto"))
-    return LANG.ES;
+  if (!languageState.locked) {
+    if (/[іїєґ]/.test(t)) return LANG.UA;
+    if (t.includes("bonjour")) return LANG.FR;
+    if (t.includes("hola")) return LANG.ES;
+  }
 
-  if (t.includes("bonjour") || t.includes("produit"))
-    return LANG.FR;
-
-  return LANG.EN;
+  return languageState.current;
 }
 
 let currentLang = LANG.EN;
@@ -240,8 +243,47 @@ document.addEventListener("click", e => {
   const wrapper = btn.closest(".chat-msg-wrapper");
   const time = wrapper.dataset.time;
 
-  alert(`Sent at: ${time}`);
+  actions.innerHTML = `
+    <div class="menu-wrapper">
+      <button class="more-btn">⋯</button>
+
+      <div class="menu-dropdown hidden">
+        <div class="menu-item copy-btn">Copy</div>
+        <div class="menu-item delete-btn">Delete</div>
+        <div class="menu-item time-btn">Show time</div>
+      </div>
+    </div>
+  `;
 });
+
+document.addEventListener("click", (e) => {
+  const more = e.target.closest(".more-btn");
+  if (more) {
+    const menu = more.nextElementSibling;
+    menu.classList.toggle("hidden");
+  }
+
+  const timeBtn = e.target.closest(".time-btn");
+  if (timeBtn) {
+    const wrapper = timeBtn.closest(".chat-msg-wrapper");
+    showToast(`Sent at ${wrapper.dataset.time}`);
+  }
+});
+
+function showToast(text) {
+  const toast = document.createElement("div");
+  toast.className = "chat-toast";
+  toast.innerText = text;
+
+  document.body.appendChild(toast);
+
+  setTimeout(() => toast.classList.add("show"), 10);
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 300);
+  }, 2000);
+}
 
 // LOADING MESSAGE
 function addLoading() {
@@ -620,6 +662,24 @@ function smartFallback(msg) {
   }[currentLang];
 }
 
+async function fallbackAI(msg) {
+  try {
+    const res = await fetch("https://YOUR-AI-ENDPOINT", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: msg,
+        lang: languageState.current
+      })
+    });
+
+    const data = await res.json();
+    return data.reply || "I couldn't process that.";
+  } catch {
+    return smartFallback(msg);
+  }
+}
+
 function analyzeIntent(msg) {
   const m = msg.toLowerCase();
 
@@ -630,8 +690,17 @@ function analyzeIntent(msg) {
 
   // 🧠 PRIORITY ORDER
 
+  if (/(what.*you.*use|what.*you.*for|your purpose|who are you)/.test(m)) {
+    return "about_assistant";
+  }
+
   // 1. Explicit suggestion request
   if (isSuggest) return "suggest";
+
+  // LANGUAGE SWITCH
+  if (/(switch language|parle|habla|українською|english|french)/.test(m)) {
+    return "language_switch";
+  }
 
   // 2. Question about product ONLY
   if (productId && isQuestion) {
@@ -650,15 +719,15 @@ function analyzeIntent(msg) {
   }
 
   // 4. Other intents
-  if (/(what.*you.*use|what.*you.*for|your purpose|who are you)/.test(m)) {
-    return "about_assistant";
-  }
   if (/(hi|hello|hey|hola|bonjour)/.test(m)) return "greeting";
   if (/(error|problem|issue|bug|fail)/.test(m)) return "report";
   if (/(pay|payment|transfer|money)/.test(m)) return "payment";
   if (/(delivery|shipping|arrive)/.test(m)) return "delivery";
 
-  return "unknown";
+  // GENERAL QUESTION
+  if (/\?/.test(m)) return "question";
+
+  return "chat";
 }
 
 function getProductData() {

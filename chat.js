@@ -480,7 +480,7 @@ function normalize(text) {
     .trim();
 }
 
-function extractProduct(msg) {
+function extractProductName(msg) {
   const products = getProductData();
 
   let best = null;
@@ -496,7 +496,7 @@ function extractProduct(msg) {
 
     if (score > bestScore) {
       bestScore = score;
-      best = p;
+      best = p.id;
     }
   });
 
@@ -646,18 +646,6 @@ async function handleReportFlow(msg) {
     return generateResponse("suggest", msg);
   }
 
-  if (msg.includes("cheapest")) {
-  const products = getProductData();
-  const cheapest = products.sort((a,b)=>parseFloat(a.price)-parseFloat(b.price))[0];
-  return `💸 Cheapest: ${cheapest.name} — ${cheapest.price}`;
-}
-
-if (msg.includes("expensive")) {
-  const products = getProductData();
-  const expensive = products.sort((a,b)=>parseFloat(b.price)-parseFloat(a.price))[0];
-  return `💎 Most expensive: ${expensive.name} — ${expensive.price}`;
-}
-
   // STEP 1 — TYPE
   if (chatState.step === "ask_type") {
 
@@ -779,14 +767,17 @@ async function fallbackAI(msg) {
 }
 
 const INTENTS = {
-  suggest: ["buy", "recommend", "suggest"],
+  suggest: ["buy", "recommend", "suggest", "show"],
   payment: ["pay", "payment", "transfer"],
   delivery: ["delivery", "shipping"],
   report: ["report", "error", "bug", "issue"],
-  help: ["help", "menu"],
-  cheapest: ["cheapest", "lowest price"],
-  expensive: ["expensive", "highest price"],
+  help: ["help", "menu", "options"],
+  cheapest: ["cheapest", "lowest"],
+  expensive: ["expensive", "highest"],
   describe: ["describe", "details", "info"],
+  availability: ["available", "availability", "in stock"],
+  product_query: ["this", "that", "product"],
+  semantic_search: [] // 🔥 FIXED NAME
 };
 
 function analyzeIntent(msg) {
@@ -803,7 +794,8 @@ function analyzeIntent(msg) {
   const best = Object.entries(scores)
     .sort((a,b)=>b[1]-a[1])[0];
 
-  return best[1] > 0 ? best[0] : "none";
+    // 🔥 ALWAYS fallback to semantic search if nothing found
+    return best[1] > 0 ? best[0] : "semantic_search";
 }
 
 function getProductData() {
@@ -1036,13 +1028,6 @@ ${best.map(p => `• ${p.name}`).join("\n")}
 ${product.description}`;
   }
 
-  // otherwise → availability
-  const status = await getProductStatus(productId);
-
-  return `📦 ${product.name}
-💰 ${product.price}
-
-Status: ${status}`;
 }
 
   const interrupt = detectInterrupt(msg);
@@ -1055,10 +1040,30 @@ Status: ${status}`;
     if (interrupt === "help") return t("help");
   }
 
-  if (msg.includes("login")) return STORE_KNOWLEDGE.login;
-  if (msg.includes("delivery")) return STORE_KNOWLEDGE.delivery;
-  if (msg.includes("how pay")) return STORE_KNOWLEDGE.payment;
+    // 🔥 DIRECT SIMPLE QUESTIONS (ALWAYS ANSWER)
   if (msg.includes("what do you sell")) return STORE_KNOWLEDGE.products;
+  if (msg.includes("login")) return t("loginHelp");
+  if (msg.includes("payment")) return t("payment");
+  if (msg.includes("delivery")) return t("delivery");
+
+  // 🔥 HELP ALWAYS WORKS
+  if (intent === "help") {
+    return t("help");
+  }
+
+  // 💸 CHEAPEST
+  if (intent === "cheapest") {
+    const products = getProductData();
+    const cheapest = products.sort((a,b)=>parseFloat(a.price)-parseFloat(b.price))[0];
+    return `💸 ${cheapest.name} — ${cheapest.price}`;
+  }
+
+  // 💎 EXPENSIVE
+  if (intent === "expensive") {
+    const products = getProductData();
+    const expensive = products.sort((a,b)=>parseFloat(b.price)-parseFloat(a.price))[0];
+    return `💎 ${expensive.name} — ${expensive.price}`;
+  
   
   return smartFallback(msg);
 }

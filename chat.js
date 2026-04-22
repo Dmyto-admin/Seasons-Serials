@@ -2,6 +2,23 @@ import { db } from "./store-system/firebase-config.js";
 import { addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
+const THINKING_DEBUG = true;
+let thinkStep = 0;
+
+function think(label, data) {
+  if (!THINKING_DEBUG) return;
+
+  thinkStep++;
+
+  const msg =
+`🧠 STEP ${thinkStep}
+${label}
+------------------
+${typeof data === "string" ? data : JSON.stringify(data, null, 2)}`;
+
+  alert(msg);
+}
+
 const STORE_KNOWLEDGE = {
   login: "Click the 'Login' button in the top navigation bar.",
   payment: "Payment is done via bank transfer within 24 hours after reservation.",

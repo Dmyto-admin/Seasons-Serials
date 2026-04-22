@@ -428,6 +428,8 @@ async function getProductStatus(productId) {
 
 async function generateSmartReply(input) {
 
+  currentLang = detectLanguage(input);
+  
   const forcedLang = detectForcedLanguage(input);
 
   if (forcedLang) {
@@ -973,7 +975,7 @@ ${p.description}`;
   }
 }
   
-  if (intent === "sematic_search" && !memory.expectingChoice) {
+  if (intent === "semantic_search" && !memory.expectingChoice) {
 
   const products = getProductData();
 
@@ -1028,6 +1030,8 @@ ${best.map(p => `• ${p.name}`).join("\n")}
 ${product.description}`;
   }
 
+    return `📦 ${product.name}\n💰 ${product.price}`;
+
 }
 
   const interrupt = detectInterrupt(msg);
@@ -1063,10 +1067,9 @@ ${product.description}`;
     const products = getProductData();
     const expensive = products.sort((a,b)=>parseFloat(b.price)-parseFloat(a.price))[0];
     return `💎 ${expensive.name} — ${expensive.price}`;
-  
+  }
   
   return smartFallback(msg);
-}
 
 function formatResponse(text) {
   return text

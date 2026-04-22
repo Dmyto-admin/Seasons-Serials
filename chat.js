@@ -486,21 +486,21 @@ function extractProduct(msg) {
   let best = null;
   let bestScore = 0;
 
-  products.forEach(p => {
-    const name = p.name.toLowerCase();
+  for (let p of products) {
+    const words = p.name.toLowerCase().split(" ");
     let score = 0;
 
-    name.split(" ").forEach(word => {
-      if (msg.includes(word)) score++;
+    words.forEach(w => {
+      if (msg.includes(w)) score++;
     });
 
     if (score > bestScore) {
       bestScore = score;
       best = p;
     }
-  });
+  }
 
-  return bestScore > 0 ? best : null;
+  return best;
 }
 
 function hasIntent(msg, keywords) {
@@ -778,32 +778,25 @@ async function fallbackAI(msg) {
   }
 }
 
-const INTENTS = {
-  suggest: ["buy", "recommend", "suggest"],
-  payment: ["pay", "payment", "transfer"],
-  delivery: ["delivery", "shipping"],
-  report: ["report", "error", "bug", "issue"],
-  help: ["help", "menu"],
-  cheapest: ["cheapest", "lowest price"],
-  expensive: ["expensive", "highest price"],
-  describe: ["describe", "details", "info"],
-};
-
 function analyzeIntent(msg) {
-  let scores = {};
+  const m = msg.toLowerCase();
 
-  for (let intent in INTENTS) {
-    scores[intent] = 0;
+  const patterns = [
+    { intent: "report", test: /(report|bug|issue|problem|error)/ },
+    { intent: "suggest", test: /(buy|recommend|suggest|what.*buy|get)/ },
+    { intent: "payment", test: /(pay|payment|transfer|money)/ },
+    { intent: "delivery", test: /(delivery|shipping|arrive)/ },
+    { intent: "availability", test: /(available|in stock|sold|reserved)/ },
+    { intent: "price", test: /(price|cost|how much)/ },
+    { intent: "product_query", test: /(this|product|item)/ },
+  ];
 
-    INTENTS[intent].forEach(k => {
-      if (msg.includes(k)) scores[intent] += 2;
-    });
+  for (let p of patterns) {
+    if (p.test.test(m)) return p.intent;
   }
 
-  const best = Object.entries(scores)
-    .sort((a,b)=>b[1]-a[1])[0];
-
-  return best[1] > 0 ? best[0] : "none";
+  // 🔥 fallback to semantic
+  return "semantic";
 }
 
 function getProductData() {
@@ -838,228 +831,56 @@ function getProductData() {
 
 async function generateResponse(intent, msg) {
 
-  function random(key, arr) {
-    if (!Array.isArray(arr) || arr.length === 0) {
-      return "I couldn't generate a response.";
-    }
-
-    const last = responseHistory.get(key);
-
-    let filtered = arr;
-    if (arr.length > 1 && last) {
-      filtered = arr.filter(x => x !== last);
-    }
-
-    const chosen = filtered[Math.floor(Math.random() * filtered.length)];
-
-    responseHistory.set(key, chosen);
-    return chosen;
+  // 🚨 REPORT MODE FIRST (LOCKED)
+  if (chatState.mode === "reporting") {
+    return handleReportFlow(msg);
   }
 
-  if (intent === "semantic_search") {
-    if (msg.includes("what are you used for")) {
-      return "I'm a shopping assistant that helps you find products and manage orders.";
-    }
-  }
-  
-  // 🧠 ABOUT
-  if (intent === "about_assistant") {
-    return random("about_assistant", [
-      "I'm your assistant. I help you find products, check availability, and solve issues.",
-      "I can guide you through products, payments, delivery, and problems on this store.",
-      "Think of me as your shopping assistant. Ask me anything about products or orders.",
-      "I help you browse products, manage orders, and answer store questions.",
-      "I'm a shopping assistant for this store — I guide you through products and support.",
-      "My role is to help you find items, check availability, and solve issues."
-    ]);
-  }
-
-  // 💳 PAYMENT (NOW WORKS)
-  if (intent === "payment") {
-    return random("payment", [
-      "Payments are done via bank transfer. You have 24 hours after placing an order.",
-      "To complete a purchase, you’ll receive payment instructions after ordering.",
-      "We currently use bank transfer. Make sure to complete it within 24 hours."
-    ]);
-  }
-
-  // 🚚 DELIVERY (NOW WORKS)
-  if (intent === "delivery") {
-    return random("delivery", [
-      "After payment confirmation, you’ll receive all delivery details by email.",
-      "We process your order after payment and send instructions directly to your email.",
-      "Delivery details are shared once your payment is confirmed."
-    ]);
-  }
-
-  // 🛒 PRODUCT SEARCH
+  // 🛒 SUGGEST
   if (intent === "suggest") {
+    const products = getProductData().slice(0,3);
 
-    const products = getProductData();
+    memory.lastSuggested = products;
+    memory.expectingChoice = true;
 
-    const shuffled = products.sort(() => 0.5 - Math.random());
-
-    const selected = shuffled.slice(0, 4);
-
-    memory.expectingDescription = true;
-    saveMemory();
-
-    return `Here are some products you might like:
-
-    ${selected.map(p => `• ${p.name} — ${p.price}`).join("\n")}
-
-    💡 Try describing what you’re looking for:
-For example:
-• "something with mountains"
-• "a colorful summer picture"
-• "a story for kids"`;
+    return `Here are suggestions:\n\n${products.map(p => `• ${p.name}`).join("\n")}`;
   }
-  
-  // 📦 AVAILABILITY
-  if (intent === "availability") {
 
-    const productId = memory.lastProduct || extractProductName(msg);
-  
-    if (!productId) {
-      return "Tell me the product name and I’ll check it.";
+  // 📦 PRODUCT DIRECT
+  const product = extractProduct(msg);
+
+  if (product) {
+    memory.lastProduct = product.id;
+
+    const status = await getProductStatus(product.id);
+
+    return `📦 ${product.name}
+💰 ${product.price}
+Status: ${status}`;
+  }
+
+  // 🔍 SEMANTIC SEARCH (AUTO)
+  if (intent === "semantic") {
+    const results = await semanticSearchSmart(msg);
+
+    if (results) {
+      return `✨ Found:\n\n${results.map(p => `• ${p.name}`).join("\n")}`;
     }
-
-    const status = await getProductStatus(productId);
-
-    const data = getProductData().find(p => p.id === productId);
-
-    const base = {
-      available: "Yes ✅ it's available.",
-      reserved: "⚠️ It's reserved.",
-      sold: "❌ It's sold."
-    };
-
-    return `${base[status] || "Unknown status."}
-
-  ${data ? `Product: ${data.name}
-  Price: ${data.price}` : ""}`;
   }
 
-  // 🚨 REPORT
+  // 💳 PAYMENT
+  if (intent === "payment") return STORE_KNOWLEDGE.payment;
+
+  // 🚚 DELIVERY
+  if (intent === "delivery") return STORE_KNOWLEDGE.delivery;
+
+  // 🚨 REPORT START
   if (intent === "report") {
     chatState.mode = "reporting";
     chatState.step = "ask_type";
-    return "I’m sorry about that 😔 What type of issue is it?\n• Payment\n• Product\n• Website";
+    return "What type of issue?\n• payment\n• product\n• website";
   }
 
-  if (intent === "price") {
-    const data = getProductData().find(p => p.id === memory.lastProduct);
-    return data ? `💰 ${data.name} costs ${data.price}` : "I couldn't find the price.";
-  }
-
-  if (intent === "product_info") {
-    const data = getProductData().find(p => p.id === memory.lastProduct);
-    return data ? `📦 ${data.name}
-
-  ${data.description.slice(0, 300)}...` : "No info found.";
-  }
-
-  if (memory.expectingChoice) {
-
-  if (/yes|yeah|ok|sure|yep/.test(msg)) {
-    const p = memory.lastSuggested?.[0];
-
-    if (!p) return "Something went wrong 😅";
-
-    memory.expectingChoice = false;
-    saveMemory();
-
-    return `📦 ${p.name}
-
-${p.description}`;
-  }
-
-  if (/something else|another|different/.test(msg)) {
-    memory.expectingChoice = false;
-    saveMemory();
-    return generateResponse("suggest", msg);
-  }
-}
-  
-  if (intent === "sematic_search" && !memory.expectingChoice) {
-
-  const products = getProductData();
-
-  let words = msg.split(" ");
-  words = await expandWordsAI(words);
-
-  let scored = [];
-
-  products.forEach(p => {
-    let score = 0;
-    const text = (p.name + " " + p.description).toLowerCase();
-
-    words.forEach(w => {
-      if (text.includes(w)) score++;
-    });
-
-    if (score > 0) scored.push({ ...p, score });
-  });
-
-  if (scored.length) {
-    scored.sort((a, b) => b.score - a.score);
-
-    const best = scored.slice(0, 3);
-
-    memory.lastSuggested = best;
-    memory.expectingChoice = true;
-    saveMemory();
-
-    return `✨ I found something based on your description:
-
-${best.map(p => `• ${p.name}`).join("\n")}
-
-👉 Say "yes" to see details or "something else"`;
-  }
-}
-
-  if (intent === "product_query") {
-
-  const productId = extractProductName(msg);
-  const product = getProductData().find(p => p.id === productId);
-
-  if (!product) return "I couldn't find that product.";
-
-  // 🔥 SMART CONTEXT SWITCH
-  if (memory.lastIntent === "suggest" || memory.expectingChoice) {
-
-    memory.lastProduct = productId;
-    saveMemory();
-
-    return `📦 ${product.name}
-
-${product.description}`;
-  }
-
-  // otherwise → availability
-  const status = await getProductStatus(productId);
-
-  return `📦 ${product.name}
-💰 ${product.price}
-
-Status: ${status}`;
-}
-
-  const interrupt = detectInterrupt(msg);
-
-  if (interrupt) {
-    chatState = { mode: "normal", step: null, report: {} };
-
-    if (interrupt === "suggest") return generateResponse("suggest", msg);
-    if (interrupt === "cancel") return "Alright, I've stopped that process. What would you like to do now?";
-    if (interrupt === "help") return t("help");
-  }
-
-  if (msg.includes("login")) return STORE_KNOWLEDGE.login;
-  if (msg.includes("delivery")) return STORE_KNOWLEDGE.delivery;
-  if (msg.includes("how pay")) return STORE_KNOWLEDGE.payment;
-  if (msg.includes("what do you sell")) return STORE_KNOWLEDGE.products;
-  
   return smartFallback(msg);
 }
 
@@ -1074,7 +895,7 @@ function randomize(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-async function semanticSearch(msg) {
+async function semanticSearchSmart(msg) {
   const products = getProductData();
 
   let words = msg.split(" ");
@@ -1082,22 +903,18 @@ async function semanticSearch(msg) {
 
   let scored = [];
 
-  products.forEach(p => {
+  for (let p of products) {
     let score = 0;
     const text = (p.name + " " + p.description).toLowerCase();
 
     words.forEach(w => {
-      if (text.includes(w)) score += 1;
+      if (text.includes(w)) score += 2;
     });
 
-    if (score > 1) { // 🔥 threshold fix
-      scored.push({ ...p, score });
-    }
-  });
+    if (score > 2) scored.push({ ...p, score });
+  }
 
   if (!scored.length) return null;
 
-  scored.sort((a,b)=>b.score-a.score);
-
-  return scored.slice(0, 2); // 🔥 MAX 2 RESULTS
+  return scored.sort((a,b)=>b.score-a.score).slice(0,3);
 }

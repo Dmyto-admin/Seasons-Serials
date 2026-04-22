@@ -2242,3 +2242,61 @@ input:-webkit-autofill:focus {
   background: #e53935;
   color: white;
 }
+
+.menu-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.more-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.menu-dropdown {
+  position: absolute;
+  right: 0;
+  top: 25px;
+  background: #1e1e1e;
+  border-radius: 10px;
+  padding: 5px;
+  min-width: 120px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  z-index: 999;
+}
+
+.menu-item {
+  padding: 8px 10px;
+  color: white;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.menu-item:hover {
+  background: #333;
+}
+
+.hidden {
+  display: none;
+}
+
+/* TOAST */
+.chat-toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #111;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 10px;
+  opacity: 0;
+  transition: 0.3s;
+}
+
+.chat-toast.show {
+  opacity: 1;
+}

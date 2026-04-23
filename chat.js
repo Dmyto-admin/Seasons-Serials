@@ -27,43 +27,21 @@ const DICTIONARY = {
 };
 
 async function expandWordsAI(words) {
-  let expanded = new Set(words);
+  let expanded = [...words];
 
   for (let w of words) {
     try {
-      const res = await fetch(`https://api.datamuse.com/words?ml=${w}&max=5`);
+      const res = await fetch(`https://api.datamuse.com/words?ml=${w}`);
       const data = await res.json();
 
-      data.forEach(d => expanded.add(d.word));
-
-      // 🔥 Add manual dictionary boost
-      Object.values(DICTIONARY).forEach(group => {
-        const all = Array.isArray(group)
-          ? group
-          : [...group.core, ...group.related];
-
-        if (all.includes(w)) {
-          all.forEach(x => expanded.add(x));
-        }
+      data.slice(0, 5).forEach(d => {
+        expanded.push(d.word);
       });
 
     } catch {}
   }
 
-  return [...expanded];
-}
-
-const INTERRUPTS = {
-  suggest: /(what can i buy|recommend|suggest)/,
-  cancel: /(cancel|stop|exit|nevermind)/,
-  help: /(help|menu|options)/
-};
-
-function detectInterrupt(msg) {
-  for (let key in INTERRUPTS) {
-    if (INTERRUPTS[key].test(msg)) return key;
-  }
-  return null;
+  return [...new Set(expanded)];
 }
 
 let memory = JSON.parse(localStorage.getItem("chatMemory")) || {
@@ -298,6 +276,19 @@ async function getProductStatus(productId) {
 }
 
 async function generateSmartReply(input) {
+
+  const INTERRUPTS = {
+    suggest: /(what can i buy|recommend|suggest)/,
+    cancel: /(cancel|stop|exit|nevermind)/,
+    help: /(help|menu|options)/
+  };
+
+  function detectInterrupt(msg) {
+    for (let key in INTERRUPTS) {
+      if (INTERRUPTS[key].test(msg)) return key;
+    }
+    return null;
+  }
 
   currentLang = detectLanguage(input);
   const msg = normalize(input);
@@ -595,38 +586,50 @@ function smartFallback(msg) {
 function analyzeIntent(msg) {
   const m = msg.toLowerCase();
 
-  const productId = extractProductName(m);
-  const isQuestion = /\b(what|how|is|can|do|does|where|why)\b/.test(m);
-  const isSuggest = /(recommend|suggest|what can i buy)/.test(m);
-  const isDescription = m.split(" ").length >= 3;
+    const isQuestion = /\b(what|how|is|can|do|does|where|why)\b/.test(m);
+    const isDescription = m.split(" ").length >= 3;
 
-  // 🧠 PRIORITY ORDER
+    const productId = extractProductName(m);
 
-  // 1. Explicit suggestion request
-  if (isSuggest) return "suggest";
+    // 🧠 1. EXPLICIT product question ONLY
+    if (productId && isQuestion) {
+      memory.lastProduct = productId;
+      saveMemory();
 
-  // 2. Question about product ONLY
-  if (productId && isQuestion) {
-    memory.lastProduct = productId;
-    saveMemory();
+      if (/(price|cost|how much)/.test(m)) return "price";
+      if (/(describe|info|details|what is)/.test(m)) return "product_info";
 
-    if (/(price|cost|how much)/.test(m)) return "price";
-    if (/(describe|info|details|what is)/.test(m)) return "product_info";
+      return "availability";
+    }
+  
+  // assistant
+  if (/(what.*you|help|purpose|who are you)/.test(m)) return "about_assistant";
 
-    return "availability";
+  // greeting
+  if (/(hi|hello|hey|hola|bonjour)/.test(m)) return "greeting";
+
+  // report
+  if (/(error|problem|issue|bug|not working|fail)/.test(m)) return "report";
+
+  // payment
+  if (/(pay|payment|paid|paying|pago|transfer|bank|money)/.test(m)) {
+    return "payment";
   }
 
-  // 3. Description → ALWAYS semantic search
-  if (isDescription) {
+  // delivery
+  if (/(delivery|shipping|ship|arrive|arrival|envio|entrega)/.test(m)) {
+    return "delivery";
+  }
+
+  // suggestion mode trigger
+  if (/(what can i buy|recommend|suggest)/.test(m)) {
+    return "suggest";
+  }
+
+  // description search mode
+  if (msg.split(" ").length >= 3) {
     return "semantic_search";
   }
-
-  // 4. Other intents
-  if (/(what.*you|help|purpose|who are you)/.test(m)) return "about_assistant";
-  if (/(hi|hello|hey|hola|bonjour)/.test(m)) return "greeting";
-  if (/(error|problem|issue|bug|fail)/.test(m)) return "report";
-  if (/(pay|payment|transfer|money)/.test(m)) return "payment";
-  if (/(delivery|shipping|arrive)/.test(m)) return "delivery";
 
   return "unknown";
 }
@@ -764,7 +767,7 @@ For example:
     const products = getProductData();
 
     let words = msg.split(" ");
-    words = await expandWordsAI(words);
+    words = expandWords(words);
 
     let scored = [];
 

@@ -2,6 +2,26 @@ import { db } from "./store-system/firebase-config.js";
 import { addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
+
+/* CONTENTS:
+1. Store knowlegde, dictionary, memory and multilengual system
+*/
+
+
+//
+// STORE KNOWLEDGE
+//
+const STORE_KNOWLEDGE = {
+  login: "Click the 'Login' button in the top navigation bar.",
+  payment: "Payment is done via bank transfer within 24 hours after reservation.",
+  delivery: "After payment, delivery details are sent via email.",
+  reservation: "Products can be reserved temporarily before payment.",
+  products: "We sell pictures and stories created by Seasons Serials artists."
+};
+
+//
+// DICTIONARY
+//
 const DICTIONARY = {
   mountains: ["mountain", "peaks", "nature", "landscape", "hills"],
   fruit: ["fruit", "summer", "food", "healthy", "watermelon", "apple"],
@@ -26,6 +46,9 @@ const DICTIONARY = {
   }
 };
 
+//
+// EXPAND WORDS AI FOR BETTER CONTENT UNDERSTANDING
+//
 async function expandWordsAI(words) {
   let expanded = new Set(words);
 
@@ -53,6 +76,9 @@ async function expandWordsAI(words) {
   return [...expanded];
 }
 
+//
+// INTERUPTS
+//
 const INTERRUPTS = {
   suggest: /(what can i buy|recommend|suggest)/,
   cancel: /(cancel|stop|exit|nevermind)/,
@@ -66,6 +92,9 @@ function detectInterrupt(msg) {
   return null;
 }
 
+//
+// MEMORY
+//
 let memory = JSON.parse(localStorage.getItem("chatMemory")) || {
   lastProduct: null,
   lastIntent: null,
@@ -76,6 +105,11 @@ function saveMemory() {
   localStorage.setItem("chatMemory", JSON.stringify(memory));
 }
 
+const responseHistory = new Map();
+
+//
+// SAFE ERROR - NO CONFUSION
+//
 function safeError(msg, err) {
   console.error(msg, err);
 
@@ -84,9 +118,12 @@ function safeError(msg, err) {
     es: "No pude completar la solicitud. Inténtalo de nuevo.",
     fr: "Impossible de compléter la demande.",
     ua: "Не вдалося виконати запит."
-  }[currentLang];
+  }[currentLang || "en"];
 }
 
+//
+// MULTILANGUAGE SYSTEM
+//
 const LANG = {
   EN: "en",
   ES: "es",
@@ -97,19 +134,37 @@ const LANG = {
 function detectLanguage(text) {
   const t = text.toLowerCase();
 
-  if (/[іїєґ]/.test(t)) return LANG.UA;
+  const forced = detectForcedLanguage(text);
+  if (forced) {
+    languageState.current = forced;
+    languageState.locked = true;
+    return forced;
+  }
+  
+  if (t.includes("switch to english")) return LANG.EN;
+  if (t.includes("français") || t.includes("parle français")) return LANG.FR;
+  if (t.includes("español") || t.includes("habla español")) return LANG.ES;
+  if (t.includes("українською") || t.includes("українська")) return LANG.UA;
 
-  if (t.includes("hola") || t.includes("comprar") || t.includes("producto"))
-    return LANG.ES;
+  if (!languageState.locked) {
+    if (/[іїєґ]/.test(t)) return LANG.UA;
+    if (t.includes("bonjour")) return LANG.FR;
+    if (t.includes("hola")) return LANG.ES;
+  }
 
-  if (t.includes("bonjour") || t.includes("produit"))
-    return LANG.FR;
-
-  return LANG.EN;
+  return languageState.current;
 }
+
+let languageState = {
+  current: LANG.EN,
+  locked: false
+};
 
 let currentLang = LANG.EN;
 
+//
+// CHAT STATE
+//
 let chatState = {
   mode: "normal", // normal | reporting
   step: null,
@@ -164,11 +219,29 @@ function addMessage(text, type) {
 
   const actions = document.createElement("div");
   actions.className = "msg-actions";
-  actions.innerHTML = `
-    <button class="copy-btn"><ion-icon name="copy-outline"></ion-icon></button>
-    <button class="delete-btn"><ion-icon name="trash-outline"></ion-icon></button>
-    <button class="more-btn"><ion-icon name="ellipsis-horizontal"></ion-icon></button>
+  
+  if (type === "user") {
+    actions.innerHTML = `
+      <button class="copy-btn"><ion-icon name="copy-outline"></ion-icon></button>
+      <button class="delete-btn"><ion-icon name="trash-outline"></ion-icon></button>
+      <button class="more-btn"><ion-icon name="ellipsis-horizontal"></ion-icon></button>
+    `;
+  } else {
+    actions.innerHTML = `
+      <button class="copy-btn"><ion-icon name="copy-outline"></ion-icon></button>
+      <button class="like-btn"><ion-icon name="thumbs-up-outline"></ion-icon></button>
+      <button class="dislike-btn"><ion-icon name="thumbs-down-outline"></ion-icon></button>
+    `;
+  }
+
+  const menu = document.createElement("div");
+  menu.className = "menu-dropdown hidden";
+  menu.innerHTML = `
+    <div class="menu-item edit-btn">Edit</div>
+    <div class="menu-item time-btn">Show details</div>
   `;
+
+  wrapper.appendChild(menu);
 
   wrapper.appendChild(msg);
   wrapper.appendChild(actions);
@@ -176,44 +249,21 @@ function addMessage(text, type) {
   chatMessages.appendChild(wrapper);
 }
 
-document.addEventListener("click", e => {
-  const btn = e.target.closest(".copy-btn");
-  if (!btn) return;
-
-  const msg = btn.closest(".chat-msg-wrapper").querySelector(".chat-msg");
-
-  navigator.clipboard.writeText(msg.innerText);
-
-  btn.innerText = "Copied";
-
-  setTimeout(() => {
-    btn.innerHTML = '<ion-icon name="copy-outline"></ion-icon>';
-  }, 1500);
-});
-
-function openDeleteModal() {
-  if (confirm("Are you sure you want to delete this message?")) {
-    confirmDelete();
-  }
-}
-
 let messageToDelete = null;
 
-document.addEventListener("click", (e) => {
-  const btn = e.target.closest(".delete-btn");
-  if (!btn) return;
-
-  messageToDelete = btn.closest(".chat-msg-wrapper");
-
+function openModal() {
   const modal = document.getElementById("deleteModal");
-  modal.classList.remove("hidden");
+  modal.classList.add("show");
 
-  // ensure focus reset (fixes ESC bug)
-  modal.focus?.();
-});
+  // lock background scroll
+  document.body.style.overflow = "hidden";
+}
 
 function closeModal() {
-  document.getElementById("deleteModal").classList.add("hidden");
+  const modal = document.getElementById("deleteModal");
+  modal.classList.remove("show");
+
+  document.body.style.overflow = "";
   messageToDelete = null;
 }
 
@@ -221,7 +271,15 @@ document.getElementById("cancelDelete").onclick = closeModal;
 
 document.getElementById("confirmDeleteBtn").onclick = () => {
   if (messageToDelete) {
+    const next = messageToDelete.nextElementSibling;
+
     messageToDelete.remove();
+
+    if (next && next.classList.contains("bot")) {
+      next.remove();
+    }
+
+    showToast("Message deleted");
   }
   closeModal();
 };
@@ -233,15 +291,94 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-document.addEventListener("click", e => {
-  const btn = e.target.closest(".more-btn");
-  if (!btn) return;
+document.addEventListener("click", (e) => {
+  const wrapper = e.target.closest(".chat-msg-wrapper");
+  if (!wrapper) return;
 
-  const wrapper = btn.closest(".chat-msg-wrapper");
-  const time = wrapper.dataset.time;
+  // COPY
+  if (e.target.closest(".copy-btn")) {
+    const msg = wrapper.querySelector(".chat-msg");
+    const btn = e.target.closest(".copy-btn");
+    navigator.clipboard.writeText(msg.innerText);
+    
+    btn.innerText = "Copied";
+    showToast("Copied");
 
-  alert(`Sent at: ${time}`);
+    setTimeout(() => {
+      btn.innerHTML = '<ion-icon name="copy-outline"></ion-icon>';
+    }, 1500);
+    
+    return;
+   };
+
+  // DELETE OPEN MODAL
+  if (e.target.closest(".delete-btn") || e.target.closest(".menu-item.delete-btn")) {
+    messageToDelete = wrapper;
+    openModal();
+    return;
+  }
+
+  // MENU TOGGLE (FIXED)
+  if (e.target.closest(".more-btn")) {
+    const menu = wrapper.querySelector(".menu-dropdown");
+
+    // close all others first
+    document.querySelectorAll(".menu-dropdown").forEach(m => {
+      if (m !== menu) m.classList.add("hidden");
+    });
+
+    menu.classList.toggle("hidden");
+    return;
+  }
+
+  // TIME
+  if (e.target.closest(".time-btn")) {
+    const modal = document.createElement("div");
+    modal.className = "time-modal";
+    modal.innerHTML = `
+      <div class="time-box">
+        <h3>Message details</h3>
+        <p>${new Date().toLocaleString()}</p>
+        <button onclick="this.parentElement.parentElement.remove()">Close</button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  if (e.target.closest(".edit-btn")) {
+  alert("Coming soon...");
+}
+
+if (e.target.closest(".like-btn")) {
+  const icon = e.target.closest("ion-icon");
+  icon.setAttribute("name", "thumbs-up");
+}
+
+if (e.target.closest(".dislike-btn")) {
+  const icon = e.target.closest("ion-icon");
+  icon.setAttribute("name", "thumbs-down");
+}
+
+  // click outside closes menus
+  document.querySelectorAll(".menu-dropdown").forEach(m => {
+    if (!m.contains(e.target)) m.classList.add("hidden");
+  });
 });
+
+function showToast(text) {
+  const toast = document.createElement("div");
+  toast.className = "chat-toast";
+  toast.innerText = text;
+
+  document.body.appendChild(toast);
+
+  setTimeout(() => toast.classList.add("show"), 10);
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 300);
+  }, 2000);
+}
 
 // LOADING MESSAGE
 function addLoading() {
@@ -277,14 +414,13 @@ async function sendMessage(text) {
 
   try {
     response = await generateSmartReply(text);
+
+    if (!response) throw new Error("Empty AI response");
+
   } catch (err) {
     console.error(err);
 
-    response = `Critical error ❌
-
-  ${err.message || err}
-
-  Check console for details.`;
+    response = clarifyResponse(text);
   }
 
   setTimeout(() => {
@@ -322,6 +458,8 @@ async function getProductStatus(productId) {
 
 async function generateSmartReply(input) {
 
+  currentLang = detectLanguage(input);
+  
   const forcedLang = detectForcedLanguage(input);
 
   if (forcedLang) {
@@ -329,6 +467,10 @@ async function generateSmartReply(input) {
   }
   
   const msg = normalize(input);
+
+  if (msg.includes("auto language")) {
+    languageState.locked = false;
+  }
 
   if (chatState.mode === "reporting") {
     return handleReportFlow(msg);
@@ -347,19 +489,27 @@ How may I assist you today?
     return "Claro. A partir de ahora responderé en español.";
   }
 
+  if (msg.includes("українською")) {
+    currentLang = LANG.UA;
+    return "Звісно. Від тепер я відповідатиму українською.";
+  }
+
   const intent = analyzeIntent(msg);
+
+  const greet = isGreeting(msg);
+
+  let response = await generateResponse(intent, msg);
+
+  if (greet) {
+    response = "👋 Hello!\n\n" + response;
+  }
 
   // ✅ MEMORY SAVE (CORRECT PLACE)
   memory.lastIntent = intent;
   memory.lastMessage = msg;
   saveMemory();
 
-  // ✅ CONTEXT UNDERSTANDING ("it")
-  if (msg.includes("it") && memory.lastProduct) {
-    return generateResponse("availability", memory.lastProduct);
-  }
-
-  return generateResponse(intent, msg);
+  return response;
 }
 
 function normalize(text) {
@@ -371,6 +521,9 @@ function normalize(text) {
     .trim();
 }
 
+//
+// EXTRACT PRODUCT NAME FOR SEARCH
+//
 function extractProductName(msg) {
   const products = document.querySelectorAll(".sale-product-box");
 
@@ -392,6 +545,7 @@ function extractProductName(msg) {
 
   return null;
 }
+
 function hasIntent(msg, keywords) {
   return keywords.some(k => msg.includes(k));
 }
@@ -526,20 +680,31 @@ function searchProductsSmart(query) {
     .map(p => "• " + p.name);
 }
 
+//
+// ERROR HANDLING
+//
 async function handleReportFlow(msg) {
+
+  const interrupt = detectInterrupt(msg);
+
+  if (interrupt === "suggest") {
+    chatState = { mode: "normal", step: null, report: {} };
+    return generateResponse("suggest", msg);
+  }
 
   // STEP 1 — TYPE
   if (chatState.step === "ask_type") {
 
-  if (msg.includes("pay")) chatState.report.type = "payment";
-    else if (msg.includes("product")) chatState.report.type = "product";
-    else if (msg.includes("site") || msg.includes("bug")) chatState.report.type = "website";
-    else chatState.report.type = msg;
-
-    chatState.step = "ask_desc";
-
-    return "Got it. Please describe the issue in detail.";
+  if (/pay|payment/.test(msg)) chatState.report.type = "payment";
+  else if (/product|item/.test(msg)) chatState.report.type = "product";
+  else if (/site|website|bug/.test(msg)) chatState.report.type = "website";
+  else {
+    return "Please choose: payment, product, or website.";
   }
+
+  chatState.step = "ask_desc";
+  return "Got it. Describe the issue.";
+}
 
   // STEP 2 — DESCRIPTION
   if (chatState.step === "ask_desc") {
@@ -551,6 +716,14 @@ async function handleReportFlow(msg) {
 
   // STEP 3 — EMAIL + SAVE TO FIREBASE
   if (chatState.step === "ask_email") {
+
+    function isValidEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    if (msg !== "skip" && !isValidEmail(msg)) {
+      return "This isn't a valid email address. Please try again or type 'skip'.";
+    }
 
     chatState.report.email = msg === "skip" ? null : msg;
 
@@ -595,72 +768,211 @@ Thank you for helping us improve the platform.
   return "Unexpected state. Restarting report process.";
 }
 
+// FALLBACK - NOT IN USE NOW!
+/*
 function smartFallback(msg) {
+  const words = msg.split(" ");
 
-  // detect question style
-  if (msg.includes("?")) {
-    return {
-      en: "I understand you're asking a question. I can help with products, orders, or how the store works. Try something like 'How do I log in?' or 'What can I buy?'",
-      es: "Entiendo que haces una pregunta. Puedo ayudarte con productos o pedidos.",
-      fr: "Je comprends que vous posez une question. Je peux vous aider avec les produits.",
-      ua: "Я бачу, що це питання. Я можу допомогти з товарами або замовленнями."
-    }[currentLang];
-  }
+  const hints = [];
 
-  // detect confusion
-  if (msg.length < 4) {
-    return t("confused");
+  if (msg.includes("?")) hints.push("This looks like a question.");
+  if (words.length < 3) hints.push("Try adding more details.");
+  if (!/\b(buy|price|order|help)\b/.test(msg)) {
+    hints.push("Try mentioning what you want to do (buy, ask, report).");
   }
 
   return {
-    en: "I'm here to help with shopping, orders, or any issue on the website. Try asking something more specific 😊",
-    es: "Estoy aquí para ayudarte con compras o problemas en la web.",
-    fr: "Je suis là pour vous aider avec vos achats.",
-    ua: "Я тут, щоб допомогти з покупками або проблемами."
+    en: `I couldn’t match your request to a clear intent.
+
+${hints.join("\n")}
+
+Try: “What can I buy?” or “Help with payment”`,
+    es: "No pude entender bien tu mensaje.",
+    fr: "Je n'ai pas compris clairement.",
+    ua: "Я не зрозумів запит."
+  }[currentLang];
+}
+*/
+
+// FALLBACK - NOT IN USE NOW
+/* async function fallbackAI(msg) {
+  try {
+    const res = await fetch(
+      "https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium",
+      {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer YOUR_HF_TOKEN",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ inputs: msg })
+      }
+    );
+
+    const data = await res.json();
+    return data?.generated_text || "I couldn't respond.";
+  } catch {
+    return smartFallback(msg);
+  }
+}
+*/
+
+//
+// SMART FALLBACK
+//
+function clarifyResponse(msg) {
+  return {
+    en: "Could you clarify a bit so I can help better?",
+    es: "¿Puedes aclarar un poco más?",
+    fr: "Peux-tu préciser un peu ?",
+    ua: "Можеш трохи уточнити?"
   }[currentLang];
 }
 
+//
+// INTENTS AND ANALYZING FOR CONTEXT UNDERSTANDING
+//
+const INTENTS = {
+  about_assistant: {
+    en: ["what are you used for", "what do you do", "your purpose"],
+    es: ["para que sirves", "que haces"],
+    fr: ["a quoi tu sers", "que fais tu"],
+    ua: ["для чого ти", "що ти робиш"]
+  },
+
+  seasons_serials: {
+    en: ["seasons serials", "company", "who created"],
+    es: ["seasons serials", "empresa"],
+    fr: ["seasons serials", "entreprise"],
+    ua: ["seasons serials", "компанія"]
+  },
+
+  suggest: {
+    en: ["what can i buy", "recommend", "suggest", "show"],
+    es: ["que puedo comprar", "recomienda"],
+    fr: ["que puis je acheter", "recommande"],
+    ua: ["що купити", "порадь"]
+  },
+
+  availability: {
+    en: ["available", "in stock"],
+    es: ["disponible"],
+    fr: ["disponible"],
+    ua: ["доступний", "в наявності"]
+  },
+
+  product_search: {
+    en: ["product", "item"],
+    es: ["producto"],
+    fr: ["produit"],
+    ua: ["товар"]
+  },
+
+  semantic_search: {
+    en: ["something like", "with", "looking for"],
+    es: ["algo con", "busco"],
+    fr: ["quelque chose avec", "je cherche"],
+    ua: ["щось з", "я шукаю"]
+  },
+
+  help: {
+    en: ["help", "problem"],
+    es: ["ayuda", "problema"],
+    fr: ["aide", "probleme"],
+    ua: ["допомога", "проблема"]
+  },
+
+  sorry: {
+    en: ["no", "wrong", "bad", "terrible", "no"],
+    es: ["mal", "no funciona", "no"],
+    fr: ["mauvais", "ça marche pas", "no"],
+    ua: ["погано", "не працює", "ні"]
+  },
+
+  report: {
+    en: ["report", "bug", "error", "issue"],
+    es: ["reportar", "error"],
+    fr: ["signaler"],
+    ua: ["повідомити", "помилка"]
+  },
+
+  payment: {
+  en: ["payment", "pay", "how to pay"],
+  es: ["pago"],
+  fr: ["paiement"],
+  ua: ["оплата"]
+},
+
+delivery: {
+  en: ["delivery", "shipping"],
+  es: ["entrega"],
+  fr: ["livraison"],
+  ua: ["доставка"]
+},
+
+price: {
+  en: ["price", "cost"],
+  es: ["precio"],
+  fr: ["prix"],
+  ua: ["ціна"]
+},
+
+product_info: {
+  en: ["details", "info", "description"],
+  es: ["detalles"],
+  fr: ["détails"],
+  ua: ["опис"]
+},
+
+cheapest: {
+  en: ["cheapest", "lowest price"],
+  es: ["más barato"],
+  fr: ["moins cher"],
+  ua: ["найдешевший"]
+},
+
+expensive: {
+  en: ["most expensive", "highest price"],
+  es: ["más caro"],
+  fr: ["plus cher"],
+  ua: ["найдорожчий"]
+}
+};
+
 function analyzeIntent(msg) {
-  const m = msg.toLowerCase();
+  const words = msg.split(" ");
+  let scores = {};
 
-  const productId = extractProductName(m);
-  const isQuestion = /\b(what|how|is|can|do|does|where|why)\b/.test(m);
-  const isSuggest = /(recommend|suggest|what can i buy)/.test(m);
-  const isDescription = m.split(" ").length >= 3;
+  for (let intent in INTENTS) {
+    scores[intent] = 0;
 
-  // 🧠 PRIORITY ORDER
+    const allWords = Object.values(INTENTS[intent]).flat();
 
-  // 1. Explicit suggestion request
-  if (isSuggest) return "suggest";
+    allWords.forEach(keyword => {
+      const keyWordsSplit = keyword.split(" ");
 
-  // 2. Question about product ONLY
-  if (productId && isQuestion) {
-    memory.lastProduct = productId;
-    saveMemory();
-
-    if (/(price|cost|how much)/.test(m)) return "price";
-    if (/(describe|info|details|what is)/.test(m)) return "product_info";
-
-    return "availability";
+      keyWordsSplit.forEach(k => {
+        if (words.includes(k)) scores[intent]++;
+      });
+    });
   }
 
-  // 3. Description → ALWAYS semantic search
-  if (isDescription) {
-    return "semantic_search";
-  }
+  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
 
-  // 4. Other intents
-  if (/(what.*you.*use|what.*you.*for|your purpose|who are you)/.test(m)) {
-    return "about_assistant";
-  }
-  if (/(hi|hello|hey|hola|bonjour)/.test(m)) return "greeting";
-  if (/(error|problem|issue|bug|fail)/.test(m)) return "report";
-  if (/(pay|payment|transfer|money)/.test(m)) return "payment";
-  if (/(delivery|shipping|arrive)/.test(m)) return "delivery";
+  const best = sorted[0];
+  const second = sorted[1];
 
-  return "unknown";
+  // ✅ RULES YOU REQUESTED
+  if (best[1] === 0) return "clarify";
+
+  if (second && best[1] === second[1]) return "clarify";
+
+  return best[0];
 }
 
+//
+// GET PRODUCT DATA
+//
 function getProductData() {
   const products = document.querySelectorAll(".sale-product-box");
 
@@ -691,11 +1003,15 @@ function getProductData() {
   });
 }
 
+//
+// GENERATE RESPONSE
 async function generateResponse(intent, msg) {
 
-  const responseHistory = new Map();
-
   function random(key, arr) {
+    if (!Array.isArray(arr) || arr.length === 0) {
+      return "I couldn't generate a response.";
+    }
+
     const last = responseHistory.get(key);
 
     let filtered = arr;
@@ -704,14 +1020,14 @@ async function generateResponse(intent, msg) {
     }
 
     const chosen = filtered[Math.floor(Math.random() * filtered.length)];
-    responseHistory.set(key, chosen);
 
+    responseHistory.set(key, chosen);
     return chosen;
   }
-
+  
   // 🧠 ABOUT
   if (intent === "about_assistant") {
-    return random([
+    return random("about_assistant", [
       "I'm your assistant. I help you find products, check availability, and solve issues.",
       "I can guide you through products, payments, delivery, and problems on this store.",
       "Think of me as your shopping assistant. Ask me anything about products or orders.",
@@ -723,7 +1039,7 @@ async function generateResponse(intent, msg) {
 
   // 💳 PAYMENT (NOW WORKS)
   if (intent === "payment") {
-    return random([
+    return random("payment", [
       "Payments are done via bank transfer. You have 24 hours after placing an order.",
       "To complete a purchase, you’ll receive payment instructions after ordering.",
       "We currently use bank transfer. Make sure to complete it within 24 hours."
@@ -732,7 +1048,7 @@ async function generateResponse(intent, msg) {
 
   // 🚚 DELIVERY (NOW WORKS)
   if (intent === "delivery") {
-    return random([
+    return random("delivery", [
       "After payment confirmation, you’ll receive all delivery details by email.",
       "We process your order after payment and send instructions directly to your email.",
       "Delivery details are shared once your payment is confirmed."
@@ -761,31 +1077,47 @@ For example:
 • "a colorful summer picture"
 • "a story for kids"`;
   }
-
+  
   // 📦 AVAILABILITY
   if (intent === "availability") {
+  let productId = extractProductName(msg);
 
-    const productId = memory.lastProduct || extractProductName(msg);
-  
-    if (!productId) {
-      return "Tell me the product name and I’ll check it.";
+  if (!productId) {
+    memory.awaitingProduct = true;
+    return "Please tell me the product name.";
+  }
+
+  const status = await getProductStatus(productId);
+  const product = getProductData().find(p => p.id === productId);
+
+  memory.lastProduct = productId;
+
+  return `${product.name}
+${product.price}
+
+Status: ${status}
+
+Would you like me to check another product?`;
+}
+
+// 🔥 FOLLOW-UP HANDLING
+if (memory.awaitingProduct) {
+  const productId = extractProductName(msg);
+
+  if (!productId) {
+    const newIntent = analyzeIntent(msg);
+
+    if (newIntent !== "clarify") {
+      memory.awaitingProduct = false;
+      return generateResponse(newIntent, msg);
     }
 
-    const status = await getProductStatus(productId);
-
-    const data = getProductData().find(p => p.id === productId);
-
-    const base = {
-      available: "Yes ✅ it's available.",
-      reserved: "⚠️ It's reserved.",
-      sold: "❌ It's sold."
-    };
-
-    return `${base[status] || "Unknown status."}
-
-  ${data ? `Product: ${data.name}
-  Price: ${data.price}` : ""}`;
+    return "I couldn't find that product.";
   }
+
+  memory.awaitingProduct = false;
+  return generateResponse("availability", msg);
+}
 
   // 🚨 REPORT
   if (intent === "report") {
@@ -806,45 +1138,78 @@ For example:
   ${data.description.slice(0, 300)}...` : "No info found.";
   }
 
-  if (intent === "semantic_search" || memory.expectingDescription) {
+  if (memory.expectingChoice) {
 
-    const products = getProductData();
+  if (/yes|yeah|ok|sure|yep/.test(msg)) {
+    const p = memory.lastSuggested?.[0];
 
-    let words = msg.split(" ");
-    words = await expandWordsAI(words);
+    if (!p) return "Something went wrong 😅";
 
-    let scored = [];
-
-    products.forEach(p => {
-      let score = 0;
-      const text = (p.name + " " + p.description).toLowerCase();
-
-      words.forEach(w => {
-        if (text.includes(w)) score += 1;
-      });
-
-      if (score > 0) {
-        scored.push({ ...p, score });
-      }
-    });
-
-    memory.expectingDescription = false;
+    memory.expectingChoice = false;
     saveMemory();
 
-    if (scored.length) {
-      scored.sort((a, b) => b.score - a.score);
+    return `📦 ${p.name}
 
-      const best = scored.slice(0, 3);
-
-      return `✨ I’ve found something that might match your idea:
-
-${best.map(p => `• ${p.name}`).join("\n")}
-
-Tell me if you'd like details about one of them.`;
-    }
-
-    return "I couldn’t quite match that description. Try describing colors, theme, or mood.";
+${p.description}`;
   }
+
+  if (/something else|another|different/.test(msg)) {
+    memory.expectingChoice = false;
+    saveMemory();
+    return generateResponse("suggest", msg);
+  }
+}
+
+  if (intent === "semantic_search") {
+  if (!/with|like|something|busco|cherche|шукаю/.test(msg)) {
+    return clarifyResponse(msg);
+  }
+
+  const results = await semanticSearch(msg);
+
+  if (!results || !results.length) {
+    return "I couldn’t match anything. Let me suggest something.";
+  }
+
+  const p = results[0];
+
+  return `✨ I found something based on your description:
+
+${results.map(p => `• ${p.name}`).join("\n")}
+
+👉 Say "yes" to see details or "something else" if this isn't something you are looking for`;
+}
+
+  if (intent === "product_search") {
+  const productId = extractProductName(msg);
+  const product = getProductData().find(p => p.id === productId);
+
+  if (!productId) {
+    memory.awaitingProduct = false;
+    return "I couldn’t find that product. Did you mean something else?";
+  }
+
+  memory.lastProduct = productId;
+  memory.awaitingDescription = true;
+
+  return `${product.name}
+${product.price}
+
+Would you like the product description?`;
+}
+
+if (memory.awaitingDescription) {
+  if (/yes|yeah|sí|oui|так|да/.test(msg)) {
+    const product = getProductData().find(p => p.id === memory.lastProduct);
+    memory.awaitingDescription = false;
+
+    return `${product.name}
+
+${product.description}`;
+  }
+
+  memory.awaitingDescription = false;
+}
 
   const interrupt = detectInterrupt(msg);
 
@@ -855,8 +1220,56 @@ Tell me if you'd like details about one of them.`;
     if (interrupt === "cancel") return "Alright, I've stopped that process. What would you like to do now?";
     if (interrupt === "help") return t("help");
   }
+
+  // 🔥 DIRECT SIMPLE QUESTIONS (ALWAYS ANSWER)
+  if (msg.includes("what do you sell")) return STORE_KNOWLEDGE.products;
+  if (msg.includes("login")) return t("loginHelp");
+  if (msg.includes("payment")) return t("payment");
+  if (msg.includes("delivery")) return t("delivery");
+
+  // 🔥 HELP ALWAYS WORKS
+  if (intent === "help") {
+    return t("help");
+  }
+
+  // 💸 CHEAPEST
+  if (intent === "cheapest") {
+    const products = getProductData();
+    const cheapest = products.sort((a,b)=>parseFloat(a.price)-parseFloat(b.price))[0];
+    return `💸 ${cheapest.name} — ${cheapest.price}`;
+  }
+
+  // 💎 EXPENSIVE
+  if (intent === "expensive") {
+    const products = getProductData();
+    const expensive = products.sort((a,b)=>parseFloat(b.price)-parseFloat(a.price))[0];
+    return `💎 ${expensive.name} — ${expensive.price}`;
+  }
+
+if (intent === "seasons_serials") {
+  return `Seasons Serials is a Ukrainian company owned by Dmytro Moroz.
+
+It creates paintings, stories, performances and more artistic projects.
+
+More info:
+https://about-seasons-serials.netlify.app`;
+}
+
+if (intent === "help") {
+  memory.awaitingHelp = true;
+  return "How can I help you today?";
+}
+
+if (memory.awaitingHelp) {
+  memory.awaitingHelp = false;
+  return "Coming soon…";
+}
+
+if (intent === "sorry") {
+  return "I understand something went wrong. I'm very sorry for that. I'm doing my best to help you. Ler's try again.";
+}
   
-  return smartFallback(msg);
+  return clarifyResponse(msg);
 }
 
 function formatResponse(text) {
@@ -868,4 +1281,61 @@ function formatResponse(text) {
 
 function randomize(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
+}
+
+
+//
+// SEMANTIC SEARCH
+//
+async function semanticSearch(msg) {
+  const products = getProductData();
+
+  let words = msg.split(" ");
+  words = await expandWordsAI(words);
+
+  let scored = [];
+
+  products.forEach(p => {
+    let score = 0;
+    const text = (p.name + " " + p.description).toLowerCase();
+
+    words.forEach(w => {
+      if (text.includes(w)) score += 1;
+    });
+
+    if (score >= 1) { // 🔥 threshold fix
+      scored.push({ ...p, score });
+    }
+  });
+
+  if (!scored.length) return null;
+
+  scored.sort((a,b)=>b.score-a.score);
+
+  return scored.slice(0, 2); // 🔥 MAX 2 RESULTS
+}
+
+//
+// CHANGE PRODUCTS EVEETY 48 HOURS
+//
+function getStableSuggestions(products) {
+  const key = "suggest_cache";
+  const cache = JSON.parse(localStorage.getItem(key));
+
+  const now = Date.now();
+
+  if (cache && now - cache.time < 48 * 60 * 60 * 1000) {
+    return cache.data;
+  }
+
+  const selected = products
+    .filter(p => p.status === "available")
+    .slice(0, 4);
+
+  localStorage.setItem(key, JSON.stringify({
+    time: now,
+    data: selected
+  }));
+
+  return selected;
 }

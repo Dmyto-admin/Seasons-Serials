@@ -123,7 +123,7 @@ function safeError(msg, err) {
     es: "No pude completar la solicitud. Inténtalo de nuevo.",
     fr: "Impossible de compléter la demande.",
     ua: "Не вдалося виконати запит."
-  }[currentLang];
+  }[currentLang || "en"];
 }
 
 //
@@ -425,7 +425,7 @@ async function sendMessage(text) {
   } catch (err) {
     console.error(err);
 
-    response = smartFallback(text);
+    response = clarifyResponse(text);
   }
 
   setTimeout(() => {
@@ -472,6 +472,10 @@ async function generateSmartReply(input) {
   }
   
   const msg = normalize(input);
+
+  if (msg.includes("auto language")) {
+    languageState.locked = false;
+  }
 
   if (chatState.mode === "reporting") {
     return handleReportFlow(msg);
@@ -895,7 +899,49 @@ const INTENTS = {
     es: ["reportar", "error"],
     fr: ["signaler"],
     ua: ["повідомити", "помилка"]
-  }
+  },
+
+  payment: {
+  en: ["payment", "pay", "how to pay"],
+  es: ["pago"],
+  fr: ["paiement"],
+  ua: ["оплата"]
+},
+
+delivery: {
+  en: ["delivery", "shipping"],
+  es: ["entrega"],
+  fr: ["livraison"],
+  ua: ["доставка"]
+},
+
+price: {
+  en: ["price", "cost"],
+  es: ["precio"],
+  fr: ["prix"],
+  ua: ["ціна"]
+},
+
+product_info: {
+  en: ["details", "info", "description"],
+  es: ["detalles"],
+  fr: ["détails"],
+  ua: ["опис"]
+},
+
+cheapest: {
+  en: ["cheapest", "lowest price"],
+  es: ["más barato"],
+  fr: ["moins cher"],
+  ua: ["найдешевший"]
+},
+
+expensive: {
+  en: ["most expensive", "highest price"],
+  es: ["más caro"],
+  fr: ["plus cher"],
+  ua: ["найдорожчий"]
+}
 };
 
 function analyzeIntent(msg) {
@@ -982,12 +1028,6 @@ async function generateResponse(intent, msg) {
 
     responseHistory.set(key, chosen);
     return chosen;
-  }
-
-  if (intent === "semantic_search") {
-    if (msg.includes("what are you used for")) {
-      return "I'm a shopping assistant that helps you find products and manage orders.";
-    }
   }
   
   // 🧠 ABOUT
@@ -1149,7 +1189,8 @@ ${results.map(p => `• ${p.name}`).join("\n")}
   const productId = extractProductName(msg);
   const product = getProductData().find(p => p.id === productId);
 
-  if (!product) {
+  if (!productId) {
+    memory.awaitingProduct = false;
     return "I couldn’t find that product. Did you mean something else?";
   }
 

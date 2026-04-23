@@ -492,13 +492,12 @@ async function generateSmartReply(input) {
     return handleReportFlow(msg);
   }
 
-  if (isGreeting(msg)) {
-    return formatResponse(`
-Hello, and welcome to Seasons Serials.
+  if (isGreeting(msg) && !memory.greetedOnce) {
+  memory.greetedOnce = true;
+  saveMemory();
 
-How may I assist you today?
-    `);
-  }
+  return formatResponse(t("greeting"));
+}
 
   if (msg.includes("same in spanish")) {
     currentLang = LANG.ES;

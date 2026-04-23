@@ -459,11 +459,16 @@ async function getProductStatus(productId) {
 async function generateSmartReply(input) {
 
   currentLang = detectLanguage(input);
+
+  if (!languageState.locked) {
+    currentLang = detectLanguage(input);
+  }
   
   const forcedLang = detectForcedLanguage(input);
 
   if (forcedLang) {
     currentLang = forcedLang;
+    languageState.locked = true;
   }
   
   const msg = normalize(input);
@@ -527,23 +532,31 @@ function normalize(text) {
 function extractProductName(msg) {
   const products = document.querySelectorAll(".sale-product-box");
 
+  let bestMatch = null;
+  let bestScore = 0;
+
   for (let p of products) {
-    const name = p.querySelector(".product-name")?.innerText
-      .toLowerCase()
-      .replace(/"/g, "");
+    const name = p.querySelector(".product-name")?.innerText.toLowerCase().replace(/"/g, "");
+
+    if (!name) continue;
 
     const words = name.split(" ");
+    let score = 0;
 
-    // 🔥 smarter matching (partial match)
-    if (
-      msg.includes(name) ||
-      words.some(w => msg.includes(w))
-    ) {
-      return p.id;
+    words.forEach(w => {
+      if (msg.includes(w)) score++;
+    });
+
+    // require STRONG match
+    if (msg.includes(name)) return p.id;
+
+    if (score > bestScore && score >= 2) {
+      bestScore = score;
+      bestMatch = p.id;
     }
   }
 
-  return null;
+  return bestMatch;
 }
 
 function hasIntent(msg, keywords) {
@@ -980,6 +993,7 @@ function getProductData() {
     const id = p.id;
     const name = p.querySelector(".product-name")?.innerText || "";
     const price = p.querySelector(".product-price")?.innerText || "";
+    const status = p.dataset.status || "unknown";
 
     // find description via wrapper
     const link = p.querySelector(".more-info-product");
@@ -998,13 +1012,15 @@ function getProductData() {
       id,
       name,
       price,
-      description
+      description,
+      status
     };
   });
 }
 
 //
 // GENERATE RESPONSE
+//
 async function generateResponse(intent, msg) {
 
   function random(key, arr) {
@@ -1060,9 +1076,7 @@ async function generateResponse(intent, msg) {
 
     const products = getProductData();
 
-    const shuffled = products.sort(() => 0.5 - Math.random());
-
-    const selected = shuffled.slice(0, 4);
+    const selected = getStableSuggestions(products);
 
     memory.expectingDescription = true;
     saveMemory();
@@ -1095,7 +1109,7 @@ For example:
   return `${product.name}
 ${product.price}
 
-Status: ${status}
+Status: ${status === "available" ? "✅ Available" : "❌ Not available"}`;
 
 Would you like me to check another product?`;
 }
@@ -1206,9 +1220,10 @@ if (memory.awaitingDescription) {
     return `${product.name}
 
 ${product.description}`;
+  } else {
+    memory.awaitingDescription = false;
+    return "Alright 👍 Let me know if you need anything else.";
   }
-
-  memory.awaitingDescription = false;
 }
 
   const interrupt = detectInterrupt(msg);

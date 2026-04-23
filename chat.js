@@ -2,6 +2,7 @@ import { db } from "./store-system/firebase-config.js";
 import { addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
+
 const DICTIONARY = {
   mountains: ["mountain", "peaks", "nature", "landscape", "hills"],
   fruit: ["fruit", "summer", "food", "healthy", "watermelon", "apple"],

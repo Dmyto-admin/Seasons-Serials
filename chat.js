@@ -492,6 +492,9 @@ async function generateSmartReply(input) {
     return handleReportFlow(msg);
   }
 
+  const intent = analyzeIntent(msg);
+  const greet = isGreeting(msg);
+
   if (isGreeting(msg) && !memory.greetedOnce) {
   memory.greetedOnce = true;
   saveMemory();
@@ -508,10 +511,6 @@ async function generateSmartReply(input) {
     currentLang = LANG.UA;
     return "Звісно. Від тепер я відповідатиму українською.";
   }
-
-  const intent = analyzeIntent(msg);
-
-  const greet = isGreeting(msg);
 
   let response = await generateResponse(intent, msg);
 

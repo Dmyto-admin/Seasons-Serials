@@ -958,13 +958,15 @@ function getProductData() {
 // GENERATE RESPONSE
 async function generateResponse(intent, msg) {
 
+  const productId = extractProductName(msg);
+  
   // 🔥 PRIORITY: product always wins
   if (productId) {
     memory.lastProduct = productId;
     saveMemory();
 
-    if (/(price|cost|how much)/.test(m)) return "price";
-    if (/(describe|info|details|what is)/.test(m)) return "product_info";
+    if (/(price|cost|how much)/.test(msg)) return "price";
+    if (/(describe|info|details|what is)/.test(msg)) return "product_info";
 
     return "availability";
   }

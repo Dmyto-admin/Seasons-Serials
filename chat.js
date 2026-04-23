@@ -962,14 +962,21 @@ async function generateResponse(intent, msg) {
   
   // 🔥 PRIORITY: product always wins
   if (productId) {
-    memory.lastProduct = productId;
-    saveMemory();
+  memory.lastProduct = productId;
+  saveMemory();
 
-    if (/(price|cost|how much)/.test(msg)) return "price";
-    if (/(describe|info|details|what is)/.test(msg)) return "product_info";
+  // prioritize real intent first
+  if (intent === "price") return "price";
+  if (intent === "product_info") return "product_info";
+  if (intent === "availability") return "availability";
 
+  // fallback ONLY if user clearly asks about product
+  if (/(buy|available|stock|can i|get)/.test(msg)) {
     return "availability";
   }
+
+  // default smarter behavior
+  return "product_info";
 
   function random(key, arr) {
     if (!Array.isArray(arr) || arr.length === 0) {

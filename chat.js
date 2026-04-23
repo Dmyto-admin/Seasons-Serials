@@ -95,9 +95,11 @@ function detectInterrupt(msg) {
 //
 // MEMORY
 //
-let memory = JSON.parse(localStorage.getItem("chatMemory")) || {
+memory = {
   lastProduct: null,
   lastIntent: null,
+  lastAction: null, // NEW
+  awaitingField: null, // NEW ("price" | "availability" | "details")
   language: "en"
 };
 
@@ -977,6 +979,7 @@ async function generateResponse(intent, msg) {
 
   // default smarter behavior
   return "product_info";
+  }
 
   function random(key, arr) {
     if (!Array.isArray(arr) || arr.length === 0) {

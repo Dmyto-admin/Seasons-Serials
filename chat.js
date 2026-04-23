@@ -5,13 +5,7 @@ import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.9.0/f
 
 /* CONTENTS:
 1. Store knowlegde, dictionary, memory and multilengual system
-2. 
-
-
-
-
 */
-
 
 //
 // STORE KNOWLEDGE

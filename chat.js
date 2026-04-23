@@ -2,6 +2,14 @@ import { db } from "./store-system/firebase-config.js";
 import { addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
+const DICTIONARY = {
+  mountains: ["mountain", "peaks", "nature", "landscape", "hills"],
+  fruit: ["fruit", "summer", "food", "healthy", "watermelon", "apple"],
+  future: ["future", "dream", "ambition", "chess", "strategy"],
+  bamboo: ["bamboo", "green", "nature", "plant"],
+  story: ["story", "book", "kids", "forest", "mushroom"]
+};
+
 let memory = JSON.parse(localStorage.getItem("chatMemory")) || {
   lastProduct: null,
   lastIntent: null,
@@ -267,19 +275,26 @@ function normalize(text) {
 }
 
 function extractProductName(msg) {
-  const products = document.querySelectorAll(".product-name");
+  const products = document.querySelectorAll(".sale-product-box");
 
   for (let p of products) {
-    const name = p.innerText.toLowerCase().replace(/"/g, "");
+    const name = p.querySelector(".product-name")?.innerText
+      .toLowerCase()
+      .replace(/"/g, "");
 
-    if (msg.includes(name.toLowerCase())) {
-      return p.closest(".sale-product-box").id;
+    const words = name.split(" ");
+
+    // 🔥 smarter matching (partial match)
+    if (
+      msg.includes(name) ||
+      words.some(w => msg.includes(w))
+    ) {
+      return p.id;
     }
   }
 
   return null;
 }
-
 function hasIntent(msg, keywords) {
   return keywords.some(k => msg.includes(k));
 }
@@ -418,10 +433,15 @@ async function handleReportFlow(msg) {
 
   // STEP 1 — TYPE
   if (chatState.step === "ask_type") {
-    chatState.report.type = msg;
+
+  if (msg.includes("pay")) chatState.report.type = "payment";
+    else if (msg.includes("product")) chatState.report.type = "product";
+    else if (msg.includes("site") || msg.includes("bug")) chatState.report.type = "website";
+    else chatState.report.type = msg;
+
     chatState.step = "ask_desc";
 
-    return "Understood. Please briefly describe the issue.";
+    return "Got it. Please describe the issue in detail.";
   }
 
   // STEP 2 — DESCRIPTION
@@ -508,15 +528,15 @@ function analyzeIntent(msg) {
 
   const productId = extractProductName(m);
 
-  // 🚨 PRIORITY: if product detected → it's about THAT product
+  // 🔥 PRIORITY: product always wins
   if (productId) {
     memory.lastProduct = productId;
     saveMemory();
 
     if (/(price|cost|how much)/.test(m)) return "price";
-    if (/(describe|what is it|info|details)/.test(m)) return "product_info";
+    if (/(describe|info|details|what is)/.test(m)) return "product_info";
 
-    return "availability"; // default fallback for product mention
+    return "availability";
   }
 
   // assistant
@@ -544,7 +564,7 @@ function analyzeIntent(msg) {
   }
 
   // description search mode
-  if (msg.length > 8) {
+  if (msg.split(" ").length >= 3) {
     return "semantic_search";
   }
 
@@ -626,9 +646,13 @@ async function generateResponse(intent, msg) {
 
     return `Here are some products you might like:
 
-  ${selected.map(p => `• ${p.name} — ${p.price}`).join("\n")}
+    ${selected.map(p => `• ${p.name} — ${p.price}`).join("\n")}
 
-  💡 Describe what you want (example: "something with mountains or nature")`;
+    💡 Try describing what you’re looking for:
+For example:
+• "something with mountains"
+• "a colorful summer picture"
+• "a story for kids"`;
   }
 
   // 📦 AVAILABILITY
@@ -678,7 +702,6 @@ async function generateResponse(intent, msg) {
   if (intent === "semantic_search" || memory.expectingDescription) {
 
     const products = getProductData();
-
     const words = msg.split(" ");
 
     let best = null;
@@ -687,8 +710,20 @@ async function generateResponse(intent, msg) {
     products.forEach(p => {
       let score = 0;
 
+      const desc = p.description.toLowerCase();
+
       words.forEach(w => {
-        if (p.description.includes(w)) score++;
+        // direct match
+        if (desc.includes(w)) score++;
+
+        // synonym match
+        Object.values(DICTIONARY).forEach(group => {
+          if (group.includes(w)) {
+            group.forEach(syn => {
+              if (desc.includes(syn)) score += 0.8;
+            });
+          }
+        });
       });
 
       if (score > bestScore) {
@@ -700,15 +735,15 @@ async function generateResponse(intent, msg) {
     memory.expectingDescription = false;
     saveMemory();
 
-    if (best && bestScore > 1) {
-      return `🎯 I found something for you:
+    if (best && bestScore > 1.5) {
+      return `🎯 I found a great match:
 
   ${best.name} — ${best.price}
 
   ${best.description.slice(0, 200)}...`;
     }
 
-    return "I'm sorry, but I couldn’t find any product that matches your request.";
+    return "I’m sorry, but I couldn’t find any product that matches your request.";
   }
   
   return smartFallback(msg);

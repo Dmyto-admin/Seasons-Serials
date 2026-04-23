@@ -95,11 +95,11 @@ function detectInterrupt(msg) {
 //
 // MEMORY
 //
-memory = {
+let memory = JSON.parse(localStorage.getItem("chatMemory")) || {
   lastProduct: null,
   lastIntent: null,
-  lastAction: null, // NEW
-  awaitingField: null, // NEW ("price" | "availability" | "details")
+  lastAction: null,
+  awaitingField: null,
   language: "en"
 };
 
@@ -1356,7 +1356,8 @@ ${data.description.slice(0, 300)}...`;
   }
 
   // 🧠 CASE 3: USER JUST MENTIONED PRODUCT (NO INTENT)
-  memory.awaitingField = true;
+  memory.awaitingField = null;
+  memory.lastProduct = productId;
 
   return `I found "${data.name}".
 

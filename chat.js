@@ -1162,7 +1162,7 @@ ${p.description}`;
 
   if (intent === "semantic_search") {
   if (!/with|like|something|busco|cherche|шукаю/.test(msg)) {
-    return clarifyResponse();
+    return clarifyResponse(msg);
   }
 
   const results = await semanticSearch(msg);
@@ -1209,8 +1209,6 @@ ${product.description}`;
   }
 
   memory.awaitingDescription = false;
-}
-
 }
 
   const interrupt = detectInterrupt(msg);

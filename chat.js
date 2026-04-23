@@ -768,55 +768,6 @@ Thank you for helping us improve the platform.
   return "Unexpected state. Restarting report process.";
 }
 
-// FALLBACK - NOT IN USE NOW!
-/*
-function smartFallback(msg) {
-  const words = msg.split(" ");
-
-  const hints = [];
-
-  if (msg.includes("?")) hints.push("This looks like a question.");
-  if (words.length < 3) hints.push("Try adding more details.");
-  if (!/\b(buy|price|order|help)\b/.test(msg)) {
-    hints.push("Try mentioning what you want to do (buy, ask, report).");
-  }
-
-  return {
-    en: `I couldn’t match your request to a clear intent.
-
-${hints.join("\n")}
-
-Try: “What can I buy?” or “Help with payment”`,
-    es: "No pude entender bien tu mensaje.",
-    fr: "Je n'ai pas compris clairement.",
-    ua: "Я не зрозумів запит."
-  }[currentLang];
-}
-*/
-
-// FALLBACK - NOT IN USE NOW
-/* async function fallbackAI(msg) {
-  try {
-    const res = await fetch(
-      "https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium",
-      {
-        method: "POST",
-        headers: {
-          "Authorization": "Bearer YOUR_HF_TOKEN",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ inputs: msg })
-      }
-    );
-
-    const data = await res.json();
-    return data?.generated_text || "I couldn't respond.";
-  } catch {
-    return smartFallback(msg);
-  }
-}
-*/
-
 //
 // SMART FALLBACK
 //
@@ -1007,6 +958,17 @@ function getProductData() {
 // GENERATE RESPONSE
 async function generateResponse(intent, msg) {
 
+  // 🔥 PRIORITY: product always wins
+  if (productId) {
+    memory.lastProduct = productId;
+    saveMemory();
+
+    if (/(price|cost|how much)/.test(m)) return "price";
+    if (/(describe|info|details|what is)/.test(m)) return "product_info";
+
+    return "availability";
+  }
+
   function random(key, arr) {
     if (!Array.isArray(arr) || arr.length === 0) {
       return "I couldn't generate a response.";
@@ -1078,27 +1040,30 @@ For example:
 • "a story for kids"`;
   }
   
-  // 📦 AVAILABILITY
+// 📦 AVAILABILITY
   if (intent === "availability") {
-  let productId = extractProductName(msg);
 
-  if (!productId) {
-    memory.awaitingProduct = true;
-    return "Please tell me the product name.";
+    const productId = memory.lastProduct || extractProductName(msg);
+
+    if (!productId) {
+      return "Tell me the product name and I’ll check it.";
+    }
+
+    const status = await getProductStatus(productId);
+
+    const data = getProductData().find(p => p.id === productId);
+
+    const base = {
+      available: "Yes ✅ it's available.",
+      reserved: "⚠️ It's reserved.",
+      sold: "❌ It's sold."
+    };
+
+    return `${base[status] || "Unknown status."}
+
+  ${data ? `Product: ${data.name}
+  Price: ${data.price}` : ""}`;
   }
-
-  const status = await getProductStatus(productId);
-  const product = getProductData().find(p => p.id === productId);
-
-  memory.lastProduct = productId;
-
-  return `${product.name}
-${product.price}
-
-Status: ${status}
-
-Would you like me to check another product?`;
-}
 
 // 🔥 FOLLOW-UP HANDLING
 if (memory.awaitingProduct) {

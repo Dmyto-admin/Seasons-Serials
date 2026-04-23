@@ -349,14 +349,25 @@ document.addEventListener("click", (e) => {
   alert("Coming soon...");
 }
 
-if (e.target.closest(".like-btn")) {
-  const icon = e.target.closest("ion-icon");
-  icon.setAttribute("name", "thumbs-up");
-}
+if (e.target.closest(".like-btn") || e.target.closest(".dislike-btn")) {
+  const wrapper = e.target.closest(".chat-msg-wrapper");
 
-if (e.target.closest(".dislike-btn")) {
-  const icon = e.target.closest("ion-icon");
-  icon.setAttribute("name", "thumbs-down");
+  const likeIcon = wrapper.querySelector(".like-btn ion-icon");
+  const dislikeIcon = wrapper.querySelector(".dislike-btn ion-icon");
+
+  const isLike = e.target.closest(".like-btn");
+
+  if (isLike) {
+    const active = likeIcon.getAttribute("name") === "thumbs-up";
+
+    likeIcon.setAttribute("name", active ? "thumbs-up-outline" : "thumbs-up");
+    dislikeIcon.setAttribute("name", "thumbs-down-outline");
+  } else {
+    const active = dislikeIcon.getAttribute("name") === "thumbs-down";
+
+    dislikeIcon.setAttribute("name", active ? "thumbs-down-outline" : "thumbs-down");
+    likeIcon.setAttribute("name", "thumbs-up-outline");
+  }
 }
 
   // click outside closes menus
@@ -773,55 +784,6 @@ Thank you for helping us improve the platform.
   return "Unexpected state. Restarting report process.";
 }
 
-// FALLBACK - NOT IN USE NOW!
-/*
-function smartFallback(msg) {
-  const words = msg.split(" ");
-
-  const hints = [];
-
-  if (msg.includes("?")) hints.push("This looks like a question.");
-  if (words.length < 3) hints.push("Try adding more details.");
-  if (!/\b(buy|price|order|help)\b/.test(msg)) {
-    hints.push("Try mentioning what you want to do (buy, ask, report).");
-  }
-
-  return {
-    en: `I couldn’t match your request to a clear intent.
-
-${hints.join("\n")}
-
-Try: “What can I buy?” or “Help with payment”`,
-    es: "No pude entender bien tu mensaje.",
-    fr: "Je n'ai pas compris clairement.",
-    ua: "Я не зрозумів запит."
-  }[currentLang];
-}
-*/
-
-// FALLBACK - NOT IN USE NOW
-/* async function fallbackAI(msg) {
-  try {
-    const res = await fetch(
-      "https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium",
-      {
-        method: "POST",
-        headers: {
-          "Authorization": "Bearer YOUR_HF_TOKEN",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ inputs: msg })
-      }
-    );
-
-    const data = await res.json();
-    return data?.generated_text || "I couldn't respond.";
-  } catch {
-    return smartFallback(msg);
-  }
-}
-*/
-
 //
 // SMART FALLBACK
 //
@@ -867,10 +829,10 @@ const INTENTS = {
   },
 
   product_info: {
-    en: ["product", "item"],
-    es: ["producto"],
-    fr: ["produit"],
-    ua: ["товар"]
+    en: ["product", "item", "details", "info", "description"],
+    es: ["producto", "detalles"],
+    fr: ["produit", "détails"],
+    ua: ["товар", "опис"]
   },
 
   semantic_search: {
@@ -922,13 +884,6 @@ price: {
   ua: ["ціна"]
 },
 
-product_info: {
-  en: ["details", "info", "description"],
-  es: ["detalles"],
-  fr: ["détails"],
-  ua: ["опис"]
-},
-
 cheapest: {
   en: ["cheapest", "lowest price"],
   es: ["más barato"],
@@ -957,7 +912,7 @@ function analyzeIntent(msg) {
       const keyWordsSplit = keyword.split(" ");
 
       keyWordsSplit.forEach(k => {
-        if (words.includes(k)) scores[intent]++;
+        if (msg.includes(k)) scores[intent]++;
       });
     });
   }

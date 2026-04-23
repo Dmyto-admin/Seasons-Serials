@@ -1164,7 +1164,7 @@ ${p.description}`;
   saveMemory();
 
   // ✅ RETURN DIRECT MATCH (NO LIST, NO CONFUSION)
-  if (bestMatch && bestScore > 3) {
+  if (bestMatch && bestScore > 1) {
     memory.lastProduct = bestMatch.id;
 
     return `🎯 I found the perfect match:

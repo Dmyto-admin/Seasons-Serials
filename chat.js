@@ -214,12 +214,6 @@ document.addEventListener("click", e => {
   alert(`Sent at: ${time}`);
 });
 
-function formatResponse(text) {
-  return text
-    .trim()
-    .replace(/\n/g, "\n\n"); // spacing like ChatGPT
-}
-
 // LOADING MESSAGE
 function addLoading() {
   const msg = document.createElement("div");

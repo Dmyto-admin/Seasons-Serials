@@ -1109,7 +1109,7 @@ For example:
   return `${product.name}
 ${product.price}
 
-Status: ${status === "available" ? "✅ Available" : "❌ Not available"}`;
+Status: ${status === "available" ? "✅ Available" : "❌ Not available"}
 
 Would you like me to check another product?`;
 }

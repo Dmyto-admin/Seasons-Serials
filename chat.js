@@ -866,7 +866,7 @@ const INTENTS = {
     ua: ["доступний", "в наявності"]
   },
 
-  product_search: {
+  product_info: {
     en: ["product", "item"],
     es: ["producto"],
     fr: ["produit"],
@@ -1084,25 +1084,29 @@ For example:
   
   // 📦 AVAILABILITY
   if (intent === "availability") {
-  let productId = extractProductName(msg);
 
-  if (!productId) {
-    memory.awaitingProduct = true;
-    return "Please tell me the product name.";
+    const productId = memory.lastProduct || extractProductName(msg);
+
+    if (!productId) {
+      return "Tell me the product name and I’ll check it.";
+    }
+
+    const status = await getProductStatus(productId);
+
+    const data = getProductData().find(p => p.id === productId);
+
+    const base = {
+      available: "Yes ✅ it's available.",
+      reserved: "⚠️ It's reserved.",
+      sold: "❌ It's sold."
+    };
+
+    return `${base[status] || "Unknown status."}
+
+  ${data ? `Product: ${data.name}
+  Price: ${data.price}` : ""}`;
   }
 
-  const status = await getProductStatus(productId);
-  const product = getProductData().find(p => p.id === productId);
-
-  memory.lastProduct = productId;
-
-  return `${product.name}
-${product.price}
-
-Status: ${status === "available" ? "✅ Available" : "❌ Not available"}
-
-Would you like me to check another product?`;
-}
 
 // 🔥 FOLLOW-UP HANDLING
 if (memory.awaitingProduct) {

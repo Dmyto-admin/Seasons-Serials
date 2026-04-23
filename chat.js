@@ -808,12 +808,12 @@ const INTENTS = {
   },
 
   availability: {
-    en: ["available", "in stock"],
+    en: ["available", "in stock", "is it available", "can i buy"],
     es: ["disponible"],
     fr: ["disponible"],
     ua: ["доступний", "в наявності"]
   },
-
+  
   product_search: {
     en: ["product", "item"],
     es: ["producto"],
@@ -864,7 +864,7 @@ delivery: {
 },
 
 price: {
-  en: ["price", "cost"],
+  en: ["price", "cost", "how much", "how much is", "what is the price"],
   es: ["precio"],
   fr: ["prix"],
   ua: ["ціна"]
@@ -893,7 +893,20 @@ expensive: {
 };
 
 function analyzeIntent(msg) {
-  const words = msg.split(" ");
+  const lower = msg.toLowerCase();
+
+  for (let intent in INTENTS) {
+    const phrases = Object.values(INTENTS[intent]).flat();
+
+    for (let phrase of phrases) {
+      if (lower.includes(phrase)) {
+        return intent; // ✅ DIRECT MATCH FIRST
+      }
+    }
+  }
+
+  // fallback to your old scoring
+  let words = lower.split(" ");
   let scores = {};
 
   for (let intent in INTENTS) {
@@ -902,9 +915,7 @@ function analyzeIntent(msg) {
     const allWords = Object.values(INTENTS[intent]).flat();
 
     allWords.forEach(keyword => {
-      const keyWordsSplit = keyword.split(" ");
-
-      keyWordsSplit.forEach(k => {
+      keyword.split(" ").forEach(k => {
         if (words.includes(k)) scores[intent]++;
       });
     });
@@ -912,15 +923,9 @@ function analyzeIntent(msg) {
 
   const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
 
-  const best = sorted[0];
-  const second = sorted[1];
+  if (sorted[0][1] === 0) return "clarify";
 
-  // ✅ RULES YOU REQUESTED
-  if (best[1] === 0) return "clarify";
-
-  if (second && best[1] === second[1]) return "clarify";
-
-  return best[0];
+  return sorted[0][0];
 }
 
 //
@@ -1054,31 +1059,6 @@ For example:
 • "a colorful summer picture"
 • "a story for kids"`;
   }
-  
-// 📦 AVAILABILITY
-  if (intent === "availability") {
-
-    const productId = memory.lastProduct || extractProductName(msg);
-
-    if (!productId) {
-      return "Tell me the product name and I’ll check it.";
-    }
-
-    const status = await getProductStatus(productId);
-
-    const data = getProductData().find(p => p.id === productId);
-
-    const base = {
-      available: "Yes ✅ it's available.",
-      reserved: "⚠️ It's reserved.",
-      sold: "❌ It's sold."
-    };
-
-    return `${base[status] || "Unknown status."}
-
-  ${data ? `Product: ${data.name}
-  Price: ${data.price}` : ""}`;
-  }
 
 // 🔥 FOLLOW-UP HANDLING
 if (memory.awaitingProduct) {
@@ -1106,7 +1086,7 @@ if (memory.awaitingProduct) {
     return "I’m sorry about that 😔 What type of issue is it?\n• Payment\n• Product\n• Website";
   }
 
-  if (intent === "price") {
+  if ((intent === "price" || msg.includes("price") || msg.includes("cost")) && memory.lastProduct) {
     const data = getProductData().find(p => p.id === memory.lastProduct);
     return data ? `💰 ${data.name} costs ${data.price}` : "I couldn't find the price.";
   }
@@ -1138,6 +1118,11 @@ ${p.description}`;
     saveMemory();
     return generateResponse("suggest", msg);
   }
+}
+
+  if ((intent === "price" || intent === "availability") && !memory.lastProduct) {
+  memory.awaitingProduct = true;
+  return "Which product are you referring to?";
 }
 
   if (intent === "semantic_search") {

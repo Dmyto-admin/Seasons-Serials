@@ -532,31 +532,23 @@ function normalize(text) {
 function extractProductName(msg) {
   const products = document.querySelectorAll(".sale-product-box");
 
-  let bestMatch = null;
-  let bestScore = 0;
-
   for (let p of products) {
-    const name = p.querySelector(".product-name")?.innerText.toLowerCase().replace(/"/g, "");
-
-    if (!name) continue;
+    const name = p.querySelector(".product-name")?.innerText
+      .toLowerCase()
+      .replace(/"/g, "");
 
     const words = name.split(" ");
-    let score = 0;
 
-    words.forEach(w => {
-      if (msg.includes(w)) score++;
-    });
-
-    // require STRONG match
-    if (msg.includes(name)) return p.id;
-
-    if (score > bestScore && score >= 2) {
-      bestScore = score;
-      bestMatch = p.id;
+    // 🔥 smarter matching (partial match)
+    if (
+      msg.includes(name) ||
+      words.some(w => msg.includes(w))
+    ) {
+      return p.id;
     }
   }
 
-  return bestMatch;
+  return null;
 }
 
 function hasIntent(msg, keywords) {
@@ -993,7 +985,6 @@ function getProductData() {
     const id = p.id;
     const name = p.querySelector(".product-name")?.innerText || "";
     const price = p.querySelector(".product-price")?.innerText || "";
-    const status = p.dataset.status || "unknown";
 
     // find description via wrapper
     const link = p.querySelector(".more-info-product");
@@ -1012,8 +1003,7 @@ function getProductData() {
       id,
       name,
       price,
-      description,
-      status
+      description
     };
   });
 }
@@ -1174,25 +1164,46 @@ ${p.description}`;
   }
 }
 
-  if (intent === "semantic_search") {
-  if (!/with|like|something|busco|cherche|шукаю/.test(msg)) {
-    return clarifyResponse(msg);
+if (intent === "semantic_search" || memory.expectingDescription) {
+
+    const products = getProductData();
+
+    let words = msg.split(" ");
+    words = await expandWordsAI(words);
+
+    let scored = [];
+
+    products.forEach(p => {
+      let score = 0;
+      const text = (p.name + " " + p.description).toLowerCase();
+
+      words.forEach(w => {
+        if (text.includes(w)) score += 1;
+      });
+
+      if (score > 0) {
+        scored.push({ ...p, score });
+      }
+    });
+
+    memory.expectingDescription = false;
+    saveMemory();
+
+    if (scored.length) {
+      scored.sort((a, b) => b.score - a.score);
+
+      const best = scored.slice(0, 3);
+
+      return `✨ I’ve found something that might match your idea:
+
+${best.map(p => `• ${p.name}`).join("\n")}
+
+Tell me if you'd like details about one of them.
+👉 Say "Yes!" if you would like a description or "something else" if this is not what you are looking for`;
+    }
+
+    return "I couldn’t quite match that description. Try describing colors, theme, or mood.";
   }
-
-  const results = await semanticSearch(msg);
-
-  if (!results || !results.length) {
-    return "I couldn’t match anything. Let me suggest something.";
-  }
-
-  const p = results[0];
-
-  return `✨ I found something based on your description:
-
-${results.map(p => `• ${p.name}`).join("\n")}
-
-👉 Say "yes" to see details or "something else" if this isn't something you are looking for`;
-}
 
   if (intent === "product_search") {
   const productId = extractProductName(msg);
@@ -1296,38 +1307,6 @@ function formatResponse(text) {
 
 function randomize(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
-}
-
-
-//
-// SEMANTIC SEARCH
-//
-async function semanticSearch(msg) {
-  const products = getProductData();
-
-  let words = msg.split(" ");
-  words = await expandWordsAI(words);
-
-  let scored = [];
-
-  products.forEach(p => {
-    let score = 0;
-    const text = (p.name + " " + p.description).toLowerCase();
-
-    words.forEach(w => {
-      if (text.includes(w)) score += 1;
-    });
-
-    if (score >= 1) { // 🔥 threshold fix
-      scored.push({ ...p, score });
-    }
-  });
-
-  if (!scored.length) return null;
-
-  scored.sort((a,b)=>b.score-a.score);
-
-  return scored.slice(0, 2); // 🔥 MAX 2 RESULTS
 }
 
 //

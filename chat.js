@@ -2,23 +2,20 @@ import { db } from "./store-system/firebase-config.js";
 import { addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-const THINKING_DEBUG = true;
-let thinkStep = 0;
 
-function think(label, data) {
-  if (!THINKING_DEBUG) return;
+/* CONTENTS:
+1. Store knowlegde, dictionary, memory and multilengual system
+2. 
 
-  thinkStep++;
 
-  const msg =
-`🧠 STEP ${thinkStep}
-${label}
-------------------
-${typeof data === "string" ? data : JSON.stringify(data, null, 2)}`;
 
-  alert(msg);
-}
 
+*/
+
+
+//
+// STORE KNOWLEDGE
+//
 const STORE_KNOWLEDGE = {
   login: "Click the 'Login' button in the top navigation bar.",
   payment: "Payment is done via bank transfer within 24 hours after reservation.",
@@ -27,6 +24,9 @@ const STORE_KNOWLEDGE = {
   products: "We sell pictures and stories created by Seasons Serials artists."
 };
 
+//
+// DICTIONARY
+//
 const DICTIONARY = {
   mountains: ["mountain", "peaks", "nature", "landscape", "hills"],
   fruit: ["fruit", "summer", "food", "healthy", "watermelon", "apple"],
@@ -51,6 +51,9 @@ const DICTIONARY = {
   }
 };
 
+//
+// EXPAND WORDS AI FOR BETTER CONTENT UNDERSTANDING
+//
 async function expandWordsAI(words) {
   let expanded = new Set(words);
 
@@ -78,6 +81,9 @@ async function expandWordsAI(words) {
   return [...expanded];
 }
 
+//
+// INTERUPTS
+//
 const INTERRUPTS = {
   suggest: /(what can i buy|recommend|suggest)/,
   cancel: /(cancel|stop|exit|nevermind)/,
@@ -91,6 +97,9 @@ function detectInterrupt(msg) {
   return null;
 }
 
+//
+// MEMORY
+//
 let memory = JSON.parse(localStorage.getItem("chatMemory")) || {
   lastProduct: null,
   lastIntent: null,
@@ -103,6 +112,9 @@ function saveMemory() {
 
 const responseHistory = new Map();
 
+//
+// SAFE ERROR - NO CONFUSION
+//
 function safeError(msg, err) {
   console.error(msg, err);
 
@@ -114,6 +126,9 @@ function safeError(msg, err) {
   }[currentLang];
 }
 
+//
+// MULTILANGUAGE SYSTEM
+//
 const LANG = {
   EN: "en",
   ES: "es",
@@ -152,6 +167,9 @@ let languageState = {
 
 let currentLang = LANG.EN;
 
+//
+// CHAT STATE
+//
 let chatState = {
   mode: "normal", // normal | reporting
   step: null,
@@ -472,6 +490,11 @@ How may I assist you today?
     return "Claro. A partir de ahora responderé en español.";
   }
 
+  if (msg.includes("українською")) {
+    currentLang = LANG.UA;
+    return "Звісно. Від тепер я відповідатиму українською.";
+  }
+
   const intent = analyzeIntent(msg);
 
   const greet = isGreeting(msg);
@@ -499,6 +522,9 @@ function normalize(text) {
     .trim();
 }
 
+//
+// EXTRACT PRODUCT NAME FOR SEARCH
+//
 function extractProductName(msg) {
   const products = document.querySelectorAll(".sale-product-box");
 
@@ -655,6 +681,9 @@ function searchProductsSmart(query) {
     .map(p => "• " + p.name);
 }
 
+//
+// ERROR HANDLING
+//
 async function handleReportFlow(msg) {
 
   const interrupt = detectInterrupt(msg);
@@ -740,6 +769,8 @@ Thank you for helping us improve the platform.
   return "Unexpected state. Restarting report process.";
 }
 
+// FALLBACK - NOT IN USE NOW!
+/*
 function smartFallback(msg) {
   const words = msg.split(" ");
 
@@ -762,8 +793,10 @@ Try: “What can I buy?” or “Help with payment”`,
     ua: "Я не зрозумів запит."
   }[currentLang];
 }
+*/
 
-async function fallbackAI(msg) {
+// FALLBACK - NOT IN USE NOW
+/* async function fallbackAI(msg) {
   try {
     const res = await fetch(
       "https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium",
@@ -783,44 +816,122 @@ async function fallbackAI(msg) {
     return smartFallback(msg);
   }
 }
+*/
 
+//
+// SMART FALLBACK
+//
+function clarifyResponse(msg) {
+  return {
+    en: "Could you clarify a bit so I can help better?",
+    es: "¿Puedes aclarar un poco más?",
+    fr: "Peux-tu préciser un peu ?",
+    ua: "Можеш трохи уточнити?"
+  }[currentLang];
+}
+
+//
+// INTENTS AND ANALYZING FOR CONTEXT UNDERSTANDING
+//
 const INTENTS = {
-  suggest: ["buy", "recommend", "suggest", "show"],
-  payment: ["pay", "payment", "transfer"],
-  delivery: ["delivery", "shipping"],
-  report: ["report", "error", "bug", "issue"],
-  help: ["help", "menu", "options"],
-  cheapest: ["cheapest", "lowest"],
-  expensive: ["expensive", "highest"],
-  describe: ["describe", "details", "info"],
-  availability: ["available", "availability", "in stock"],
-  product_query: ["this", "that", "product"],
-  semantic_search: [] // 🔥 FIXED NAME
+  about_assistant: {
+    en: ["what are you used for", "what do you do", "your purpose"],
+    es: ["para que sirves", "que haces"],
+    fr: ["a quoi tu sers", "que fais tu"],
+    ua: ["для чого ти", "що ти робиш"]
+  },
+
+  seasons_serials: {
+    en: ["seasons serials", "company", "who created"],
+    es: ["seasons serials", "empresa"],
+    fr: ["seasons serials", "entreprise"],
+    ua: ["seasons serials", "компанія"]
+  },
+
+  suggest: {
+    en: ["what can i buy", "recommend", "suggest", "show"],
+    es: ["que puedo comprar", "recomienda"],
+    fr: ["que puis je acheter", "recommande"],
+    ua: ["що купити", "порадь"]
+  },
+
+  availability: {
+    en: ["available", "in stock"],
+    es: ["disponible"],
+    fr: ["disponible"],
+    ua: ["доступний", "в наявності"]
+  },
+
+  product_search: {
+    en: ["product", "item"],
+    es: ["producto"],
+    fr: ["produit"],
+    ua: ["товар"]
+  },
+
+  semantic_search: {
+    en: ["something like", "with", "looking for"],
+    es: ["algo con", "busco"],
+    fr: ["quelque chose avec", "je cherche"],
+    ua: ["щось з", "я шукаю"]
+  },
+
+  help: {
+    en: ["help", "problem"],
+    es: ["ayuda", "problema"],
+    fr: ["aide", "probleme"],
+    ua: ["допомога", "проблема"]
+  },
+
+  sorry: {
+    en: ["no", "wrong", "bad", "terrible", "no"],
+    es: ["mal", "no funciona", "no"],
+    fr: ["mauvais", "ça marche pas", "no"],
+    ua: ["погано", "не працює", "ні"]
+  },
+
+  report: {
+    en: ["report", "bug", "error", "issue"],
+    es: ["reportar", "error"],
+    fr: ["signaler"],
+    ua: ["повідомити", "помилка"]
+  }
 };
 
 function analyzeIntent(msg) {
+  const words = msg.split(" ");
   let scores = {};
 
   for (let intent in INTENTS) {
     scores[intent] = 0;
 
-    INTENTS[intent].forEach(k => {
-      if (msg.includes(k)) scores[intent] += 2;
+    const allWords = Object.values(INTENTS[intent]).flat();
+
+    allWords.forEach(keyword => {
+      const keyWordsSplit = keyword.split(" ");
+
+      keyWordsSplit.forEach(k => {
+        if (words.includes(k)) scores[intent]++;
+      });
     });
   }
 
-  const best = Object.entries(scores)
-    .sort((a,b)=>b[1]-a[1])[0];
+  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
 
-    // 🔥 ALWAYS fallback to semantic search if nothing found
-    if (best[1] > 0) return best[0];
+  const best = sorted[0];
+  const second = sorted[1];
 
-// fallback only if message looks like a query
-if (msg.length > 3) return "semantic_search";
+  // ✅ RULES YOU REQUESTED
+  if (best[1] === 0) return "clarify";
 
-return "help";
+  if (second && best[1] === second[1]) return "clarify";
+
+  return best[0];
 }
 
+//
+// GET PRODUCT DATA
+//
 function getProductData() {
   const products = document.querySelectorAll(".sale-product-box");
 
@@ -851,6 +962,8 @@ function getProductData() {
   });
 }
 
+//
+// GENERATE RESPONSE
 async function generateResponse(intent, msg) {
 
   function random(key, arr) {
@@ -932,28 +1045,44 @@ For example:
   
   // 📦 AVAILABILITY
   if (intent === "availability") {
+  let productId = extractProductName(msg);
 
-    const productId = memory.lastProduct || extractProductName(msg);
-  
-    if (!productId) {
-      return "Tell me the product name and I’ll check it.";
+  if (!productId) {
+    memory.awaitingProduct = true;
+    return "Please tell me the product name.";
+  }
+
+  const status = await getProductStatus(productId);
+  const product = getProductData().find(p => p.id === productId);
+
+  memory.lastProduct = productId;
+
+  return `${product.name}
+${product.price}
+
+Status: ${status}
+
+Would you like me to check another product?`;
+}
+
+// 🔥 FOLLOW-UP HANDLING
+if (memory.awaitingProduct) {
+  const productId = extractProductName(msg);
+
+  if (!productId) {
+    const newIntent = analyzeIntent(msg);
+
+    if (newIntent !== "clarify") {
+      memory.awaitingProduct = false;
+      return generateResponse(newIntent, msg);
     }
 
-    const status = await getProductStatus(productId);
-
-    const data = getProductData().find(p => p.id === productId);
-
-    const base = {
-      available: "Yes ✅ it's available.",
-      reserved: "⚠️ It's reserved.",
-      sold: "❌ It's sold."
-    };
-
-    return `${base[status] || "Unknown status."}
-
-  ${data ? `Product: ${data.name}
-  Price: ${data.price}` : ""}`;
+    return "I couldn't find that product.";
   }
+
+  memory.awaitingProduct = false;
+  return generateResponse("availability", msg);
+}
 
   // 🚨 REPORT
   if (intent === "report") {
@@ -995,44 +1124,56 @@ ${p.description}`;
     return generateResponse("suggest", msg);
   }
 }
-  
-  if (intent === "semantic_search" && !memory.expectingChoice) {
 
-    const results = await semanticSearch(msg);
+  if (intent === "semantic_search") {
+  if (!/with|like|something|busco|cherche|шукаю/.test(msg)) {
+    return clarifyResponse();
+  }
 
-  if (results && results.length) {
+  const results = await semanticSearch(msg);
 
-    memory.lastSuggested = results;
-    memory.expectingChoice = true;
-    saveMemory();
+  if (!results || !results.length) {
+    return "I couldn’t match anything. Let me suggest something.";
+  }
 
-    return `✨ I found something based on your description:
+  const p = results[0];
+
+  return `✨ I found something based on your description:
 
 ${results.map(p => `• ${p.name}`).join("\n")}
 
-👉 Say "yes" to see details or "something else"`;
-  }
+👉 Say "yes" to see details or "something else" if this isn't something you are looking for`;
 }
 
-  if (intent === "product_query") {
-
+  if (intent === "product_search") {
   const productId = extractProductName(msg);
   const product = getProductData().find(p => p.id === productId);
 
-  if (!product) return "I couldn't find that product.";
+  if (!product) {
+    return "I couldn’t find that product. Did you mean something else?";
+  }
 
-  // 🔥 SMART CONTEXT SWITCH
-  if (memory.lastIntent === "suggest" || memory.expectingChoice) {
+  memory.lastProduct = productId;
+  memory.awaitingDescription = true;
 
-    memory.lastProduct = productId;
-    saveMemory();
+  return `${product.name}
+${product.price}
 
-    return `📦 ${product.name}
+Would you like the product description?`;
+}
+
+if (memory.awaitingDescription) {
+  if (/yes|yeah|sí|oui|так|да/.test(msg)) {
+    const product = getProductData().find(p => p.id === memory.lastProduct);
+    memory.awaitingDescription = false;
+
+    return `${product.name}
 
 ${product.description}`;
   }
 
-    return `📦 ${product.name}\n💰 ${product.price}`;
+  memory.awaitingDescription = false;
+}
 
 }
 
@@ -1046,7 +1187,7 @@ ${product.description}`;
     if (interrupt === "help") return t("help");
   }
 
-    // 🔥 DIRECT SIMPLE QUESTIONS (ALWAYS ANSWER)
+  // 🔥 DIRECT SIMPLE QUESTIONS (ALWAYS ANSWER)
   if (msg.includes("what do you sell")) return STORE_KNOWLEDGE.products;
   if (msg.includes("login")) return t("loginHelp");
   if (msg.includes("payment")) return t("payment");
@@ -1070,8 +1211,31 @@ ${product.description}`;
     const expensive = products.sort((a,b)=>parseFloat(b.price)-parseFloat(a.price))[0];
     return `💎 ${expensive.name} — ${expensive.price}`;
   }
+
+if (intent === "seasons_serials") {
+  return `Seasons Serials is a Ukrainian company owned by Dmytro Moroz.
+
+It creates paintings, stories, performances and more artistic projects.
+
+More info:
+https://about-seasons-serials.netlify.app`;
+}
+
+if (intent === "help") {
+  memory.awaitingHelp = true;
+  return "How can I help you today?";
+}
+
+if (memory.awaitingHelp) {
+  memory.awaitingHelp = false;
+  return "Coming soon…";
+}
+
+if (intent === "sorry") {
+  return "I understand something went wrong. I'm very sorry for that. I'm doing my best to help you. Ler's try again.";
+}
   
-  return smartFallback(msg);
+  return clarifyResponse(msg);
 }
 
 function formatResponse(text) {
@@ -1085,6 +1249,10 @@ function randomize(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+
+//
+// SEMANTIC SEARCH
+//
 async function semanticSearch(msg) {
   const products = getProductData();
 
@@ -1111,4 +1279,29 @@ async function semanticSearch(msg) {
   scored.sort((a,b)=>b.score-a.score);
 
   return scored.slice(0, 2); // 🔥 MAX 2 RESULTS
+}
+
+//
+// CHANGE PRODUCTS EVEETY 48 HOURS
+//
+function getStableSuggestions(products) {
+  const key = "suggest_cache";
+  const cache = JSON.parse(localStorage.getItem(key));
+
+  const now = Date.now();
+
+  if (cache && now - cache.time < 48 * 60 * 60 * 1000) {
+    return cache.data;
+  }
+
+  const selected = products
+    .filter(p => p.status === "available")
+    .slice(0, 4);
+
+  localStorage.setItem(key, JSON.stringify({
+    time: now,
+    data: selected
+  }));
+
+  return selected;
 }

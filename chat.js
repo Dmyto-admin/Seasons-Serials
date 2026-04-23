@@ -2,7 +2,6 @@ import { db } from "./store-system/firebase-config.js";
 import { addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-
 const DICTIONARY = {
   mountains: ["mountain", "peaks", "nature", "landscape", "hills"],
   fruit: ["fruit", "summer", "food", "healthy", "watermelon", "apple"],
@@ -27,19 +26,44 @@ const DICTIONARY = {
   }
 };
 
-function expandWords(words) {
-  let expanded = [...words];
+async function expandWordsAI(words) {
+  let expanded = new Set(words);
 
-  words.forEach(w => {
-    Object.values(DICTIONARY).forEach(group => {
-      if (group.core.includes(w) || group.related.includes(w)) {
-        expanded.push(...group.core);
-        expanded.push(...group.related);
-      }
-    });
-  });
+  for (let w of words) {
+    try {
+      const res = await fetch(`https://api.datamuse.com/words?ml=${w}&max=5`);
+      const data = await res.json();
 
-  return [...new Set(expanded)];
+      data.forEach(d => expanded.add(d.word));
+
+      // 🔥 Add manual dictionary boost
+      Object.values(DICTIONARY).forEach(group => {
+        const all = Array.isArray(group)
+          ? group
+          : [...group.core, ...group.related];
+
+        if (all.includes(w)) {
+          all.forEach(x => expanded.add(x));
+        }
+      });
+
+    } catch {}
+  }
+
+  return [...expanded];
+}
+
+const INTERRUPTS = {
+  suggest: /(what can i buy|recommend|suggest)/,
+  cancel: /(cancel|stop|exit|nevermind)/,
+  help: /(help|menu|options)/
+};
+
+function detectInterrupt(msg) {
+  for (let key in INTERRUPTS) {
+    if (INTERRUPTS[key].test(msg)) return key;
+  }
+  return null;
 }
 
 let memory = JSON.parse(localStorage.getItem("chatMemory")) || {
@@ -116,6 +140,13 @@ function addMessage(text, type) {
   const wrapper = document.createElement("div");
   wrapper.className = `chat-msg-wrapper ${type}`;
 
+  const time = new Date().toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  wrapper.dataset.time = time;
+
   const msg = document.createElement("div");
   msg.className = `chat-msg ${type}-msg`;
   msg.innerText = text;
@@ -132,7 +163,6 @@ function addMessage(text, type) {
   wrapper.appendChild(actions);
 
   chatMessages.appendChild(wrapper);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 document.addEventListener("click", e => {
@@ -143,13 +173,10 @@ document.addEventListener("click", e => {
 
   navigator.clipboard.writeText(msg.innerText);
 
-  const icon = btn.querySelector("ion-icon");
-  icon.name = "checkmark-outline";
-  icon.style.color = "lime";
+  btn.innerText = "Copied";
 
   setTimeout(() => {
-    icon.name = "copy-outline";
-    icon.style.color = "";
+    btn.innerHTML = '<ion-icon name="copy-outline"></ion-icon>';
   }, 1500);
 });
 
@@ -178,10 +205,20 @@ document.getElementById("confirmDeleteBtn").onclick = () => {
 };
 
 document.addEventListener("click", e => {
-  if (e.target.classList.contains("more-btn")) {
-    alert("Coming soon: edit, regenerate, explain");
-  }
+  const btn = e.target.closest(".more-btn");
+  if (!btn) return;
+
+  const wrapper = btn.closest(".chat-msg-wrapper");
+  const time = wrapper.dataset.time;
+
+  alert(`Sent at: ${time}`);
 });
+
+function formatResponse(text) {
+  return text
+    .trim()
+    .replace(/\n/g, "\n\n"); // spacing like ChatGPT
+}
 
 // LOADING MESSAGE
 function addLoading() {
@@ -261,19 +298,6 @@ async function getProductStatus(productId) {
 }
 
 async function generateSmartReply(input) {
-
-  const INTERRUPTS = {
-    suggest: /(what can i buy|recommend|suggest)/,
-    cancel: /(cancel|stop|exit|nevermind)/,
-    help: /(help|menu|options)/
-  };
-
-  function detectInterrupt(msg) {
-    for (let key in INTERRUPTS) {
-      if (INTERRUPTS[key].test(msg)) return key;
-    }
-    return null;
-  }
 
   currentLang = detectLanguage(input);
   const msg = normalize(input);
@@ -572,9 +596,17 @@ function analyzeIntent(msg) {
   const m = msg.toLowerCase();
 
   const productId = extractProductName(m);
+  const isQuestion = /\b(what|how|is|can|do|does|where|why)\b/.test(m);
+  const isSuggest = /(recommend|suggest|what can i buy)/.test(m);
+  const isDescription = m.split(" ").length >= 3;
 
-  // 🔥 PRIORITY: product always wins
-  if (productId) {
+  // 🧠 PRIORITY ORDER
+
+  // 1. Explicit suggestion request
+  if (isSuggest) return "suggest";
+
+  // 2. Question about product ONLY
+  if (productId && isQuestion) {
     memory.lastProduct = productId;
     saveMemory();
 
@@ -584,34 +616,17 @@ function analyzeIntent(msg) {
     return "availability";
   }
 
-  // assistant
-  if (/(what.*you|help|purpose|who are you)/.test(m)) return "about_assistant";
-
-  // greeting
-  if (/(hi|hello|hey|hola|bonjour)/.test(m)) return "greeting";
-
-  // report
-  if (/(error|problem|issue|bug|not working|fail)/.test(m)) return "report";
-
-  // payment
-  if (/(pay|payment|paid|paying|pago|transfer|bank|money)/.test(m)) {
-    return "payment";
-  }
-
-  // delivery
-  if (/(delivery|shipping|ship|arrive|arrival|envio|entrega)/.test(m)) {
-    return "delivery";
-  }
-
-  // suggestion mode trigger
-  if (/(what can i buy|recommend|suggest)/.test(m)) {
-    return "suggest";
-  }
-
-  // description search mode
-  if (msg.split(" ").length >= 3) {
+  // 3. Description → ALWAYS semantic search
+  if (isDescription) {
     return "semantic_search";
   }
+
+  // 4. Other intents
+  if (/(what.*you|help|purpose|who are you)/.test(m)) return "about_assistant";
+  if (/(hi|hello|hey|hola|bonjour)/.test(m)) return "greeting";
+  if (/(error|problem|issue|bug|fail)/.test(m)) return "report";
+  if (/(pay|payment|transfer|money)/.test(m)) return "payment";
+  if (/(delivery|shipping|arrive)/.test(m)) return "delivery";
 
   return "unknown";
 }
@@ -749,7 +764,7 @@ For example:
     const products = getProductData();
 
     let words = msg.split(" ");
-    words = expandWords(words);
+    words = await expandWordsAI(words);
 
     let scored = [];
 

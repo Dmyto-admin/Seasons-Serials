@@ -1027,6 +1027,14 @@ function getProductData() {
 //
 async function generateResponse(intent, msg) {
 
+  // 🔥 FORCE semantic search after suggestions
+if (memory.expectingDescription) {
+  memory.expectingDescription = false;
+  saveMemory();
+
+  return generateSmartProductReply(msg);
+}
+
   function random(key, arr) {
     if (!Array.isArray(arr) || arr.length === 0) {
       return "I couldn't generate a response.";

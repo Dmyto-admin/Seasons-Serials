@@ -1123,46 +1123,60 @@ ${p.description}`;
   }
 }
 
-if (intent === "semantic_search" || memory.expectingDescription) {
+  if (intent === "semantic_search" || memory.expectingDescription) {
 
-    const products = getProductData();
+  const products = getProductData();
 
-    let words = msg.split(" ");
-    words = await expandWordsAI(words);
+  let words = msg.split(" ");
+  words = await expandWordsAI(words);
 
-    let scored = [];
+  let bestMatch = null;
+  let bestScore = 0;
 
-    products.forEach(p => {
-      let score = 0;
-      const text = (p.name + " " + p.description).toLowerCase();
+  products.forEach(p => {
+    let score = 0;
+    const text = (p.name + " " + p.description).toLowerCase();
 
-      words.forEach(w => {
-        if (text.includes(w)) score += 1;
-      });
+    words.forEach(w => {
+      if (text.includes(w)) score += 2; // stronger weight
+    });
 
-      if (score > 0) {
-        scored.push({ ...p, score });
+    // 🔥 DICTIONARY BOOST
+    Object.values(DICTIONARY).forEach(group => {
+      const all = Array.isArray(group)
+        ? group
+        : [...group.core, ...group.related];
+
+      if (words.some(w => all.includes(w))) {
+        if (all.some(w => text.includes(w))) {
+          score += 5; // BIG boost
+        }
       }
     });
 
-    memory.expectingDescription = false;
-    saveMemory();
-
-    if (scored.length) {
-      scored.sort((a, b) => b.score - a.score);
-
-      const best = scored.slice(0, 3);
-
-      return `✨ I’ve found something that might match your idea:
-
-${best.map(p => `• ${p.name}`).join("\n")}
-
-Tell me if you'd like details about one of them.
-👉 Say "Yes!" if you would like a description or "something else" if this is not what you are looking for`;
+    if (score > bestScore) {
+      bestScore = score;
+      bestMatch = p;
     }
+  });
 
-    return "I couldn’t quite match that description. Try describing colors, theme, or mood.";
+  memory.expectingDescription = false;
+  saveMemory();
+
+  // ✅ RETURN DIRECT MATCH (NO LIST, NO CONFUSION)
+  if (bestMatch && bestScore > 3) {
+    memory.lastProduct = bestMatch.id;
+
+    return `🎯 I found the perfect match:
+
+${bestMatch.name}
+${bestMatch.price}
+
+${bestMatch.description.slice(0, 200)}...`;
   }
+
+  return "I couldn’t match that clearly. Try describing theme, colors, or mood.";
+}
 
   if (intent === "product_search") {
   const productId = extractProductName(msg);
@@ -1274,16 +1288,15 @@ function randomize(arr) {
 function getStableSuggestions(products) {
   const key = "suggest_cache";
   const cache = JSON.parse(localStorage.getItem(key));
-
   const now = Date.now();
 
   if (cache && now - cache.time < 48 * 60 * 60 * 1000) {
     return cache.data;
   }
 
-  const selected = products
-    .filter(p => p.status === "available")
-    .slice(0, 4);
+  // ✅ SIMPLE + WORKING
+  const shuffled = [...products].sort(() => 0.5 - Math.random());
+  const selected = shuffled.slice(0, 4);
 
   localStorage.setItem(key, JSON.stringify({
     time: now,

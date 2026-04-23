@@ -2,48 +2,6 @@ import { db } from "./store-system/firebase-config.js";
 import { addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-const DICTIONARY = {
-  mountains: ["mountain", "peaks", "nature", "landscape", "hills"],
-  fruit: ["fruit", "summer", "food", "healthy", "watermelon", "apple"],
-  future: ["future", "dream", "ambition", "chess", "strategy"],
-  bamboo: ["bamboo", "green", "nature", "plant"],
-  story: ["story", "book", "kids", "forest", "mushroom"],
-  nature: {
-    core: ["mountain", "nature", "forest"],
-    related: ["peaks", "landscape", "hills", "trees", "wild"]
-  },
-  food: {
-    core: ["fruit", "food"],
-    related: ["fresh", "sweet", "healthy", "summer"]
-  },
-  art: {
-    core: ["colorful", "painting"],
-    related: ["abstract", "bright", "creative"]
-  },
-  kids: {
-    core: ["kids", "story"],
-    related: ["children", "fairy", "fun", "adventure"]
-  }
-};
-
-async function expandWordsAI(words) {
-  let expanded = [...words];
-
-  for (let w of words) {
-    try {
-      const res = await fetch(`https://api.datamuse.com/words?ml=${w}`);
-      const data = await res.json();
-
-      data.slice(0, 5).forEach(d => {
-        expanded.push(d.word);
-      });
-
-    } catch {}
-  }
-
-  return [...new Set(expanded)];
-}
-
 let memory = JSON.parse(localStorage.getItem("chatMemory")) || {
   lastProduct: null,
   lastIntent: null,
@@ -118,13 +76,6 @@ function addMessage(text, type) {
   const wrapper = document.createElement("div");
   wrapper.className = `chat-msg-wrapper ${type}`;
 
-  const time = new Date().toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-
-  wrapper.dataset.time = time;
-
   const msg = document.createElement("div");
   msg.className = `chat-msg ${type}-msg`;
   msg.innerText = text;
@@ -141,6 +92,7 @@ function addMessage(text, type) {
   wrapper.appendChild(actions);
 
   chatMessages.appendChild(wrapper);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 document.addEventListener("click", e => {
@@ -151,10 +103,13 @@ document.addEventListener("click", e => {
 
   navigator.clipboard.writeText(msg.innerText);
 
-  btn.innerText = "Copied";
+  const icon = btn.querySelector("ion-icon");
+  icon.name = "checkmark-outline";
+  icon.style.color = "lime";
 
   setTimeout(() => {
-    btn.innerHTML = '<ion-icon name="copy-outline"></ion-icon>';
+    icon.name = "copy-outline";
+    icon.style.color = "";
   }, 1500);
 });
 
@@ -183,20 +138,10 @@ document.getElementById("confirmDeleteBtn").onclick = () => {
 };
 
 document.addEventListener("click", e => {
-  const btn = e.target.closest(".more-btn");
-  if (!btn) return;
-
-  const wrapper = btn.closest(".chat-msg-wrapper");
-  const time = wrapper.dataset.time;
-
-  alert(`Sent at: ${time}`);
+  if (e.target.classList.contains("more-btn")) {
+    alert("Coming soon: edit, regenerate, explain");
+  }
 });
-
-function formatResponse(text) {
-  return text
-    .trim()
-    .replace(/\n/g, "\n\n"); // spacing like ChatGPT
-}
 
 // LOADING MESSAGE
 function addLoading() {
@@ -277,19 +222,6 @@ async function getProductStatus(productId) {
 
 async function generateSmartReply(input) {
 
-  const INTERRUPTS = {
-    suggest: /(what can i buy|recommend|suggest)/,
-    cancel: /(cancel|stop|exit|nevermind)/,
-    help: /(help|menu|options)/
-  };
-
-  function detectInterrupt(msg) {
-    for (let key in INTERRUPTS) {
-      if (INTERRUPTS[key].test(msg)) return key;
-    }
-    return null;
-  }
-
   currentLang = detectLanguage(input);
   const msg = normalize(input);
 
@@ -335,26 +267,19 @@ function normalize(text) {
 }
 
 function extractProductName(msg) {
-  const products = document.querySelectorAll(".sale-product-box");
+  const products = document.querySelectorAll(".product-name");
 
   for (let p of products) {
-    const name = p.querySelector(".product-name")?.innerText
-      .toLowerCase()
-      .replace(/"/g, "");
+    const name = p.innerText.toLowerCase().replace(/"/g, "");
 
-    const words = name.split(" ");
-
-    // 🔥 smarter matching (partial match)
-    if (
-      msg.includes(name) ||
-      words.some(w => msg.includes(w))
-    ) {
-      return p.id;
+    if (msg.includes(name.toLowerCase())) {
+      return p.closest(".sale-product-box").id;
     }
   }
 
   return null;
 }
+
 function hasIntent(msg, keywords) {
   return keywords.some(k => msg.includes(k));
 }
@@ -493,15 +418,10 @@ async function handleReportFlow(msg) {
 
   // STEP 1 — TYPE
   if (chatState.step === "ask_type") {
-
-  if (msg.includes("pay")) chatState.report.type = "payment";
-    else if (msg.includes("product")) chatState.report.type = "product";
-    else if (msg.includes("site") || msg.includes("bug")) chatState.report.type = "website";
-    else chatState.report.type = msg;
-
+    chatState.report.type = msg;
     chatState.step = "ask_desc";
 
-    return "Got it. Please describe the issue in detail.";
+    return "Understood. Please briefly describe the issue.";
   }
 
   // STEP 2 — DESCRIPTION
@@ -586,22 +506,19 @@ function smartFallback(msg) {
 function analyzeIntent(msg) {
   const m = msg.toLowerCase();
 
-    const isQuestion = /\b(what|how|is|can|do|does|where|why)\b/.test(m);
-    const isDescription = m.split(" ").length >= 3;
+  const productId = extractProductName(m);
 
-    const productId = extractProductName(m);
+  // 🚨 PRIORITY: if product detected → it's about THAT product
+  if (productId) {
+    memory.lastProduct = productId;
+    saveMemory();
 
-    // 🧠 1. EXPLICIT product question ONLY
-    if (productId && isQuestion) {
-      memory.lastProduct = productId;
-      saveMemory();
+    if (/(price|cost|how much)/.test(m)) return "price";
+    if (/(describe|what is it|info|details)/.test(m)) return "product_info";
 
-      if (/(price|cost|how much)/.test(m)) return "price";
-      if (/(describe|info|details|what is)/.test(m)) return "product_info";
+    return "availability"; // default fallback for product mention
+  }
 
-      return "availability";
-    }
-  
   // assistant
   if (/(what.*you|help|purpose|who are you)/.test(m)) return "about_assistant";
 
@@ -627,7 +544,7 @@ function analyzeIntent(msg) {
   }
 
   // description search mode
-  if (msg.split(" ").length >= 3) {
+  if (msg.length > 8) {
     return "semantic_search";
   }
 
@@ -709,13 +626,9 @@ async function generateResponse(intent, msg) {
 
     return `Here are some products you might like:
 
-    ${selected.map(p => `• ${p.name} — ${p.price}`).join("\n")}
+  ${selected.map(p => `• ${p.name} — ${p.price}`).join("\n")}
 
-    💡 Try describing what you’re looking for:
-For example:
-• "something with mountains"
-• "a colorful summer picture"
-• "a story for kids"`;
+  💡 Describe what you want (example: "something with mountains or nature")`;
   }
 
   // 📦 AVAILABILITY
@@ -766,50 +679,36 @@ For example:
 
     const products = getProductData();
 
-    let words = msg.split(" ");
-    words = expandWords(words);
+    const words = msg.split(" ");
 
-    let scored = [];
+    let best = null;
+    let bestScore = 0;
 
     products.forEach(p => {
       let score = 0;
-      const text = (p.name + " " + p.description).toLowerCase();
 
       words.forEach(w => {
-        if (text.includes(w)) score += 1;
+        if (p.description.includes(w)) score++;
       });
 
-      if (score > 0) {
-        scored.push({ ...p, score });
+      if (score > bestScore) {
+        bestScore = score;
+        best = p;
       }
     });
 
     memory.expectingDescription = false;
     saveMemory();
 
-    if (scored.length) {
-      scored.sort((a, b) => b.score - a.score);
+    if (best && bestScore > 1) {
+      return `🎯 I found something for you:
 
-      const best = scored.slice(0, 3);
+  ${best.name} — ${best.price}
 
-      return `✨ I’ve found something that might match your idea:
-
-${best.map(p => `• ${p.name}`).join("\n")}
-
-Tell me if you'd like details about one of them.`;
+  ${best.description.slice(0, 200)}...`;
     }
 
-    return "I couldn’t quite match that description. Try describing colors, theme, or mood.";
-  }
-
-  const interrupt = detectInterrupt(msg);
-
-  if (interrupt) {
-    chatState = { mode: "normal", step: null, report: {} };
-
-    if (interrupt === "suggest") return generateResponse("suggest", msg);
-    if (interrupt === "cancel") return "Alright, I've stopped that process. What would you like to do now?";
-    if (interrupt === "help") return t("help");
+    return "I'm sorry, but I couldn’t find any product that matches your request.";
   }
   
   return smartFallback(msg);

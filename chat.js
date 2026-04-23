@@ -797,6 +797,56 @@ function clarifyResponse(msg) {
 }
 
 //
+// PRODUCT PROFILE
+//
+function buildProductProfiles() {
+  const products = getProductData();
+
+  return products.map(p => {
+    const text = (p.name + " " + p.description).toLowerCase();
+
+    return {
+      id: p.id,
+      name: p.name,
+      price: p.price,
+      priceValue: parseFloat(p.price) || 0,
+      text,
+
+      themes: extractThemes(text),
+      mood: extractMood(text),
+      category: extractCategory(text),
+    };
+  });
+}
+
+function extractThemes(text) {
+  const themes = [];
+
+  if (text.includes("mountain") || text.includes("peak")) themes.push("mountain");
+  if (text.includes("forest") || text.includes("nature")) themes.push("nature");
+  if (text.includes("story") || text.includes("book")) themes.push("story");
+  if (text.includes("fruit") || text.includes("food")) themes.push("food");
+
+  return themes;
+}
+
+function extractMood(text) {
+  if (text.match(/bright|colorful|sun|summer/)) return "happy";
+  if (text.match(/dark|fog|night/)) return "dark";
+  if (text.match(/calm|soft|peace/)) return "calm";
+
+  return "neutral";
+}
+
+function extractCategory(text) {
+  if (text.includes("story")) return "story";
+  if (text.includes("painting") || text.includes("art")) return "art";
+  if (text.includes("food") || text.includes("fruit")) return "food";
+
+  return "general";
+}
+
+//
 // INTENTS AND ANALYZING FOR CONTEXT UNDERSTANDING
 //
 const INTENTS = {
@@ -928,6 +978,17 @@ function analyzeIntent(msg) {
   if (second && best[1] === second[1]) return "clarify";
 
   return best[0];
+}
+
+function parseUserQuery(msg) {
+  const text = msg.toLowerCase();
+
+  return {
+    themes: extractThemes(text),
+    mood: extractMood(text),
+    category: extractCategory(text),
+    rawWords: text.split(" ")
+  };
 }
 
 //
@@ -1123,59 +1184,8 @@ ${p.description}`;
   }
 }
 
-  if (intent === "semantic_search" || memory.expectingDescription) {
-
-  const products = getProductData();
-
-  let words = msg.split(" ");
-  words = await expandWordsAI(words);
-
-  let bestMatch = null;
-  let bestScore = 0;
-
-  products.forEach(p => {
-    let score = 0;
-    const text = (p.name + " " + p.description).toLowerCase();
-
-    words.forEach(w => {
-      if (text.includes(w)) score += 2; // stronger weight
-    });
-
-    // 🔥 DICTIONARY BOOST
-    Object.values(DICTIONARY).forEach(group => {
-      const all = Array.isArray(group)
-        ? group
-        : [...group.core, ...group.related];
-
-      if (words.some(w => all.includes(w))) {
-        if (all.some(w => text.includes(w))) {
-          score += 5; // BIG boost
-        }
-      }
-    });
-
-    if (score > bestScore) {
-      bestScore = score;
-      bestMatch = p;
-    }
-  });
-
-  memory.expectingDescription = false;
-  saveMemory();
-
-  // ✅ RETURN DIRECT MATCH (NO LIST, NO CONFUSION)
-  if (bestMatch && bestScore > 1) {
-    memory.lastProduct = bestMatch.id;
-
-    return `🎯 I found the perfect match:
-
-${bestMatch.name}
-${bestMatch.price}
-
-${bestMatch.description.slice(0, 200)}...`;
-  }
-
-  return "I couldn’t match that clearly. Try describing theme, colors, or mood.";
+  if (intent === "semantic_search") {
+  return generateSmartProductReply(msg);
 }
 
   if (intent === "product_search") {
@@ -1280,6 +1290,83 @@ function formatResponse(text) {
 
 function randomize(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
+}
+
+//
+// SEMANTIC SEARCH
+//
+function rankProducts(query, products) {
+  const results = [];
+
+  for (let p of products) {
+    let score = 0;
+
+    // 🎯 THEME MATCH (VERY STRONG)
+    query.themes.forEach(t => {
+      if (p.themes.includes(t)) score += 50;
+      if (p.text.includes(t)) score += 20;
+    });
+
+    // 🎭 MOOD MATCH
+    if (query.mood === p.mood) score += 30;
+
+    // 🏷 CATEGORY MATCH
+    if (query.category === p.category) score += 40;
+
+    // 🧠 WORD OVERLAP
+    query.rawWords.forEach(w => {
+      if (p.text.includes(w)) score += 5;
+    });
+
+    // 💰 OPTIONAL PRICE PREFERENCE (future-ready)
+    if (query.rawWords.includes("cheap") && p.priceValue < 20) score += 20;
+
+    results.push({ product: p, score });
+  }
+
+  return results
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5);
+}
+
+function generateSmartProductReply(msg) {
+  const products = buildProductProfiles();
+  const query = parseUserQuery(msg);
+
+  const ranked = rankProducts(query, products);
+
+  if (!ranked.length || ranked[0].score < 30) {
+    return "I couldn’t find a strong match. Try describing mood, theme, or style 😊";
+  }
+
+  const best = ranked[0].product;
+
+  const explanation = generateExplanation(query, best);
+
+  return `🎯 I found a great match:
+
+${best.name}
+${best.price}
+
+${explanation}`;
+}
+
+function generateExplanation(query, product) {
+  let reasons = [];
+
+  if (query.themes.some(t => product.themes.includes(t))) {
+    reasons.push("it matches your theme");
+  }
+
+  if (query.mood === product.mood) {
+    reasons.push("it matches the mood you described");
+  }
+
+  if (query.category === product.category) {
+    reasons.push("it fits the category you're looking for");
+  }
+
+  return "💡 I chose this because " + reasons.join(", ") + ".";
 }
 
 //

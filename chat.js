@@ -962,25 +962,12 @@ async function generateResponse(intent, msg) {
 
   const productId = extractProductName(msg);
   
-  // 🔥 PRIORITY: product always wins
   if (productId) {
   memory.lastProduct = productId;
   saveMemory();
 
-  // prioritize real intent first
-  if (intent === "price") return "price";
-  if (intent === "product_info") return "product_info";
-  if (intent === "availability") return "availability";
-
-  // fallback ONLY if user clearly asks about product
-  if (/(buy|available|stock|can i|get)/.test(msg)) {
-    return "availability";
-  }
-
-  // default smarter behavior
-  return "product_info";
-  }
-
+  return await handleProductContext(productId, intent, msg);
+}
   function random(key, arr) {
     if (!Array.isArray(arr) || arr.length === 0) {
       return "I couldn't generate a response.";
@@ -998,6 +985,22 @@ async function generateResponse(intent, msg) {
     responseHistory.set(key, chosen);
     return chosen;
   }
+
+  // 🔁 CONTEXT FOLLOW-UP (NO PRODUCT MENTIONED)
+if (!extractProductName(msg) && memory.lastProduct) {
+
+  if (intent === "price") {
+    return handleProductContext(memory.lastProduct, "price", msg);
+  }
+
+  if (intent === "availability") {
+    return handleProductContext(memory.lastProduct, "availability", msg);
+  }
+
+  if (intent === "product_info") {
+    return handleProductContext(memory.lastProduct, "product_info", msg);
+  }
+}
   
   // 🧠 ABOUT
   if (intent === "about_assistant") {
@@ -1315,4 +1318,63 @@ function getStableSuggestions(products) {
   }));
 
   return selected;
+}
+
+async function handleProductContext(productId, intent, msg) {
+
+  const data = getProductData().find(p => p.id === productId);
+
+  if (!data) return "I couldn't find that product.";
+
+  // 🧠 CASE 1: USER CLEARLY ASKED SOMETHING
+  if (intent === "price") {
+    memory.lastAction = "price";
+    return `💰 ${data.name} costs ${data.price}`;
+  }
+
+  if (intent === "availability") {
+    const status = await getProductStatus(productId);
+    memory.lastAction = "availability";
+
+    return formatAvailability(status, data);
+  }
+
+  if (intent === "product_info") {
+    memory.lastAction = "details";
+
+    return `📦 ${data.name}
+
+${data.description.slice(0, 300)}...`;
+  }
+
+  // 🧠 CASE 2: FOLLOW-UP (USER SAID "yes", "ok", etc.)
+  if (/yes|yeah|ok|sure|yep/.test(msg) && memory.awaitingField) {
+    const field = memory.awaitingField;
+    memory.awaitingField = null;
+
+    return handleProductContext(productId, field, field);
+  }
+
+  // 🧠 CASE 3: USER JUST MENTIONED PRODUCT (NO INTENT)
+  memory.awaitingField = true;
+
+  return `I found "${data.name}".
+
+What would you like to know?
+• Price
+• Availability
+• Details`;
+}
+
+function formatAvailability(status, data) {
+  const map = {
+    available: "Yes ✅ it's available.",
+    reserved: "⚠️ It's reserved.",
+    sold: "❌ It's sold."
+  };
+
+  return `${map[status] || "Unknown status."}
+
+Product: ${data.name}
+Price: ${data.price}`;
 }

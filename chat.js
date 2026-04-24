@@ -532,15 +532,18 @@ function extractProductName(msg) {
   for (let p of products) {
     const name = p.querySelector(".product-name")?.innerText
       .toLowerCase()
-      .replace(/"/g, "");
+      .replace(/"/g, "")
+      .trim();
 
-    const words = name.split(" ");
+    // ✅ STRICT MATCH FIRST
+    if (msg.includes(name)) {
+      return p.id;
+    }
 
-    // 🔥 smarter matching (partial match)
-    if (
-      msg.includes(name) ||
-      words.some(w => msg.includes(w))
-    ) {
+    // ✅ PARTIAL MATCH ONLY FOR STRONG WORDS (>=5 chars)
+    const words = name.split(" ").filter(w => w.length >= 5);
+
+    if (words.some(w => msg.includes(w))) {
       return p.id;
     }
   }
@@ -968,15 +971,20 @@ async function generateResponse(intent, msg) {
   const productId = extractProductName(msg);
   
   if (productId) {
+
+  // 🚫 DO NOT AUTO-ANSWER unless user explicitly asked
+  const explicitIntent =
+    /\b(price|cost|how much|available|availability|details|info|description)\b/.test(msg);
+
   memory.lastProduct = productId;
   saveMemory();
 
-  // ❗ ONLY auto-answer if user clearly asked something
-  if (intent === "price" || intent === "availability" || intent === "product_info") {
-    return await handleProductContext(productId, intent, msg);
+  if (explicitIntent) {
+    const realIntent = analyzeIntent(msg);
+    return await handleProductContext(productId, realIntent, msg);
   }
 
-  // ❗ OTHERWISE ask what they want
+  // ✅ ALWAYS ask first
   return handleProductContext(productId, "ask", msg);
 }
   
@@ -1104,7 +1112,7 @@ if (memory.awaitingProduct) {
     return "I’m sorry about that 😔 What type of issue is it?\n• Payment\n• Product\n• Website";
   }
 
-  if ((intent === "price" || msg.includes("price") || msg.includes("cost")) && memory.lastProduct) {
+  if (intent === "price" && memory.lastProduct) {
     const data = getProductData().find(p => p.id === memory.lastProduct);
     return data ? `💰 ${data.name} costs ${data.price}` : "I couldn't find the price.";
   }

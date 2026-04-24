@@ -535,12 +535,12 @@ function extractProductName(msg) {
       .replace(/"/g, "")
       .trim();
 
-    // ✅ STRICT MATCH FIRST
+    // ✅ FULL MATCH FIRST
     if (msg.includes(name)) {
       return p.id;
     }
 
-    // ✅ PARTIAL MATCH ONLY FOR STRONG WORDS (>=5 chars)
+    // ✅ ONLY STRONG WORDS (>=5 letters)
     const words = name.split(" ").filter(w => w.length >= 5);
 
     if (words.some(w => msg.includes(w))) {
@@ -1507,27 +1507,34 @@ Price: ${data.price}`;
 function findBestProductMatches(query) {
   const products = getProductData();
 
-  if (!query) return [];
+  if (!query || query.length < 3) return []; // 🚫 ignore trash input
 
-  const q = query.toLowerCase();
+  const q = query.toLowerCase().trim();
 
   return products.map(p => {
     const name = p.name.toLowerCase();
 
     let score = 0;
 
-    // 🔥 LETTER MATCH SCORE (your requirement)
-    for (let char of q) {
-      if (name.includes(char)) score++;
+    // ✅ STRONG MATCH: full substring
+    if (name.includes(q)) {
+      score += q.length * 2; // strong boost
     }
 
-    // 🔥 BONUS for substring match
-    if (name.includes(q)) score += 10;
+    // ✅ WORD MATCH (ONLY words >4 chars)
+    const words = q.split(" ").filter(w => w.length > 4);
+
+    words.forEach(word => {
+      if (name.includes(word)) {
+        score += word.length;
+      }
+    });
 
     return {
       ...p,
       score
     };
   })
+  .filter(p => p.score > 4) // 🔥 YOUR RULE
   .sort((a, b) => b.score - a.score);
 }

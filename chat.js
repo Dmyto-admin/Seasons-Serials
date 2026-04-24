@@ -488,6 +488,9 @@ async function getProductStatus(productId) {
   return snap.data().status; // available | reserved | sold
 }
 
+//
+// SMART REPLY
+//
 async function generateSmartReply(input) {
 
   currentLang = detectLanguage(input);
@@ -508,13 +511,9 @@ async function generateSmartReply(input) {
     return handleReportFlow(msg);
   }
 
-  if (isGreeting(msg)) {
-    return formatResponse(`
-Hello, and welcome to Seasons Serials.
-
-How may I assist you today?
-    `);
-  }
+  if (isGreeting(msg) && analyzeIntent(msg) === "clarify") {
+  return t("greeting");
+}
 
   if (msg.includes("same in spanish")) {
     currentLang = LANG.ES;
@@ -586,7 +585,16 @@ function hasIntent(msg, keywords) {
 }
 
 function isGreeting(msg) {
-  return ["hi", "hello", "hey", "good morning", "good evening"].some(g => msg.includes(g));
+  const greetings = ["hi", "hello", "hey", "good morning", "good evening"];
+
+  const words = msg.split(" ");
+
+  // ✅ ONLY greeting if message is SHORT and PURE
+  if (words.length <= 3 && greetings.some(g => msg === g || msg.startsWith(g))) {
+    return true;
+  }
+
+  return false;
 }
 
 function correctTypos(text) {
@@ -1109,6 +1117,30 @@ function getProductData() {
 //
 async function generateResponse(intent, msg) {
 
+  // ✅ HANDLE CHOICE FIRST (PRIORITY)
+if (memory.expectingChoice) {
+
+  if (/yes|yeah|ok|sure|yep/.test(msg)) {
+    const p = memory.lastSuggested?.[0];
+
+    if (!p) return "Something went wrong 😅";
+
+    memory.expectingChoice = false;
+    saveMemory();
+
+    return `📦 ${p.name}
+
+${p.description}`;
+  }
+
+  if (/something else|another|different|else/.test(msg)) {
+    memory.expectingChoice = false;
+    saveMemory();
+
+    return generateResponse("suggest", msg);
+  }
+}
+
   if (intent === "product_exists") {
 
   const query = extractRawProductQuery(msg);
@@ -1297,28 +1329,6 @@ if (memory.awaitingProduct) {
   ${data.description.slice(0, 300)}...` : "No info found.";
   }
 
-  if (memory.expectingChoice) {
-
-  if (/yes|yeah|ok|sure|yep/.test(msg)) {
-    const p = memory.lastSuggested?.[0];
-
-    if (!p) return "Something went wrong 😅";
-
-    memory.expectingChoice = false;
-    saveMemory();
-
-    return `📦 ${p.name}
-
-${p.description}`;
-  }
-
-  if (/something else|another|different/.test(msg)) {
-    memory.expectingChoice = false;
-    saveMemory();
-    return generateResponse("suggest", msg);
-  }
-}
-
   if ((intent === "price" || intent === "availability") && !memory.lastProduct) {
   memory.awaitingProduct = true;
   return "Which product are you referring to?";
@@ -1326,41 +1336,68 @@ ${p.description}`;
 
 if (intent === "semantic_search") {
 
+  // 1. expand words
   const expandedWords = await expandWordsAI(msg);
+
+  // 2. detect categories
   const categories = detectCategory(expandedWords);
 
   const products = getProductData();
 
-  let filtered = products.filter(p => {
+  let scored = products.map(p => {
     const text = (p.name + " " + p.description).toLowerCase();
 
-    // ✅ must match at least ONE category
-    return categories.some(cat => {
+    let score = 0;
+
+    // ✅ WORD MATCH
+    expandedWords.forEach(w => {
+      if (w.length < 3) return;
+
+      if (text.includes(w)) score += 2;
+
+      // fuzzy
+      if (text.includes(w.slice(0, -1))) score += 1;
+    });
+
+    // ✅ CATEGORY BOOST
+    categories.forEach(cat => {
       const group = DICTIONARY[cat];
       const all = Array.isArray(group)
         ? group
         : [...group.core, ...group.related];
 
-      return all.some(word => text.includes(word));
+      if (all.some(w => text.includes(w))) {
+        score += 5; // 🔥 STRONG BOOST
+      }
     });
+
+    return { ...p, score };
   });
 
-  // 🔥 if nothing found → fallback
-  if (!filtered.length) {
-    filtered = searchProductsSmart(msg);
+  scored.sort((a, b) => b.score - a.score);
+
+  let best = scored.filter(p => p.score > 3).slice(0, 3);
+
+  // 🔥 FALLBACK TO AI EMBEDDINGS
+  if (!best.length) {
+    const aiResults = await semanticSearchAI(msg);
+
+    if (aiResults) {
+      best = aiResults;
+    }
   }
 
-  if (!filtered.length) {
+  if (!best.length) {
     return t("noMatch");
   }
 
-  memory.lastSuggested = filtered.slice(0, 3);
+  memory.lastSuggested = best;
   memory.expectingChoice = true;
   saveMemory();
 
   return `✨ ${t("foundMatch")}
 
-${filtered.slice(0, 3).map(p => `• ${p.name} — ${p.price}`).join("\n")}
+${best.map(p => `• ${p.name} — ${p.price}`).join("\n")}
 
 👉 ${t("confirmChoice")}`;
 }
@@ -1468,7 +1505,7 @@ if (intent === "sorry") {
   return "I understand something went wrong. I'm very sorry for that. I'm doing my best to help you. Ler's try again.";
 }
   
-  return clarifyResponse(msg);
+  return clarifyResponse(msg) || "I'm not sure I understood that. Try describing what you're looking for.";
 }
 
 function formatResponse(text) {

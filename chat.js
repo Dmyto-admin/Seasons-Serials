@@ -76,6 +76,26 @@ async function expandWordsAI(words) {
   return [...expanded];
 }
 
+// 
+// IMPORT REL AI
+//
+async function getEmbedding(text) {
+  const res = await fetch("https://api.openai.com/v1/embeddings", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer YOUR_API_KEY"
+    },
+    body: JSON.stringify({
+      model: "text-embedding-3-small",
+      input: text
+    })
+  });
+
+  const data = await res.json();
+  return data.data[0].embedding;
+}
+
 //
 // INTERUPTS
 //
@@ -969,6 +989,34 @@ product_exists: {
     "перевір чи існує",
     "у вас є цей товар"
   ]
+},
+
+  foundMatch: {
+  en: "I found something that might match your idea:",
+  es: "Encontré algo que podría coincidir con tu idea:",
+  fr: "J’ai trouvé quelque chose qui pourrait correspondre :",
+  ua: "Я знайшов щось, що може підійти:"
+},
+
+approxMatch: {
+  en: "I found something close:",
+  es: "Encontré algo parecido:",
+  fr: "J’ai trouvé quelque chose de proche :",
+  ua: "Я знайшов щось схоже:"
+},
+
+noMatch: {
+  en: "I couldn’t find a match. Try describing it differently 😊",
+  es: "No encontré coincidencias. Intenta describirlo de otra forma 😊",
+  fr: "Je n’ai rien trouvé. Essayez autrement 😊",
+  ua: "Я нічого не знайшов. Спробуйте описати інакше 😊"
+},
+
+confirmChoice: {
+  en: 'Say "yes" to see details or "something else"',
+  es: 'Di "sí" para ver detalles o "otra cosa"',
+  fr: 'Dites "oui" pour voir les détails ou "autre chose"',
+  ua: 'Скажіть "так" або "щось інше"'
 }
 };
 
@@ -1256,24 +1304,41 @@ ${p.description}`;
   return "Which product are you referring to?";
 }
 
-  if (intent === "semantic_search") {
-  if (!/with|like|something|busco|cherche|шукаю/.test(msg)) {
-    return clarifyResponse(msg);
+if (intent === "semantic_search") {
+
+  const aiResults = await semanticSearchAI(msg);
+
+  // ✅ AI FOUND MATCH
+  if (aiResults && aiResults.length) {
+
+    memory.lastSuggested = aiResults;
+    memory.expectingChoice = true;
+    saveMemory();
+
+    return `✨ ${translate("foundMatch")}
+
+${aiResults.map(p => `• ${p.name} — ${p.price}`).join("\n")}
+
+👉 ${translate("confirmChoice")}`;
   }
 
-  const results = await semanticSearch(msg);
+  // 🔁 FALLBACK TO YOUR OLD SYSTEM
+  const fallback = await semanticSearch(msg);
 
-  if (!results || !results.length) {
-    return "I couldn’t match anything. Let me suggest something.";
+  if (fallback && fallback.length) {
+
+    memory.lastSuggested = fallback;
+    memory.expectingChoice = true;
+    saveMemory();
+
+    return `🤖 ${translate("approxMatch")}
+
+${fallback.map(p => `• ${p.name}`).join("\n")}
+
+👉 ${translate("confirmChoice")}`;
   }
 
-  const p = results[0];
-
-  return `✨ I found something based on your description:
-
-${results.map(p => `• ${p.name}`).join("\n")}
-
-👉 Say "yes" to see details or "something else" if this isn't something you are looking for`;
+  return translate("noMatch");
 }
 
   if (intent === "product_search") {
@@ -1383,33 +1448,65 @@ function randomize(arr) {
 //
 // SEMANTIC SEARCH
 //
-async function semanticSearch(msg) {
+async function semanticSearchAI(msg) {
   const products = getProductData();
 
-  let words = msg.split(" ");
-  words = await expandWordsAI(words);
+  const queryEmbedding = await getEmbedding(msg);
 
-  let scored = [];
+  const results = [];
 
-  products.forEach(p => {
-    let score = 0;
-    const text = (p.name + " " + p.description).toLowerCase();
+  for (let p of products) {
+    const emb = await getProductEmbedding(p);
 
-    words.forEach(w => {
-      if (text.includes(w)) score += 1;
+    const score = cosineSimilarity(queryEmbedding, emb);
+
+    results.push({
+      ...p,
+      score
     });
+  }
 
-    if (score >= 1) { // 🔥 threshold fix
-      scored.push({ ...p, score });
-    }
-  });
+  results.sort((a, b) => b.score - a.score);
 
-  if (!scored.length) return null;
+  // 🔥 THRESHOLD CONTROL
+  const best = results[0];
 
-  scored.sort((a,b)=>b.score-a.score);
+  if (!best || best.score < 0.75) {
+    return null; // ❌ no good match
+  }
 
-  return scored.slice(0, 2); // 🔥 MAX 2 RESULTS
+  return results.slice(0, 2);
 }
+
+
+//
+// COUSIN SIMILARITY FOR SEMANTIC SEARCH
+//
+function cosineSimilarity(a, b) {
+  let dot = 0, magA = 0, magB = 0;
+
+  for (let i = 0; i < a.length; i++) {
+    dot += a[i] * b[i];
+    magA += a[i] * a[i];
+    magB += b[i] * b[i];
+  }
+
+  return dot / (Math.sqrt(magA) * Math.sqrt(magB));
+}
+
+const embeddingCache = new Map();
+
+async function getProductEmbedding(product) {
+  if (embeddingCache.has(product.id)) {
+    return embeddingCache.get(product.id);
+  }
+
+  const emb = await getEmbedding(product.name + " " + product.description);
+  embeddingCache.set(product.id, emb);
+
+  return emb;
+}
+
 
 //
 // CHANGE PRODUCTS EVEETY 48 HOURS

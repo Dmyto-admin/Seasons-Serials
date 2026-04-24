@@ -578,6 +578,24 @@ function correctTypos(text) {
   return words.join(" ");
 }
 
+//
+// PRODUCT SEARCH VOR "DOES THIS EXISTS..."
+//
+function extractRawProductQuery(msg) {
+  // remove intent phrases
+  const cleaned = msg
+    .replace(/does this product exist|check if this exists|do you have this|do you sell this/gi, "")
+    .replace(/existe este producto|tienes este producto/gi, "")
+    .replace(/ce produit existe|avez vous ce produit/gi, "")
+    .replace(/чи існує цей товар/gi, "")
+    .trim();
+
+  return cleaned;
+}
+
+//
+// T(KEY)
+//
 function t(key) {
   const dict = {
     greeting: {
@@ -648,7 +666,35 @@ function t(key) {
     es: "¿Puedes explicar un poco más?",
     fr: "Pouvez-vous préciser ?",
     ua: "Можеш уточнити?"
-  }
+  },
+
+  productExistsYes: {
+  en: "Yes ✅ it exists.",
+  es: "Sí ✅ existe.",
+  fr: "Oui ✅ il existe.",
+  ua: "Так ✅ існує."
+},
+
+productExistsNo: {
+  en: "I couldn't find that product.",
+  es: "No encontré ese producto.",
+  fr: "Je n'ai pas trouvé ce produit.",
+  ua: "Я не знайшов цей товар."
+},
+
+didYouMean: {
+  en: "Did you mean one of these?",
+  es: "¿Quizás quisiste decir uno de estos?",
+  fr: "Vouliez-vous dire l'un de ceux-ci ?",
+  ua: "Можливо ви мали на увазі:"
+},
+
+askWhatToKnow: {
+  en: "What would you like to know?\n• Price\n• Availability\n• Details",
+  es: "¿Qué quieres saber?\n• Precio\n• Disponibilidad\n• Detalles",
+  fr: "Que voulez-vous savoir ?\n• Prix\n• Disponibilité\n• Détails",
+  ua: "Що ви хочете дізнатися?\n• Ціна\n• Наявність\n• Опис"
+}
   };
 
   return dict[key]?.[currentLang] || dict[key]?.en;
@@ -892,6 +938,37 @@ expensive: {
   es: ["más caro"],
   fr: ["plus cher"],
   ua: ["найдорожчий"]
+},
+
+product_exists: {
+  en: [
+    "does this product exist",
+    "does this exist",
+    "check if product exists",
+    "check if this exists",
+    "is this a product",
+    "is this available product",
+    "do you have this product",
+    "do you sell this"
+  ],
+  es: [
+    "existe este producto",
+    "este producto existe",
+    "comprueba si existe",
+    "tienes este producto",
+    "vendes esto"
+  ],
+  fr: [
+    "ce produit existe",
+    "est ce que ce produit existe",
+    "vérifie si ça existe",
+    "avez vous ce produit"
+  ],
+  ua: [
+    "чи існує цей товар",
+    "перевір чи існує",
+    "у вас є цей товар"
+  ]
 }
 };
 
@@ -967,6 +1044,34 @@ function getProductData() {
 //
 // GENERATE RESPONSE
 async function generateResponse(intent, msg) {
+
+  if (intent === "product_exists") {
+
+  const query = extractRawProductQuery(msg);
+  const matches = findBestProductMatches(query);
+
+  if (!matches.length || matches[0].score === 0) {
+
+    const suggestions = matches.slice(0, 5);
+
+    return `${t("productExistsNo")}
+
+${t("didYouMean")}
+${suggestions.map(p => "• " + p.name).join("\n")}`;
+  }
+
+  const best = matches[0];
+
+  // 🔥 SAVE CONTEXT (VERY IMPORTANT)
+  memory.lastProduct = best.id;
+  saveMemory();
+
+  return `${t("productExistsYes")}
+
+📦 ${best.name}
+
+${t("askWhatToKnow")}`;
+}
 
   const productId = extractProductName(msg);
   
@@ -1331,6 +1436,9 @@ function getStableSuggestions(products) {
   return selected;
 }
 
+//
+// HANDLE PRODUCT CONTEXT
+//
 async function handleProductContext(productId, intent, msg) {
 
   const data = getProductData().find(p => p.id === productId);
@@ -1391,4 +1499,35 @@ function formatAvailability(status, data) {
 
 Product: ${data.name}
 Price: ${data.price}`;
+}
+
+//
+// PRODUCT SEARCH FOR "DOES THIS EXIST..."
+//
+function findBestProductMatches(query) {
+  const products = getProductData();
+
+  if (!query) return [];
+
+  const q = query.toLowerCase();
+
+  return products.map(p => {
+    const name = p.name.toLowerCase();
+
+    let score = 0;
+
+    // 🔥 LETTER MATCH SCORE (your requirement)
+    for (let char of q) {
+      if (name.includes(char)) score++;
+    }
+
+    // 🔥 BONUS for substring match
+    if (name.includes(q)) score += 10;
+
+    return {
+      ...p,
+      score
+    };
+  })
+  .sort((a, b) => b.score - a.score);
 }

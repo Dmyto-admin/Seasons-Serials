@@ -8,6 +8,8 @@ import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.9.0/f
 */
 
 
+preloadEmbeddings();
+
 //
 // STORE KNOWLEDGE
 //
@@ -77,14 +79,14 @@ async function expandWordsAI(words) {
 }
 
 // 
-// IMPORT REL AI
+// IMPORT REAL AI
 //
 async function getEmbedding(text) {
   const res = await fetch("https://api.openai.com/v1/embeddings", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": "Bearer YOUR_API_KEY"
+      "Authorization": "Bearer YOUR_REAL_API_KEY"
     },
     body: JSON.stringify({
       model: "text-embedding-3-small",
@@ -93,7 +95,13 @@ async function getEmbedding(text) {
   });
 
   const data = await res.json();
-  return data.data[0].embedding;
+
+  if (!res.ok) {
+    console.error("Embedding API error:", data);
+    return null; // 🔥 critical fix
+  }
+
+  return data.data?.[0]?.embedding || null;
 }
 
 //
@@ -714,6 +722,33 @@ askWhatToKnow: {
   es: "¿Qué quieres saber?\n• Precio\n• Disponibilidad\n• Detalles",
   fr: "Que voulez-vous savoir ?\n• Prix\n• Disponibilité\n• Détails",
   ua: "Що ви хочете дізнатися?\n• Ціна\n• Наявність\n• Опис"
+},
+    foundMatch: {
+  en: "I found something that might match your idea:",
+  es: "Encontré algo que podría coincidir con tu idea:",
+  fr: "J’ai trouvé quelque chose qui pourrait correspondre :",
+  ua: "Я знайшов щось, що може підійти:"
+},
+
+approxMatch: {
+  en: "I found something close:",
+  es: "Encontré algo parecido:",
+  fr: "J’ai trouvé quelque chose de proche :",
+  ua: "Я знайшов щось схоже:"
+},
+
+noMatch: {
+  en: "I couldn’t find a match. Try describing it differently 😊",
+  es: "No encontré coincidencias. Intenta describirlo de otra forma 😊",
+  fr: "Je n’ai rien trouvé. Essayez autrement 😊",
+  ua: "Я нічого не знайшов. Спробуйте описати інакше 😊"
+},
+
+confirmChoice: {
+  en: 'Say "yes" to see details or "something else"',
+  es: 'Di "sí" para ver detalles o "otra cosa"',
+  fr: 'Dites "oui" pour voir les détails ou "autre chose"',
+  ua: 'Скажіть "так" або "щось інше"'
 }
   };
 
@@ -891,7 +926,7 @@ const INTENTS = {
   },
 
   semantic_search: {
-    en: ["something like", "with", "looking for"],
+    en: ["something like", "looking for", "i want something", "show me something"],
     es: ["algo con", "busco"],
     fr: ["quelque chose avec", "je cherche"],
     ua: ["щось з", "я шукаю"]
@@ -989,34 +1024,6 @@ product_exists: {
     "перевір чи існує",
     "у вас є цей товар"
   ]
-},
-
-  foundMatch: {
-  en: "I found something that might match your idea:",
-  es: "Encontré algo que podría coincidir con tu idea:",
-  fr: "J’ai trouvé quelque chose qui pourrait correspondre :",
-  ua: "Я знайшов щось, що може підійти:"
-},
-
-approxMatch: {
-  en: "I found something close:",
-  es: "Encontré algo parecido:",
-  fr: "J’ai trouvé quelque chose de proche :",
-  ua: "Я знайшов щось схоже:"
-},
-
-noMatch: {
-  en: "I couldn’t find a match. Try describing it differently 😊",
-  es: "No encontré coincidencias. Intenta describirlo de otra forma 😊",
-  fr: "Je n’ai rien trouvé. Essayez autrement 😊",
-  ua: "Я нічого не знайшов. Спробуйте описати інакше 😊"
-},
-
-confirmChoice: {
-  en: 'Say "yes" to see details or "something else"',
-  es: 'Di "sí" para ver detalles o "otra cosa"',
-  fr: 'Dites "oui" pour voir les détails ou "autre chose"',
-  ua: 'Скажіть "так" або "щось інше"'
 }
 };
 
@@ -1091,6 +1098,7 @@ function getProductData() {
 
 //
 // GENERATE RESPONSE
+//
 async function generateResponse(intent, msg) {
 
   if (intent === "product_exists") {
@@ -1308,37 +1316,27 @@ if (intent === "semantic_search") {
 
   const aiResults = await semanticSearchAI(msg);
 
-  // ✅ AI FOUND MATCH
   if (aiResults && aiResults.length) {
-
     memory.lastSuggested = aiResults;
     memory.expectingChoice = true;
     saveMemory();
 
-    return `✨ ${translate("foundMatch")}
+    return `✨ ${t("foundMatch")}
 
 ${aiResults.map(p => `• ${p.name} — ${p.price}`).join("\n")}
 
-👉 ${translate("confirmChoice")}`;
+👉 ${t("confirmChoice")}`;
   }
 
-  // 🔁 FALLBACK TO YOUR OLD SYSTEM
-  const fallback = await semanticSearch(msg);
+  const fallback = searchProductsSmart(msg);
 
-  if (fallback && fallback.length) {
+  if (fallback.length) {
+    return `🤖 ${t("approxMatch")}
 
-    memory.lastSuggested = fallback;
-    memory.expectingChoice = true;
-    saveMemory();
-
-    return `🤖 ${translate("approxMatch")}
-
-${fallback.map(p => `• ${p.name}`).join("\n")}
-
-👉 ${translate("confirmChoice")}`;
+${fallback.join("\n")}`;
   }
 
-  return translate("noMatch");
+  return t("noMatch");
 }
 
   if (intent === "product_search") {
@@ -1452,6 +1450,7 @@ async function semanticSearchAI(msg) {
   const products = getProductData();
 
   const queryEmbedding = await getEmbedding(msg);
+  if (!queryEmbedding) return null;
 
   const results = [];
 
@@ -1471,7 +1470,7 @@ async function semanticSearchAI(msg) {
   // 🔥 THRESHOLD CONTROL
   const best = results[0];
 
-  if (!best || best.score < 0.75) {
+  if (!best || best.score < 0.55) {
     return null; // ❌ no good match
   }
 
@@ -1480,7 +1479,7 @@ async function semanticSearchAI(msg) {
 
 
 //
-// COUSIN SIMILARITY FOR SEMANTIC SEARCH
+// COSINE SIMILARITY FOR SEMANTIC SEARCH
 //
 function cosineSimilarity(a, b) {
   let dot = 0, magA = 0, magB = 0;
@@ -1496,15 +1495,19 @@ function cosineSimilarity(a, b) {
 
 const embeddingCache = new Map();
 
-async function getProductEmbedding(product) {
-  if (embeddingCache.has(product.id)) {
-    return embeddingCache.get(product.id);
+async function preloadEmbeddings() {
+  const products = getProductData();
+
+  for (let p of products) {
+    const emb = await getEmbedding(p.name + " " + p.description);
+    if (emb) {
+      embeddingCache.set(p.id, emb);
+    }
   }
+}
 
-  const emb = await getEmbedding(product.name + " " + product.description);
-  embeddingCache.set(product.id, emb);
-
-  return emb;
+async function getProductEmbedding(product) {
+  return embeddingCache.get(product.id) || null;
 }
 
 

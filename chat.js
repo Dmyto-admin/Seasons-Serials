@@ -1505,19 +1505,6 @@ function cosineSimilarity(a, b) {
   return dot / (Math.sqrt(magA) * Math.sqrt(magB));
 }
 
-const embeddings = await Promise.all(
-  products.map(p => getProductEmbedding(p))
-);
-
-products.forEach((p, i) => {
-  const emb = embeddings[i];
-  if (!emb) return;
-
-  const score = cosineSimilarity(queryEmbedding, emb);
-
-  results.push({ ...p, score });
-});
-
 const embeddingCache = new Map();
 
 async function preloadEmbeddings() {

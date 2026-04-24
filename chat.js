@@ -1191,7 +1191,11 @@ if (!extractProductName(msg) && memory.lastProduct) {
   }
 }
 
-  if (intent === "ask") {
+  if (intent === "ask" && memory.lastProduct) {
+  const data = getProductData().find(p => p.id === memory.lastProduct);
+
+  if (!data) return "I couldn't find that product.";
+
   memory.awaitingField = true;
 
   return `I found "${data.name}".  
@@ -1374,7 +1378,6 @@ ${fallbackSmart.map(p => `• ${p.name} — ${p.price}`).join("\n")}`
 return `🤔 I couldn't find an exact match, but you might like:
 
 ${fallbackDefault.map(p => `• ${p.name} — ${p.price}`).join("\n")}`;
-}
 
   if (intent === "product_search") {
   const productId = extractProductName(msg);

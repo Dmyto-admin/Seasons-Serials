@@ -1336,19 +1336,19 @@ ${aiResults.map(p => `• ${p.name} — ${p.price}`).join("\n")}
 👉 ${t("confirmChoice")}`;
   }
 
-  const fallback = searchProductsSmart(msg);
+  const fallbackSmart = searchProductsSmart(msg);
 
-  if (fallback.length) {
+  if (fallbackSmart.length) {
     return `🤖 ${t("approxMatch")}
 
-${fallback.join("\n")}`;
+${fallbackSmart.map(p => `• ${p.name} — ${p.price}`).join("\n")}`
   }
 
-  const fallback = getProductData().slice(0, 3);
+  const fallbackDefault = getProductData().slice(0, 3);
 
 return `🤔 I couldn't find an exact match, but you might like:
 
-${fallback.map(p => `• ${p.name} — ${p.price}`).join("\n")}`;
+${fallbackDefault.map(p => `• ${p.name} — ${p.price}`).join("\n")}`;
 }
 
   if (intent === "product_search") {

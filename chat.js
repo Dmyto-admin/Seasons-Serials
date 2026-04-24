@@ -1033,6 +1033,11 @@ product_exists: {
 function analyzeIntent(msg) {
   const lower = msg.toLowerCase();
 
+  // 🔥 HARD OVERRIDE (VERY IMPORTANT)
+  if (/i want|im looking for|looking for|show me something/.test(lower)) {
+    return "semantic_search";
+  }
+
   for (let intent in INTENTS) {
     const phrases = Object.values(INTENTS[intent]).flat();
 
@@ -1318,23 +1323,43 @@ ${p.description}`;
 if (intent === "semantic_search") {
 
   const expandedWords = await expandWordsAI(msg);
-const expandedQuery = expandedWords.join(" ");
+  const categories = detectCategory(expandedWords);
 
-const queryEmbedding = await getEmbedding(expandedQuery);
+  const products = getProductData();
 
-  const aiResults = await semanticSearchAI(msg);
+  let filtered = products.filter(p => {
+    const text = (p.name + " " + p.description).toLowerCase();
 
-  if (aiResults && aiResults.length) {
-    memory.lastSuggested = aiResults;
-    memory.expectingChoice = true;
-    saveMemory();
+    // ✅ must match at least ONE category
+    return categories.some(cat => {
+      const group = DICTIONARY[cat];
+      const all = Array.isArray(group)
+        ? group
+        : [...group.core, ...group.related];
 
-    return `✨ ${t("foundMatch")}
+      return all.some(word => text.includes(word));
+    });
+  });
 
-${aiResults.map(p => `• ${p.name} — ${p.price}`).join("\n")}
+  // 🔥 if nothing found → fallback
+  if (!filtered.length) {
+    filtered = searchProductsSmart(msg);
+  }
+
+  if (!filtered.length) {
+    return t("noMatch");
+  }
+
+  memory.lastSuggested = filtered.slice(0, 3);
+  memory.expectingChoice = true;
+  saveMemory();
+
+  return `✨ ${t("foundMatch")}
+
+${filtered.slice(0, 3).map(p => `• ${p.name} — ${p.price}`).join("\n")}
 
 👉 ${t("confirmChoice")}`;
-  }
+}
 
   const fallbackSmart = searchProductsSmart(msg);
 
@@ -1520,6 +1545,22 @@ async function preloadEmbeddings() {
 
 async function getProductEmbedding(product) {
   return embeddingCache.get(product.id) || null;
+}
+
+function detectCategory(words) {
+  let detected = [];
+
+  Object.entries(DICTIONARY).forEach(([key, group]) => {
+    const all = Array.isArray(group)
+      ? group
+      : [...group.core, ...group.related];
+
+    if (words.some(w => all.includes(w))) {
+      detected.push(key);
+    }
+  });
+
+  return detected;
 }
 
 

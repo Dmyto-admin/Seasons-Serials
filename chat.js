@@ -8,7 +8,9 @@ import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.9.0/f
 */
 
 
-preloadEmbeddings();
+window.addEventListener("DOMContentLoaded", () => {
+  preloadEmbeddings();
+});
 
 //
 // STORE KNOWLEDGE
@@ -756,25 +758,27 @@ confirmChoice: {
 }
 
 function searchProductsSmart(query) {
-  const words = query.split(" ");
-  const products = document.querySelectorAll(".sale-product-box");
+  const words = query.toLowerCase().split(" ");
+  const products = getProductData();
   const matches = [];
 
   products.forEach(p => {
-    const nameEl = p.querySelector(".product-name");
-    if (!nameEl) return;
-
-    const name = nameEl.textContent.toLowerCase();
+    const text = (p.name + " " + p.description).toLowerCase();
 
     let score = 0;
 
     words.forEach(word => {
-      if (name.includes(word)) score++;
+      if (word.length < 3) return;
+
+      if (text.includes(word)) score += 2;
+
+      // fuzzy match
+      if (text.includes(word.slice(0, -1))) score += 1;
     });
 
-    if (score > 0) {
+    if (score > 1) {
       matches.push({
-        name: nameEl.textContent,
+        ...p,
         score
       });
     }
@@ -782,8 +786,7 @@ function searchProductsSmart(query) {
 
   return matches
     .sort((a, b) => b.score - a.score)
-    .slice(0, 3)
-    .map(p => "• " + p.name);
+    .slice(0, 3);
 }
 
 //
@@ -1314,6 +1317,11 @@ ${p.description}`;
 
 if (intent === "semantic_search") {
 
+  const expandedWords = await expandWordsAI(msg);
+const expandedQuery = expandedWords.join(" ");
+
+const queryEmbedding = await getEmbedding(expandedQuery);
+
   const aiResults = await semanticSearchAI(msg);
 
   if (aiResults && aiResults.length) {
@@ -1336,7 +1344,11 @@ ${aiResults.map(p => `• ${p.name} — ${p.price}`).join("\n")}
 ${fallback.join("\n")}`;
   }
 
-  return t("noMatch");
+  const fallback = getProductData().slice(0, 3);
+
+return `🤔 I couldn't find an exact match, but you might like:
+
+${fallback.map(p => `• ${p.name} — ${p.price}`).join("\n")}`;
 }
 
   if (intent === "product_search") {
@@ -1470,7 +1482,7 @@ async function semanticSearchAI(msg) {
   // 🔥 THRESHOLD CONTROL
   const best = results[0];
 
-  if (!best || best.score < 0.55) {
+  if (!best || best.score < 0.35) {
     return null; // ❌ no good match
   }
 
@@ -1492,6 +1504,19 @@ function cosineSimilarity(a, b) {
 
   return dot / (Math.sqrt(magA) * Math.sqrt(magB));
 }
+
+const embeddings = await Promise.all(
+  products.map(p => getProductEmbedding(p))
+);
+
+products.forEach((p, i) => {
+  const emb = embeddings[i];
+  if (!emb) return;
+
+  const score = cosineSimilarity(queryEmbedding, emb);
+
+  results.push({ ...p, score });
+});
 
 const embeddingCache = new Map();
 

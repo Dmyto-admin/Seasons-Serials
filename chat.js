@@ -971,8 +971,15 @@ async function generateResponse(intent, msg) {
   memory.lastProduct = productId;
   saveMemory();
 
-  return await handleProductContext(productId, intent, msg);
+  // ❗ ONLY auto-answer if user clearly asked something
+  if (intent === "price" || intent === "availability" || intent === "product_info") {
+    return await handleProductContext(productId, intent, msg);
+  }
+
+  // ❗ OTHERWISE ask what they want
+  return handleProductContext(productId, "ask", msg);
 }
+  
   function random(key, arr) {
     if (!Array.isArray(arr) || arr.length === 0) {
       return "I couldn't generate a response.";
@@ -1005,6 +1012,17 @@ if (!extractProductName(msg) && memory.lastProduct) {
   if (intent === "product_info") {
     return handleProductContext(memory.lastProduct, "product_info", msg);
   }
+}
+
+  if (intent === "ask") {
+  memory.awaitingField = true;
+
+  return `I found "${data.name}".  
+
+What would you like to know?
+• Price
+• Availability
+• Details`;
 }
   
   // 🧠 ABOUT
@@ -1333,12 +1351,14 @@ ${data.description.slice(0, 300)}...`;
   }
 
   // 🧠 CASE 2: FOLLOW-UP (USER SAID "yes", "ok", etc.)
-  if (/yes|yeah|ok|sure|yep/.test(msg) && memory.awaitingField) {
-    const field = memory.awaitingField;
+  if (memory.awaitingField) {
+  if (intent === "price" || intent === "availability" || intent === "product_info") {
     memory.awaitingField = null;
-
-    return handleProductContext(productId, field, field);
+    return handleProductContext(productId, intent, msg);
   }
+
+  return clarifyResponse(msg);
+}
 
   // 🧠 CASE 3: USER JUST MENTIONED PRODUCT (NO INTENT)
   memory.awaitingField = null;

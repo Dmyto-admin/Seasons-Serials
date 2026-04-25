@@ -17,16 +17,16 @@ export function semanticSearchStrict(query) {
     if (!wrapper) return;
 
     const description = normalize(wrapper.innerText);
+    const name = normalize(p.querySelector(".product-name")?.innerText || "");
 
     let score = 0;
 
     words.forEach(word => {
-      if (description.includes(word)) {
-        score += 2;
-      }
+      if (description.includes(word)) score += 2;
+      if (name.includes(word)) score += 3; // 🔥 NAME BOOST (important)
     });
 
-    if (score >= 2) {
+    if (score > 0) {
       results.push({
         id: p.id,
         name: p.querySelector(".product-name")?.innerText || "",
@@ -37,13 +37,19 @@ export function semanticSearchStrict(query) {
     }
   });
 
-  return results.sort((a, b) => b.score - a.score);
-}
+  const sorted = results.sort((a, b) => b.score - a.score);
 
-function normalize(text) {
-  return text.toLowerCase().replace(/[^\w\sáéíóúüñіїєґ]/gi, "").trim();
-}
+  if (sorted.length === 0) return [];
 
-function extractKeywords(text) {
-  return text.split(" ").filter(w => w.length >= 3);
+  const topScore = sorted[0].score;
+
+  // 🧠 CASE 1 — STRONG CERTAINTY (ONE OR TIES)
+  const strongMatches = sorted.filter(p => p.score === topScore);
+
+  if (topScore >= 6) {
+    return strongMatches; // top 1 or tied
+  }
+
+  // 🧠 CASE 2 — MEDIUM CONFIDENCE → top 3
+  return sorted.slice(0, 3);
 }

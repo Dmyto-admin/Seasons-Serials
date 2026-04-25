@@ -2303,3 +2303,34 @@ input:-webkit-autofill:focus {
 .chat-toast.show {
   opacity: 1;
 }
+
+.chat-msg strong {
+  font-weight: 600;
+}
+
+.chat-msg em {
+  font-style: italic;
+  opacity: 0.9;
+}
+
+.highlight {
+  background: linear-gradient(120deg, #ffeaa7, #fab1a0);
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.bullet {
+  font-weight: 500;
+}
+
+.bot-msg {
+  background: #f5f7fb;
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.user-msg {
+  background: #4f8cff;
+  color: white;
+  border-radius: 14px;
+}

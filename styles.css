@@ -2322,15 +2322,3 @@ input:-webkit-autofill:focus {
 .bullet {
   font-weight: 500;
 }
-
-.bot-msg {
-  background: #f5f7fb;
-  border-radius: 14px;
-  padding: 12px;
-}
-
-.user-msg {
-  background: #4f8cff;
-  color: white;
-  border-radius: 14px;
-}

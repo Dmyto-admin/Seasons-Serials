@@ -1151,15 +1151,6 @@ function isSemanticTrigger(msg) {
   );
 }
 
-function matchIntent(msg, intentObj) {
-  if (!intentObj) return false;
-
-  // flatten all language arrays into one list
-  const phrases = Object.values(intentObj).flat();
-
-  return phrases.some(phrase => msg.includes(phrase));
-}
-
 function analyzeIntent(msg) {
   const lower = msg.toLowerCase();
 
@@ -1174,33 +1165,6 @@ function analyzeIntent(msg) {
   if (/with\s+\w+/.test(lower) && !lower.includes("product")) {
     return "semantic_search";
   }
-
-  // ✅ PRIORITY ORDER (VERY IMPORTANT)
-
-  // 1. semantic search FIRST
-  if (isSemanticTrigger(lower)) return "semantic_search";
-
-  // 2. product existence
-  if (matchIntent(lower, INTENTS.product_exists)) return "product_exists";
-
-  // 3. transactional intents
-  if (matchIntent(lower, INTENTS.payment)) return "payment";
-  if (matchIntent(lower, INTENTS.delivery)) return "delivery";
-
-  // 4. product-related
-  if (matchIntent(lower, INTENTS.price)) return "price";
-  if (matchIntent(lower, INTENTS.availability)) return "availability";
-
-  // 5. suggestions
-  if (matchIntent(lower, INTENTS.suggest)) return "suggest";
-
-  // 6. help/report
-  if (matchIntent(lower, INTENTS.report)) return "report";
-  if (matchIntent(lower, INTENTS.help)) return "help";
-
-  // 7. social (LOW PRIORITY)
-  if (isGreeting(lower)) return "greeting";
-  if (matchIntent(lower, INTENTS.thanks)) return "thanks";
 
   // NORMAL INTENTS
   for (let intent in INTENTS) {

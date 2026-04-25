@@ -8,6 +8,9 @@ export function semanticSearchStrict(query) {
   const normalizedQuery = normalize(query);
   const words = extractKeywords(normalizedQuery);
 
+  // 🔥 detect core intent words (important ones)
+  const coreWords = words.filter(w => w.length >= 5);
+
   const results = [];
 
   products.forEach(p => {
@@ -19,31 +22,36 @@ export function semanticSearchStrict(query) {
     const description = normalize(wrapper.innerText);
 
     let score = 0;
+    let coreMatches = 0;
 
     words.forEach(word => {
       if (description.includes(word)) {
-        score += 2;
+        score += 1;
       }
     });
 
-    if (score >= 2) {
-      results.push({
-        id: p.id,
-        name: p.querySelector(".product-name")?.innerText || "",
-        price: p.querySelector(".product-price")?.innerText || "",
-        description,
-        score
-      });
-    }
+    // 🔥 CORE MATCH BOOST (VERY IMPORTANT)
+    coreWords.forEach(word => {
+      if (description.includes(word)) {
+        score += 3;
+        coreMatches++;
+      }
+    });
+
+    // 🚫 HARD RULE: must match at least 1 core idea
+    if (coreWords.length && coreMatches === 0) return;
+
+    // 🚫 HARD RULE: reject weak matches
+    if (score < 4) return;
+
+    results.push({
+      id: p.id,
+      name: p.querySelector(".product-name")?.innerText || "",
+      price: p.querySelector(".product-price")?.innerText || "",
+      description,
+      score
+    });
   });
 
   return results.sort((a, b) => b.score - a.score);
-}
-
-function normalize(text) {
-  return text.toLowerCase().replace(/[^\w\sáéíóúüñіїєґ]/gi, "").trim();
-}
-
-function extractKeywords(text) {
-  return text.split(" ").filter(w => w.length >= 3);
 }

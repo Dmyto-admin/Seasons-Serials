@@ -53,3 +53,7 @@ export function semanticSearchStrict(query) {
   // 🧠 CASE 2 — MEDIUM CONFIDENCE → top 3
   return sorted.slice(0, 3);
 }
+
+function normalize(text) {
+  return text.toLowerCase().trim();
+}

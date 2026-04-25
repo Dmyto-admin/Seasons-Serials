@@ -1153,6 +1153,10 @@ function multiLang(obj) {
 //
 async function generateResponse(intent, msg) {
 
+  if (intent === "semantic_search") {
+  alert("SEMANTIC TRIGGERED:" + msg);
+}
+
   // ✅ HANDLE CHOICE FIRST (PRIORITY)
 if (memory.expectingChoice) {
 

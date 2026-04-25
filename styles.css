@@ -2062,6 +2062,11 @@ input:-webkit-autofill:focus {
   font-size: 14px;
 }
 
+@keyframes popIn {
+  from { transform: translateY(6px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
 .user-msg {
   background: #0a2540;
   color: white;
@@ -2304,21 +2309,28 @@ input:-webkit-autofill:focus {
   opacity: 1;
 }
 
+/* PREMIUM HIGHLIGHT STYLE */
+.highlight {
+  background: linear-gradient(90deg, #ffeaa7, #fab1a0);
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+/* BULLETS */
+.bullet {
+  display: block;
+  margin-left: 10px;
+  padding-left: 10px;
+  border-left: 2px solid #ddd;
+}
+
+/* TYPOGRAPHY CLEANUP */
 .chat-msg strong {
   font-weight: 600;
 }
 
 .chat-msg em {
   font-style: italic;
-  opacity: 0.9;
-}
-
-.highlight {
-  background: linear-gradient(120deg, #ffeaa7, #fab1a0);
-  padding: 2px 6px;
-  border-radius: 6px;
-}
-
-.bullet {
-  font-weight: 500;
+  opacity: 0.75;
 }

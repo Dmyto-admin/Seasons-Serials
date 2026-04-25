@@ -275,21 +275,9 @@ function formatMessage(text) {
   if (!text) return "";
 
   return text
-    // bold
     .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-
-    // italic
     .replace(/\*(.*?)\*/g, "<em>$1</em>")
-
-    // highlight
     .replace(/`(.*?)`/g, "<span class='highlight'>$1</span>")
-
-    // bullet system → PREMIUM INDENTED STYLE
-    .replace(/• (.*?)(<br>|$)/g,
-      "• <span class='bullet'>$1</span><br>"
-    )
-
-    // line breaks
     .replace(/\n/g, "<br>");
 }
 
@@ -309,6 +297,13 @@ function addMessage(text, type) {
 
   const msg = document.createElement("div");
   msg.className = `chat-msg ${type}-msg`;
+
+if (type === "bot") {
+  msg.innerHTML = `
+    <div class="bot-header">AI Assistant</div>
+    <div class="bot-body">${formatMessage(text)}</div>
+  `;
+}
   msg.innerHTML = formatMessage(text);
 
   const actions = document.createElement("div");
@@ -574,7 +569,7 @@ async function generateSmartReply(input) {
   }
 
   if (isGreeting(msg) && analyzeIntent(msg) === "clarify") {
-  return t("greeting");
+  return msg("greeting");
 }
 
   if (msg.includes("same in spanish")) {
@@ -704,7 +699,7 @@ function extractRawProductQuery(msg) {
 }
 
 //
-// MESSAGES - PARALEL TO T(KEY)
+// MESSAGES 
 //
 const MESSAGES = {
   greeting: {
@@ -741,13 +736,99 @@ const MESSAGES = {
       fr: "😕 Je n'ai trouvé aucun produit correspondant.",
       ua: "😕 Я не знайшов відповідних товарів."
     },
-  
-  reportStart: {
-      en: "I'm sorry 😔 What type of problem?\n• Payment\n• Product\n• Website",
-      es: "Lo siento 😔 ¿Qué tipo de problema?\n• Pago\n• Producto\n• Sitio web",
-      fr: "Désolé 😔 Quel type de problème ?\n• Paiement\n• Produit\n• Site web",
-      ua: "Вибачте 😔 Яка проблема?\n• Оплата\n• Товар\n• Сайт"
+
+  help: {
+      en: "I can help you find products, explain the store, or report a problem.",
+      es: "Puedo ayudarte a encontrar productos o reportar un problema.",
+      fr: "Je peux vous aider à trouver des produits ou signaler un problème.",
+      ua: "Я можу допомогти знайти товари або повідомити про проблему."
     },
+
+  thanks: {
+      en: "You're welcome 😊 Always happy to help.",
+      es: "¡De nada! 😊 Siempre encantado de ayudar.",
+      fr: "Avec plaisir 😊 Toujours là pour aider.",
+      ua: "Будь ласка 😊 Завжди радий допомогти."
+    },
+
+  loginHelp: {
+      en: "🔐 To log in, click on 'Login' in the navigation bar at the top of the page. Enter your credentials and you'll be inside your account.",
+      es: "🔐 Para iniciar sesión, haz clic en 'Login' en la barra superior.",
+      fr: "🔐 Pour vous connecter, cliquez sur 'Login' dans la barre de navigation.",
+      ua: "🔐 Щоб увійти, натисніть 'Login' у верхньому меню."
+    },
+
+  payment: {
+    en: "💵 Payments are completed via bank transfer. After placing an order, you have 24 hours to complete the payment.",
+    es: "💵 El pago se realiza por transferencia bancaria en 24h.",
+    fr: "💵 Le paiement se fait par virement bancaire sous 24h.",
+    ua: "💵 Оплата здійснюється банківським переказом протягом 24 годин."
+  },
+
+  delivery: {
+    en: "🚚 After payment confirmation, your order is processed and details are sent via email.",
+    es: "🚚 Después del pago, recibirás los detalles por correo.",
+    fr: "🚚 Après paiement, vous recevrez les détails par email.",
+    ua: "🚚 Після оплати ви отримаєте деталі доставки товару на email."
+  },
+
+  productFound: {
+    en: "📌 Here are some relevant products:",
+    es: "📌 Aquí tienes algunos productos:",
+    fr: "📌 Voici quelques produits:",
+    ua: "📌 Ось кілька товарів:"
+  },
+
+  confused: {
+    en: "Could you clarify a bit more? I'm here to help 😊",
+    es: "¿Puedes explicar un poco más? Estoy aquí para ayudar 😊",
+    fr: "Pouvez-vous préciser? 😊",
+    ua: "Можеш уточнити? Я тут щоб допомагати 😊"
+  },
+
+  productExistsYes: {
+  en: "Yes ✅ we sell this product.",
+  es: "Sí ✅ vendemos este producto.",
+  fr: "Oui ✅ on vend ce produite.",
+  ua: "Так ✅ ми продаємо цей товар."
+},
+
+  productExistsNo: {
+  en: "😔 Sorry, I couldn't find that product.",
+  es: "😔 Perdón, no pude encontrar ese producto.",
+  fr: "😔 Pardon, je n'ai pas trouvé ce produit.",
+  ua: "😔 Вибач, я не зміг знайти цей товар."
+},
+
+  didYouMean: {
+  en: "Did you mean one of these? 👇",
+  es: "¿Quizás quisiste decir uno de estos? 👇",
+  fr: "Vouliez-vous dire l'un de ceux-ci? 👇",
+  ua: "Можливо ви мали на увазі один із цих? 👇"
+},
+
+  foundMatch: {
+  en: "✨ I found something that might match your idea:",
+  es: "✨ Encontré algo que podría coincidir con tu idea:",
+  fr: "✨ J’ai trouvé quelque chose qui pourrait correspondre :",
+  ua: "✨ Я знайшов щось, що може підійти:"
+},
+
+  approxMatch: {
+  en: "👀 I found something close:",
+  es: "👀 Encontré algo parecido:",
+  fr: "👀 J’ai trouvé quelque chose de proche :",
+  ua: "👀 Я знайшов щось схоже:"
+},
+
+  confirmChoice: {
+  en: "👌 Say 'yes' to see details or 'something else' if this is not something you're looking for",
+  es: "👌 Di 'sí' para ver detalles o 'otra cosa' si no es algo que buscas",
+  fr: "👌 Dites 'oui' pour voir les détails ou 'autre chose' si ce n’est pas quelque chose que vous cherchez",
+  ua: "👌 Скажіть 'так', щоб побачити деталі або 'щось інше', якщо це не є щось що ви шукаєте"
+}
+
+
 };
 
 function msg(key, sticker = "") {
@@ -757,113 +838,6 @@ function msg(key, sticker = "") {
     "";
 
   return sticker ? `${sticker} ${text}` : text;
-}
-
-//
-// T(KEY)
-//
-function t(key) {
-  const dict = {
-
-    help: {
-      en: "I can help you find products, explain the store, or report a problem.",
-      es: "Puedo ayudarte a encontrar productos o reportar un problema.",
-      fr: "Je peux vous aider à trouver des produits ou signaler un problème.",
-      ua: "Я можу допомогти знайти товари або повідомити про проблему."
-    },
-
-    thanks: {
-      en: "You're welcome 😊 Always happy to help.",
-      es: "¡De nada! 😊 Siempre encantado de ayudar.",
-      fr: "Avec plaisir 😊 Toujours là pour aider.",
-      ua: "Будь ласка 😊 Завжди радий допомогти."
-    },
-
-    loginHelp: {
-      en: "To log in, click on 'Login' in the navigation bar at the top of the page. Enter your credentials and you'll be inside your account.",
-      es: "Para iniciar sesión, haz clic en 'Login' en la barra superior.",
-      fr: "Pour vous connecter, cliquez sur 'Login' dans la barre de navigation.",
-      ua: "Щоб увійти, натисніть 'Login' у верхньому меню."
-    },
-
-  payment: {
-    en: "Payments are completed via bank transfer. After placing an order, you have 24 hours to complete the payment.",
-    es: "El pago se realiza por transferencia bancaria en 24h.",
-    fr: "Le paiement se fait par virement bancaire sous 24h.",
-    ua: "Оплата здійснюється банківським переказом протягом 24 годин."
-  },
-
-  delivery: {
-    en: "After payment confirmation, your order is processed and details are sent via email.",
-    es: "Después del pago, recibirás los detalles por correo.",
-    fr: "Après paiement, vous recevrez les détails par email.",
-    ua: "Після оплати ви отримаєте деталі на email."
-  },
-
-  productFound: {
-    en: "Here are some relevant products:",
-    es: "Aquí tienes algunos productos:",
-    fr: "Voici quelques produits:",
-    ua: "Ось кілька товарів:"
-  },
-
-  confused: {
-    en: "Could you clarify a bit more? I'm here to help 😊",
-    es: "¿Puedes explicar un poco más?",
-    fr: "Pouvez-vous préciser ?",
-    ua: "Можеш уточнити?"
-  },
-
-  productExistsYes: {
-  en: "Yes ✅ it exists.",
-  es: "Sí ✅ existe.",
-  fr: "Oui ✅ il existe.",
-  ua: "Так ✅ існує."
-},
-
-productExistsNo: {
-  en: "I couldn't find that product.",
-  es: "No encontré ese producto.",
-  fr: "Je n'ai pas trouvé ce produit.",
-  ua: "Я не знайшов цей товар."
-},
-
-didYouMean: {
-  en: "Did you mean one of these?",
-  es: "¿Quizás quisiste decir uno de estos?",
-  fr: "Vouliez-vous dire l'un de ceux-ci ?",
-  ua: "Можливо ви мали на увазі:"
-},
-
-askWhatToKnow: {
-  en: "What would you like to know?\n• Price\n• Availability\n• Details",
-  es: "¿Qué quieres saber?\n• Precio\n• Disponibilidad\n• Detalles",
-  fr: "Que voulez-vous savoir ?\n• Prix\n• Disponibilité\n• Détails",
-  ua: "Що ви хочете дізнатися?\n• Ціна\n• Наявність\n• Опис"
-},
-    foundMatch: {
-  en: "I found something that might match your idea:",
-  es: "Encontré algo que podría coincidir con tu idea:",
-  fr: "J’ai trouvé quelque chose qui pourrait correspondre :",
-  ua: "Я знайшов щось, що може підійти:"
-},
-
-approxMatch: {
-  en: "I found something close:",
-  es: "Encontré algo parecido:",
-  fr: "J’ai trouvé quelque chose de proche :",
-  ua: "Я знайшов щось схоже:"
-},
-
-confirmChoice: {
-  en: 'Say "yes" to see details or "something else"',
-  es: 'Di "sí" para ver detalles o "otra cosa"',
-  fr: 'Dites "oui" pour voir les détails ou "autre chose"',
-  ua: 'Скажіть "так" або "щось інше"'
-}
-  };
-
-  return dict[key]?.[currentLang] || dict[key]?.en;
 }
 
 function searchProductsSmart(query) {
@@ -922,10 +896,10 @@ async function handleReportFlow(msg) {
 
   chatState.step = "ask_desc";
   return multiLang({
-  en: "Got it. Describe the issue.",
-  es: "Entendido. Describe el problema.",
-  fr: "D'accord. Décrivez le problème.",
-  ua: "Зрозуміло. Опишіть проблему."
+  en: "Got it.👌 Describe the issue.",
+  es: "Entendido.👌 Describe el problema.",
+  fr: "D'accord.👌 Décrivez le problème.",
+  ua: "Зрозуміло.👌 Опишіть проблему."
 });
 }
 
@@ -934,7 +908,7 @@ async function handleReportFlow(msg) {
     chatState.report.description = msg;
     chatState.step = "ask_email";
 
-    return "Thank you. If you would like a response, please provide your email, or type 'skip'.";
+    return "Thank you. 🙏 If you would like a response, please provide your email, or type 'skip'.";
   }
 
   // STEP 3 — EMAIL + SAVE TO FIREBASE
@@ -945,7 +919,7 @@ async function handleReportFlow(msg) {
     }
 
     if (msg !== "skip" && !isValidEmail(msg)) {
-      return "This isn't a valid email address. Please try again or type 'skip'.";
+      return "❗️ This isn't a valid email address. Please try again or type 'skip'.";
     }
 
     chatState.report.email = msg === "skip" ? null : msg;
@@ -968,9 +942,7 @@ Reason:
 ${err.message || err}
 
 Check:
-• Internet connection
-• Firebase rules
-• Firestore initialization`;
+• Internet connection`;
 }
 
     // RESET STATE
@@ -981,14 +953,14 @@ Check:
     };
 
     return formatResponse(`
-Your report has been successfully submitted.
+Your report has been successfully submitted. 🎉
 
 Our team will review it as soon as possible.
 Thank you for helping us improve the platform.
     `);
   }
 
-  return "Unexpected state. Restarting report process.";
+  return "😮 Unexpected state. Restarting report process.";
 }
 
 //
@@ -1007,6 +979,21 @@ function clarifyResponse(msg) {
 // INTENTS AND ANALYZING FOR CONTEXT UNDERSTANDING
 //
 const INTENTS = {
+
+  greeting: {
+  en: ["hi", "hello", "hey", "good morning", "good evening"],
+  es: ["hola", "buenos días"],
+  fr: ["bonjour", "salut"],
+  ua: ["привіт", "добрий день"]
+},
+
+  thanks: {
+  en: ["thanks", "thank", "thank you", "many thanks"],
+  es: ["gracias", "muchas gracias"],
+  fr: ["merci", "merci beaucoup"],
+  ua: ["дякую", "велике дякую" "дуже дякую"]
+},
+  
   about_assistant: {
     en: ["what are you used for", "what do you do", "your purpose"],
     es: ["para que sirves", "que haces"],
@@ -1057,7 +1044,7 @@ const INTENTS = {
   },
 
   sorry: {
-    en: ["no", "wrong", "bad", "terrible", "no"],
+    en: ["no", "wrong", "bad", "terrible"],
     es: ["mal", "no funciona", "no"],
     fr: ["mauvais", "ça marche pas", "no"],
     ua: ["погано", "не працює", "ні"]
@@ -1158,6 +1145,8 @@ function isSemanticTrigger(msg) {
 function analyzeIntent(msg) {
   const lower = msg.toLowerCase();
 
+  if (isGreeting(msg)) return "greeting";
+
   // 🔥 ABSOLUTE PRIORITY — SEMANTIC (STRONG DETECTION)
   if (
     /i want|i'm looking for|looking for|something with|something like|show me something/.test(lower)
@@ -1250,6 +1239,14 @@ function multiLang(obj) {
 //
 async function generateResponse(intent, msg) {
 
+  if (intent === "greeting") {
+   return `${msg("greeting")}`;
+  }
+
+  if (intent === "thanks") {
+   return `${msg("thanks")}`;
+  }
+  
   if (intent === "semantic_search") {
   console.log("SEMANTIC TRIGGERED:", msg);
 }
@@ -1287,9 +1284,9 @@ ${p.description}`;
 
     const suggestions = matches.slice(0, 5);
 
-    return `${t("productExistsNo")}
+    return `${msg("productExistsNo")}
 
-${t("didYouMean")}
+${msg("didYouMean")}
 ${suggestions.map(p => "• " + p.name).join("\n")}`;
   }
 
@@ -1299,11 +1296,11 @@ ${suggestions.map(p => "• " + p.name).join("\n")}`;
   memory.lastProduct = best.id;
   saveMemory();
 
-  return `${t("productExistsYes")}
+  return `${msg("productExistsYes")}
 
 📦 ${best.name}
 
-${t("askWhatToKnow")}`;
+${msg("askDetails")}`;
 }
 
   let productId = null;
@@ -1333,7 +1330,7 @@ if (intent !== "semantic_search") {
   
   function random(key, arr) {
     if (!Array.isArray(arr) || arr.length === 0) {
-      return "I couldn't generate a response.";
+      return "😔 I couldn't generate a response.";
     }
 
     const last = responseHistory.get(key);
@@ -1374,7 +1371,7 @@ if (!extractProductName(msg) && memory.lastProduct) {
 
   return `I found **${data.name}**.  
 
-${m("askDetails")}`;
+${msg("askDetails")}`;
 }
   
   // 🧠 ABOUT
@@ -1419,7 +1416,7 @@ ${m("askDetails")}`;
     memory.expectingDescription = true;
     saveMemory();
 
-    return `**${m("productList")}**
+    return `**${msg("productList")}**
 
     ${selected.map(p => `• ${p.name} — *${p.price}*`).join("\n")}
 
@@ -1484,7 +1481,7 @@ if (intent === "semantic_search") {
     const strongMatches = matches.filter(p => p.score >= 6);
 
     if (!strongMatches.length) {
-      return t("noMatch");
+      return msg("noMatch");
     }
 
     const best = strongMatches.slice(0, 3);
@@ -1493,15 +1490,15 @@ if (intent === "semantic_search") {
     memory.expectingChoice = true;
     saveMemory();
 
-    return `✨ ${t("foundMatch")}
+    return `${msg("foundMatch")}
 
 ${best.map(p => `• **${p.name}** — ${p.price}`).join("\n")}
 
-👉 ${t("confirmChoice")}`;
+${msg("confirmChoice")}`;
     
   } catch (err) {
     console.error("Semantic search crashed:", err);
-    return m("noMatch");
+    return msg("noMatch");
   }
 }
 
@@ -1511,7 +1508,7 @@ if (intent !== "semantic_search") {
   const fallbackSmart = searchProductsSmart(msg);
 
   if (fallbackSmart.length) {
-    return `🤖 ${t("approxMatch")}
+    return `${msg("approxMatch")}
 
 ${fallbackSmart.map(p => `• ${p.name} — ${p.price}`).join("\n")}`
   }
@@ -1567,18 +1564,18 @@ ${product.description}`;
 
     if (interrupt === "suggest") return generateResponse("suggest", msg);
     if (interrupt === "cancel") return "Alright, I've stopped that process. What would you like to do now?";
-    if (interrupt === "help") return t("help");
+    if (interrupt === "help") return msg("help");
   }
 
   // 🔥 DIRECT SIMPLE QUESTIONS (ALWAYS ANSWER)
   if (msg.includes("what do you sell")) return STORE_KNOWLEDGE.products;
-  if (msg.includes("login")) return t("loginHelp");
-  if (msg.includes("payment")) return t("payment");
-  if (msg.includes("delivery")) return t("delivery");
+  if (msg.includes("login")) return msg("loginHelp");
+  if (msg.includes("payment")) return msg("payment");
+  if (msg.includes("delivery")) return msg("delivery");
 
   // 🔥 HELP ALWAYS WORKS
   if (intent === "help") {
-    return t("help");
+    return msg("help");
   }
 
   // 💸 CHEAPEST

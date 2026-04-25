@@ -522,7 +522,13 @@ async function generateSmartReply(input) {
     return "Звісно. Від тепер я відповідатиму українською.";
   }
 
-  const intent = analyzeIntent(msg);
+  let intent = "clarify";
+
+  if (isSemanticTrigger(msg)) {
+    intent = "semantic_search";
+  } else {
+    intent = analyzeIntent(msg);
+  }
 
   const greet = isGreeting(msg);
 
@@ -1041,21 +1047,14 @@ product_exists: {
 };
 
 function isSemanticTrigger(msg) {
-  const patterns = [
-    // 🇬🇧 English
-    /i want/, /i'm looking for/, /looking for/, /show me something/,
+  const t = msg.toLowerCase();
 
-    // 🇪🇸 Spanish
-    /quiero/, /busco/, /muéstrame algo/, /algo con/,
-
-    // 🇫🇷 French
-    /je veux/, /je cherche/, /montre moi/, /quelque chose avec/,
-
-    // 🇺🇦 Ukrainian
-    /я хочу/, /я шукаю/, /покажи/, /щось з/
-  ];
-
-  return patterns.some(p => p.test(msg));
+  return (
+    /i want|i'm looking for|looking for|show me|something like|something with|find me/.test(t) ||
+    /quiero|busco|muéstrame|algo con/.test(t) ||
+    /je veux|je cherche|montre/.test(t) ||
+    /я хочу|я шукаю|покажи|щось з/.test(t)
+  );
 }
 
 function analyzeIntent(msg) {

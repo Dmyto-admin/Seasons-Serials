@@ -40,3 +40,16 @@ export function semanticSearchStrict(query) {
 
   return results.sort((a, b) => b.score - a.score);
 }
+
+function normalize(text) {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\sáéíóúüñіїєґ]/gi, "")
+    .trim();
+}
+
+function extractKeywords(text) {
+  return text
+    .split(" ")
+    .filter(w => w.length >= 3);
+}

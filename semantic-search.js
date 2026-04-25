@@ -57,3 +57,7 @@ export function semanticSearchStrict(query) {
 function normalize(text) {
   return text.toLowerCase().trim();
 }
+
+function extractKeywords(text) {
+  return text.split(" ").filter(w => w.length > 2);
+}

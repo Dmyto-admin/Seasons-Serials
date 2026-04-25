@@ -1246,6 +1246,10 @@ async function generateResponse(intent, msg) {
   if (intent === "thanks") {
    return `${t("thanks")}`;
   }
+
+  if (intent === "login") {
+  return t("loginHelp");
+}
   
   if (intent === "semantic_search") {
   console.log("SEMANTIC TRIGGERED:", msg);
@@ -1267,7 +1271,7 @@ if (memory.expectingChoice) {
 ${p.description}`;
   }
 
-  if (/something else|another|different|else/.test(msg)) {
+  if (/something else|another|different|else|something/.test(msg)) {
     memory.expectingChoice = false;
     saveMemory();
 

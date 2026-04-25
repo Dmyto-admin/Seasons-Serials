@@ -24,33 +24,55 @@ const STORE_KNOWLEDGE = {
 // DICTIONARY
 //
 const DICTIONARY = {
-  mountains: ["mountain", "peaks", "nature", "landscape", "hills"],
-  fruit: ["fruit", "summer", "food", "healthy", "watermelon", "apple"],
-  future: ["future", "dream", "ambition", "chess", "strategy"],
-  bamboo: ["bamboo", "green", "nature", "plant"],
-  story: ["story", "book", "kids", "forest", "mushroom"],
   nature: {
-    core: ["mountain", "nature", "forest"],
-    related: ["peaks", "landscape", "hills", "trees", "wild"]
+    core: [
+      "mountain","forest","tree","river","lake","nature","wild","landscape"
+    ],
+    related: [
+      "peaks","hills","valley","green","earth","outdoors","scenery"
+    ],
+    multilingual: {
+      es: ["montaña","naturaleza","bosque","paisaje"],
+      fr: ["montagne","nature","forêt","paysage"],
+      ua: ["гора","природа","ліс","пейзаж"]
+    }
   },
+
   food: {
-    core: ["fruit", "food"],
-    related: ["fresh", "sweet", "healthy", "summer"]
+    core: ["food","fruit","apple","banana","meal","healthy"],
+    related: ["fresh","sweet","juice","organic","summer"],
+    multilingual: {
+      es: ["comida","fruta","manzana","saludable"],
+      fr: ["nourriture","fruit","pomme","sain"],
+      ua: ["їжа","фрукти","яблуко","здорове"]
+    }
   },
+
+  story: {
+    core: ["story","book","tale","adventure","kids","fairy"],
+    related: ["forest","magic","mushroom","journey","fantasy"],
+    multilingual: {
+      es: ["historia","cuento","niños","aventura"],
+      fr: ["histoire","conte","enfants","aventure"],
+      ua: ["історія","казка","діти","пригоди"]
+    }
+  },
+
   art: {
-    core: ["colorful", "painting"],
-    related: ["abstract", "bright", "creative"]
-  },
-  kids: {
-    core: ["kids", "story"],
-    related: ["children", "fairy", "fun", "adventure"]
+    core: ["art","painting","color","drawing","creative"],
+    related: ["abstract","design","visual","bright"],
+    multilingual: {
+      es: ["arte","pintura","color"],
+      fr: ["art","peinture","couleur"],
+      ua: ["мистецтво","живопис","колір"]
+    }
   }
 };
 
 //
 // EXPAND WORDS AI FOR BETTER CONTENT UNDERSTANDING
 //
-async function expandWordsAI(words) {
+async function expandWordsAI(words, lang = "en") {
   let expanded = new Set(words);
 
   for (let w of words) {
@@ -60,16 +82,20 @@ async function expandWordsAI(words) {
 
       data.forEach(d => expanded.add(d.word));
 
-      // 🔥 Add manual dictionary boost
-      Object.values(DICTIONARY).forEach(group => {
-        const all = Array.isArray(group)
-          ? group
-          : [...group.core, ...group.related];
+      for (let group of Object.values(DICTIONARY)) {
+
+        // core + related
+        const all = [...group.core, ...group.related];
 
         if (all.includes(w)) {
           all.forEach(x => expanded.add(x));
+
+          // 🌍 multilingual boost
+          if (group.multilingual?.[lang]) {
+            group.multilingual[lang].forEach(x => expanded.add(x));
+          }
         }
-      });
+      }
 
     } catch {}
   }

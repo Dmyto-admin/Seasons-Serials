@@ -1153,7 +1153,14 @@ function isSemanticTrigger(msg) {
 function analyzeIntent(msg) {
   const lower = msg.toLowerCase();
 
-    // 🚫 BLOCK FAKE PRODUCT SEARCH TRIGGERS
+     // 🔥 ABSOLUTE PRIORITY — SEMANTIC (STRONG DETECTION)
+  if (
+    /i want|i'm looking for|looking for/.test(lower)
+  ) {
+    return "semantic_search";
+  }
+
+  // 🚫 BLOCK FAKE PRODUCT SEARCH TRIGGERS
   if (/with\s+\w+/.test(lower) && !lower.includes("product")) {
     return "semantic_search";
   }

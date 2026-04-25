@@ -831,7 +831,7 @@ const MESSAGES = {
 
 };
 
-function msg(key, sticker = "") {
+function t(key, sticker = "") {
   const text =
     MESSAGES[key]?.[currentLang] ||
     MESSAGES[key]?.en ||
@@ -991,7 +991,7 @@ const INTENTS = {
   en: ["thanks", "thank", "thank you", "many thanks"],
   es: ["gracias", "muchas gracias"],
   fr: ["merci", "merci beaucoup"],
-  ua: ["дякую", "велике дякую" "дуже дякую"]
+  ua: ["дякую", "велике дякую", "дуже дякую"]
 },
   
   about_assistant: {
@@ -1240,11 +1240,11 @@ function multiLang(obj) {
 async function generateResponse(intent, msg) {
 
   if (intent === "greeting") {
-   return `${msg("greeting")}`;
+   return `${t("greeting")}`;
   }
 
   if (intent === "thanks") {
-   return `${msg("thanks")}`;
+   return `${t("thanks")}`;
   }
   
   if (intent === "semantic_search") {
@@ -1284,9 +1284,9 @@ ${p.description}`;
 
     const suggestions = matches.slice(0, 5);
 
-    return `${msg("productExistsNo")}
+    return `${t("productExistsNo")}
 
-${msg("didYouMean")}
+${t("didYouMean")}
 ${suggestions.map(p => "• " + p.name).join("\n")}`;
   }
 
@@ -1296,11 +1296,11 @@ ${suggestions.map(p => "• " + p.name).join("\n")}`;
   memory.lastProduct = best.id;
   saveMemory();
 
-  return `${msg("productExistsYes")}
+  return `${t("productExistsYes")}
 
 📦 ${best.name}
 
-${msg("askDetails")}`;
+${t("askDetails")}`;
 }
 
   let productId = null;
@@ -1371,7 +1371,7 @@ if (!extractProductName(msg) && memory.lastProduct) {
 
   return `I found **${data.name}**.  
 
-${msg("askDetails")}`;
+${t("askDetails")}`;
 }
   
   // 🧠 ABOUT
@@ -1416,7 +1416,7 @@ ${msg("askDetails")}`;
     memory.expectingDescription = true;
     saveMemory();
 
-    return `**${msg("productList")}**
+    return `**${t("productList")}**
 
     ${selected.map(p => `• ${p.name} — *${p.price}*`).join("\n")}
 
@@ -1481,7 +1481,7 @@ if (intent === "semantic_search") {
     const strongMatches = matches.filter(p => p.score >= 6);
 
     if (!strongMatches.length) {
-      return msg("noMatch");
+      return t("noMatch");
     }
 
     const best = strongMatches.slice(0, 3);
@@ -1490,15 +1490,15 @@ if (intent === "semantic_search") {
     memory.expectingChoice = true;
     saveMemory();
 
-    return `${msg("foundMatch")}
+    return `${t("foundMatch")}
 
 ${best.map(p => `• **${p.name}** — ${p.price}`).join("\n")}
 
-${msg("confirmChoice")}`;
+${t("confirmChoice")}`;
     
   } catch (err) {
     console.error("Semantic search crashed:", err);
-    return msg("noMatch");
+    return t("noMatch");
   }
 }
 
@@ -1508,7 +1508,7 @@ if (intent !== "semantic_search") {
   const fallbackSmart = searchProductsSmart(msg);
 
   if (fallbackSmart.length) {
-    return `${msg("approxMatch")}
+    return `${t("approxMatch")}
 
 ${fallbackSmart.map(p => `• ${p.name} — ${p.price}`).join("\n")}`
   }
@@ -1564,18 +1564,18 @@ ${product.description}`;
 
     if (interrupt === "suggest") return generateResponse("suggest", msg);
     if (interrupt === "cancel") return "Alright, I've stopped that process. What would you like to do now?";
-    if (interrupt === "help") return msg("help");
+    if (interrupt === "help") return t("help");
   }
 
   // 🔥 DIRECT SIMPLE QUESTIONS (ALWAYS ANSWER)
   if (msg.includes("what do you sell")) return STORE_KNOWLEDGE.products;
-  if (msg.includes("login")) return msg("loginHelp");
-  if (msg.includes("payment")) return msg("payment");
-  if (msg.includes("delivery")) return msg("delivery");
+  if (msg.includes("login")) return t("loginHelp");
+  if (msg.includes("payment")) return t("payment");
+  if (msg.includes("delivery")) return t("delivery");
 
   // 🔥 HELP ALWAYS WORKS
   if (intent === "help") {
-    return msg("help");
+    return t("help");
   }
 
   // 💸 CHEAPEST

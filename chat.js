@@ -189,6 +189,8 @@ const LANG = {
 function detectLanguage(text) {
   const t = text.toLowerCase();
 
+  if (languageState.locked) return languageState.current;
+  
   const forced = detectForcedLanguage(text);
   if (forced) {
     languageState.current = forced;
@@ -214,6 +216,15 @@ let languageState = {
   current: LANG.EN,
   locked: false
 };
+
+function setLanguage(lang) {
+  languageState.current = lang;
+  languageState.locked = true;
+}
+
+function unlockLanguage() {
+  languageState.locked = false;
+}
 
 let currentLang = LANG.EN;
 
@@ -256,7 +267,33 @@ closeChat.addEventListener("click", () => {
   chatPanel.classList.remove("show");
 });
 
+
+//
+// FORMAT AND STYLE MSG
+//
+function formatMessage(text) {
+  if (!text) return "";
+
+  return text
+    // bold **text**
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+
+    // italic *text*
+    .replace(/\*(.*?)\*/g, "<em>$1</em>")
+
+    // highlight `text`
+    .replace(/`(.*?)`/g, "<span class='highlight'>$1</span>")
+
+    // new lines
+    .replace(/\n/g, "<br>")
+
+    // bullets
+    .replace(/• (.*?)(<br>|$)/g, "• <span class='bullet'>$1</span><br>");
+}
+
+//
 // ADD MESSAGE
+//
 function addMessage(text, type) {
   const wrapper = document.createElement("div");
   wrapper.className = `chat-msg-wrapper ${type}`;
@@ -270,7 +307,7 @@ function addMessage(text, type) {
 
   const msg = document.createElement("div");
   msg.className = `chat-msg ${type}-msg`;
-  msg.innerText = text;
+  msg.innerHTML = formatMessage(text);
 
   const actions = document.createElement("div");
   actions.className = "msg-actions";
@@ -661,17 +698,47 @@ function extractRawProductQuery(msg) {
 }
 
 //
+// MESSAGES - PARALEL TO T(KEY)
+//
+const MESSAGES = {
+  greeting: {
+    en: "👋 **Hello!** I'm your *Seasons Serials assistant*.\nHow can I help you today?",
+    es: "👋 **¡Hola!** Soy tu *asistente de Seasons Serials*.\n¿En qué puedo ayudarte?",
+    fr: "👋 **Bonjour !** Je suis votre *assistant Seasons Serials*.\nComment puis-je vous aider ?",
+    ua: "👋 **Привіт!** Я *асистент Seasons Serials*.\nЧим можу допомогти?"
+  },
+
+  productList: {
+    en: "✨ **Here are some products you might like:**",
+    es: "✨ **Aquí tienes algunos productos:**",
+    fr: "✨ **Voici quelques produits :**",
+    ua: "✨ **Ось кілька товарів:**"
+  },
+
+  askDetails: {
+    en: "👉 **What would you like to know?**\n• Price\n• Availability\n• Details",
+    es: "👉 **¿Qué quieres saber?**\n• Precio\n• Disponibilidad\n• Detalles",
+    fr: "👉 **Que voulez-vous savoir ?**\n• Prix\n• Disponibilité\n• Détails",
+    ua: "👉 **Що ви хочете дізнатися?**\n• Ціна\n• Наявність\n• Опис"
+  },
+
+  noMatch: {
+    en: "😕 I couldn't find a match.\nTry describing it differently.",
+    es: "😕 No encontré coincidencias.\nIntenta describirlo de otra forma.",
+    fr: "😕 Je n’ai rien trouvé.\nEssayez autrement.",
+    ua: "😕 Я нічого не знайшов.\nСпробуйте інакше."
+  }
+};
+
+function m(key) {
+  return MESSAGES[key]?.[currentLang] || MESSAGES[key]?.en || key;
+}
+
+//
 // T(KEY)
 //
 function t(key) {
   const dict = {
-    greeting: {
-      en: "Hello! 👋 I'm your Seasons Serials assistant. How can I help you?",
-      es: "¡Hola! 👋 Soy tu asistente de Seasons Serials. ¿En qué puedo ayudarte?",
-      fr: "Bonjour ! 👋 Je suis votre assistant Seasons Serials. Comment puis-je vous aider ?",
-      ua: "Привіт! 👋 Я асистент Seasons Serials. Чим можу допомогти?"
-    },
-
     noProducts: {
       en: "I couldn't find matching products.",
       es: "No encontré productos coincidentes.",
@@ -774,13 +841,6 @@ approxMatch: {
   es: "Encontré algo parecido:",
   fr: "J’ai trouvé quelque chose de proche :",
   ua: "Я знайшов щось схоже:"
-},
-
-noMatch: {
-  en: "I couldn’t find a match. Try describing it differently 😊",
-  es: "No encontré coincidencias. Intenta describirlo de otra forma 😊",
-  fr: "Je n’ai rien trouvé. Essayez autrement 😊",
-  ua: "Я нічого не знайшов. Спробуйте описати інакше 😊"
 },
 
 confirmChoice: {
@@ -1300,12 +1360,9 @@ if (!extractProductName(msg) && memory.lastProduct) {
 
   memory.awaitingField = true;
 
-  return `I found "${data.name}".  
+  return `I found **${data.name}**.  
 
-What would you like to know?
-• Price
-• Availability
-• Details`;
+${m("askDetails")}`;
 }
   
   // 🧠 ABOUT
@@ -1350,15 +1407,15 @@ What would you like to know?
     memory.expectingDescription = true;
     saveMemory();
 
-    return `Here are some products you might like:
+    return `**${m("productList")}**
 
-    ${selected.map(p => `• ${p.name} — ${p.price}`).join("\n")}
+    ${selected.map(p => `• `${p.name}` — *${p.price}*`).join("\n")}
 
     💡 Try describing what you’re looking for:
 For example:
-• "something with mountains"
-• "a colorful summer picture"
-• "a story for kids"`;
+• *something with mountains*
+• *a colorful summer picture*
+• *a story for kids*`;
   }
 
 // 🔥 FOLLOW-UP HANDLING
@@ -1384,17 +1441,17 @@ if (memory.awaitingProduct) {
   if (intent === "report") {
     chatState.mode = "reporting";
     chatState.step = "ask_type";
-    return "I’m sorry about that 😔 What type of issue is it?\n• Payment\n• Product\n• Website";
+    return "I’m sorry about that 😔 What type of issue is it?\n• **Payment**\n• **Product**\n• **Website**";
   }
 
   if (intent === "price" && memory.lastProduct) {
     const data = getProductData().find(p => p.id === memory.lastProduct);
-    return data ? `💰 ${data.name} costs ${data.price}` : "I couldn't find the price.";
+    return data ? `💰 *${data.name}* costs **${data.price}**` : "I couldn't find the price.";
   }
 
   if (intent === "product_info") {
     const data = getProductData().find(p => p.id === memory.lastProduct);
-    return data ? `📦 ${data.name}
+    return data ? `📦 **${data.name}**
 
   ${data.description.slice(0, 300)}...` : "No info found.";
   }
@@ -1426,14 +1483,13 @@ if (intent === "semantic_search") {
 
     return `✨ ${t("foundMatch")}
 
-${best.map(p => `• ${p.name} — ${p.price}`).join("\n")}
+${best.map(p => `• `**${p.name}**` — ${p.price}`).join("\n")}
 
 👉 ${t("confirmChoice")}`;
     
   } catch (err) {
     console.error("Semantic search crashed:", err);
-    alert("Semantic search crashed:" + err);
-    return t("noMatch");
+    return m("noMatch");
   }
 }
 

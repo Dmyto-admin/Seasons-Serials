@@ -22,11 +22,10 @@ export function semanticSearchStrict(query) {
 
     words.forEach(word => {
       if (description.includes(word)) {
-        score += 2; // strong match
+        score += 2;
       }
     });
 
-    // 🔥 STRICT FILTER (important)
     if (score >= 2) {
       results.push({
         id: p.id,
@@ -42,14 +41,9 @@ export function semanticSearchStrict(query) {
 }
 
 function normalize(text) {
-  return text
-    .toLowerCase()
-    .replace(/[^\w\sáéíóúüñіїєґ]/gi, "")
-    .trim();
+  return text.toLowerCase().replace(/[^\w\sáéíóúüñіїєґ]/gi, "").trim();
 }
 
 function extractKeywords(text) {
-  return text
-    .split(" ")
-    .filter(w => w.length >= 3);
+  return text.split(" ").filter(w => w.length >= 3);
 }

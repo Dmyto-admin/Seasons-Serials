@@ -46,7 +46,7 @@ export function semanticSearchStrict(query) {
   // 🧠 CASE 1 — STRONG CERTAINTY (ONE OR TIES)
   const strongMatches = sorted.filter(p => p.score === topScore);
 
-  if (topScore >= 6) {
+  if (topScore >= 4) {
     return strongMatches; // top 1 or tied
   }
 

@@ -1380,34 +1380,20 @@ if (memory.awaitingProduct) {
 
 if (intent === "semantic_search") {
 
-  const words = msg
-  .toLowerCase()
-  .replace(/[^\w\s]/g, "")
-  .split(" ")
-  .filter(w => w.length > 2);
+  const words = msg.split(" ");
   const expanded = await expandWordsAI(words);
   const enrichedQuery = expanded.join(" ");
 
   const matches = semanticSearchStrict(enrichedQuery);
 
-  // ✅ SMART THRESHOLD (dynamic)
-  let bestScore = matches[0]?.score || 0;
+  // 🚫 HARD FILTER — ONLY HIGH CONFIDENCE
+  const strongMatches = matches.filter(p => p.score >= 6);
 
-  let filtered;
-
-  if (bestScore >= 8) {
-    filtered = matches.filter(p => p.score >= bestScore * 0.7);
-  } else if (bestScore >= 4) {
-    filtered = matches.filter(p => p.score >= bestScore * 0.5);
-  } else {
-    filtered = matches.slice(0, 3); // 🔥 NEVER EMPTY
+  if (!strongMatches.length) {
+    return t("noMatch"); // ❌ NO FALLBACK
   }
 
-  if (!filtered.length) {
-    return t("noMatch"); // ❌ NO fallback to suggest
-  }
-
-  const best = filtered.slice(0, 3);
+  const best = strongMatches.slice(0, 3);
 
   memory.lastSuggested = best;
   memory.expectingChoice = true;

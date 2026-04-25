@@ -10,7 +10,7 @@ import { semanticSearchStrict } from "./semantic-search.js";
 
 
 window.addEventListener("DOMContentLoaded", () => {
-  preloadEmbeddings();
+  setTimeout(preloadEmbeddings, 500);
 });
 
 //

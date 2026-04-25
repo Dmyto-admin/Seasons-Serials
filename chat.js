@@ -581,7 +581,6 @@ async function generateSmartReply(input) {
   if (analyzeIntent(msg) === "greeting") {
   return t("greeting");
 }
-}
 
   if (msg.includes("same in spanish")) {
     currentLang = LANG.ES;

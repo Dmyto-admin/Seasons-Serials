@@ -592,13 +592,12 @@ async function generateSmartReply(input) {
     return "Звісно. Від тепер я відповідатиму українською.";
   }
 
-  let intent = "clarify";
+  let intent = analyzeIntent(msg);
 
-  if (isSemanticTrigger(msg)) {
-    intent = "semantic_search";
-  } else {
-    intent = analyzeIntent(msg);
-  }
+// 🔥 ONLY upgrade to semantic IF it's still vague
+if (intent === "clarify" && isSemanticTrigger(msg)) {
+  intent = "semantic_search";
+}
 
   const greet = isGreeting(msg);
 
@@ -1153,13 +1152,6 @@ function isSemanticTrigger(msg) {
 
 function analyzeIntent(msg) {
   const lower = msg.toLowerCase();
-
-    // 🔥 ABSOLUTE PRIORITY — SEMANTIC (STRONG DETECTION)
-  if (
-    /i want|i'm looking for|looking for|something with|something like|show me something/.test(lower)
-  ) {
-    return "semantic_search";
-  }
 
     // 🚫 BLOCK FAKE PRODUCT SEARCH TRIGGERS
   if (/with\s+\w+/.test(lower) && !lower.includes("product")) {

@@ -1365,19 +1365,16 @@ if (memory.awaitingProduct) {
 if (intent === "semantic_search") {
 
   const words = msg.split(" ");
-  const expanded = await expandWordsAI(words);
-  const enrichedQuery = expanded.join(" ");
+const expanded = await expandWordsAI(words);
+const enrichedQuery = expanded.join(" ");
 
-  const matches = semanticSearchStrict(enrichedQuery);
+const matches = semanticSearchStrict(enrichedQuery);
 
-  // 🚫 HARD FILTER — ONLY HIGH CONFIDENCE
-  const strongMatches = matches.filter(p => p.score >= 6);
-
-  if (!strongMatches.length) {
-    return t("noMatch"); // ❌ NO FALLBACK
+  if (!matches.length) {
+    return t("noMatch");
   }
 
-  const best = strongMatches.slice(0, 3);
+  const best = matches.slice(0, 3);
 
   memory.lastSuggested = best;
   memory.expectingChoice = true;
@@ -1390,9 +1387,6 @@ ${best.map(p => `• ${p.name} — ${p.price}`).join("\n")}
 👉 ${t("confirmChoice")}`;
 }
 
-  // 🚫 DO NOT override semantic search
-if (intent !== "semantic_search") {
-
   const fallbackSmart = searchProductsSmart(msg);
 
   if (fallbackSmart.length) {
@@ -1400,8 +1394,6 @@ if (intent !== "semantic_search") {
 
 ${fallbackSmart.map(p => `• ${p.name} — ${p.price}`).join("\n")}`
   }
-
-}
 
   const fallbackDefault = getProductData().slice(0, 3);
 

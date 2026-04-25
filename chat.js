@@ -1405,31 +1405,36 @@ if (memory.awaitingProduct) {
 }
 
 if (intent === "semantic_search") {
+  try {
+    const words = msg.split(" ");
+    const expanded = await expandWordsAI(words);
+    const enrichedQuery = expanded.join(" ");
 
-  const words = msg.split(" ");
-  const expanded = await expandWordsAI(words);
-  const enrichedQuery = expanded.join(" ");
+    const matches = semanticSearchStrict(enrichedQuery) || [];
 
-  const matches = semanticSearchStrict(enrichedQuery);
+    const strongMatches = matches.filter(p => p.score >= 6);
 
-  // 🚫 HARD FILTER — ONLY HIGH CONFIDENCE
-  const strongMatches = matches.filter(p => p.score >= 6);
+    if (!strongMatches.length) {
+      return t("noMatch");
+    }
 
-  if (!strongMatches.length) {
-    return t("noMatch"); // ❌ NO FALLBACK
-  }
+    const best = strongMatches.slice(0, 3);
 
-  const best = strongMatches.slice(0, 3);
+    memory.lastSuggested = best;
+    memory.expectingChoice = true;
+    saveMemory();
 
-  memory.lastSuggested = best;
-  memory.expectingChoice = true;
-  saveMemory();
-
-  return `✨ ${t("foundMatch")}
+    return `✨ ${t("foundMatch")}
 
 ${best.map(p => `• ${p.name} — ${p.price}`).join("\n")}
 
 👉 ${t("confirmChoice")}`;
+    
+  } catch (err) {
+    console.error("Semantic search crashed:", err);
+    alert("Semantic search crashed:" + err);
+    return t("noMatch");
+  }
 }
 
   // 🚫 DO NOT override semantic search

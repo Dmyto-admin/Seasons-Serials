@@ -518,6 +518,7 @@ async function sendMessage(text) {
 
   } catch (err) {
     console.error(err);
+    alert("ERROR:" + err);
 
     response = clarifyResponse(text);
   }

@@ -1337,60 +1337,13 @@ if (memory.awaitingProduct) {
 
 if (intent === "semantic_search") {
 
-  // 1. expand words
-  const expandedWords = await expandWordsAI(msg);
+  const matches = semanticSearchStrict(msg);
 
-  // 2. detect categories
-  const categories = detectCategory(expandedWords);
-
-  const products = getProductData();
-
-  let scored = products.map(p => {
-    const text = (p.name + " " + p.description).toLowerCase();
-
-    let score = 0;
-
-    // ✅ WORD MATCH
-    expandedWords.forEach(w => {
-      if (w.length < 3) return;
-
-      if (text.includes(w)) score += 2;
-
-      // fuzzy
-      if (text.includes(w.slice(0, -1))) score += 1;
-    });
-
-    // ✅ CATEGORY BOOST
-    categories.forEach(cat => {
-      const group = DICTIONARY[cat];
-      const all = Array.isArray(group)
-        ? group
-        : [...group.core, ...group.related];
-
-      if (all.some(w => text.includes(w))) {
-        score += 5; // 🔥 STRONG BOOST
-      }
-    });
-
-    return { ...p, score };
-  });
-
-  scored.sort((a, b) => b.score - a.score);
-
-  let best = scored.filter(p => p.score > 3).slice(0, 3);
-
-  // 🔥 FALLBACK TO AI EMBEDDINGS
-  if (!best.length) {
-    const aiResults = await semanticSearchAI(msg);
-
-    if (aiResults) {
-      best = aiResults;
-    }
-  }
-
-  if (!best.length) {
+  if (!matches.length) {
     return t("noMatch");
   }
+
+  const best = matches.slice(0, 3);
 
   memory.lastSuggested = best;
   memory.expectingChoice = true;

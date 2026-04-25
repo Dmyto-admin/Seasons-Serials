@@ -1409,7 +1409,7 @@ ${m("askDetails")}`;
 
     return `**${m("productList")}**
 
-    ${selected.map(p => `• `${p.name}` — *${p.price}*`).join("\n")}
+    ${selected.map(p => `• ${p.name} — *${p.price}*`).join("\n")}
 
     💡 Try describing what you’re looking for:
 For example:
@@ -1483,7 +1483,7 @@ if (intent === "semantic_search") {
 
     return `✨ ${t("foundMatch")}
 
-${best.map(p => `• `**${p.name}**` — ${p.price}`).join("\n")}
+${best.map(p => `• **${p.name}** — ${p.price}`).join("\n")}
 
 👉 ${t("confirmChoice")}`;
     

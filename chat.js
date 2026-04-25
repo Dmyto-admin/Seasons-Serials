@@ -191,12 +191,22 @@ function detectLanguage(text) {
 
   if (languageState.locked) return languageState.current;
   
-  const forced = detectForcedLanguage(text);
+  // forced switch
+  const forced = detectForcedLanguage(t);
   if (forced) {
     languageState.current = forced;
     languageState.locked = true;
     return forced;
   }
+
+  // character-based detection (STRONG)
+  if (/[іїєґ]/.test(t)) return LANG.UA;
+  if (/[ñáéíóú]/.test(t)) return LANG.ES;
+  if (/[àâçéèêëîïôûùüÿ]/.test(t)) return LANG.FR;
+
+  // keyword fallback
+  if (/\b(hola|gracias|precio)\b/.test(t)) return LANG.ES;
+  if (/\b(bonjour|merci|prix)\b/.test(t)) return LANG.FR;
   
   if (t.includes("switch to english")) return LANG.EN;
   if (t.includes("français") || t.includes("parle français")) return LANG.FR;
@@ -568,8 +578,9 @@ async function generateSmartReply(input) {
     return handleReportFlow(msg);
   }
 
-  if (isGreeting(msg) && analyzeIntent(msg) === "clarify") {
-  return msg("greeting");
+  if (analyzeIntent(msg) === "greeting") {
+  return t("greeting");
+}
 }
 
   if (msg.includes("same in spanish")) {
@@ -607,11 +618,11 @@ async function generateSmartReply(input) {
 }
 
 function normalize(text) {
-  text = correctTypos(text);
-
-  return text
+  return correctTypos(text)
     .toLowerCase()
-    .replace(/[^\w\sáéíóúüñіїєґ]/gi, "")
+    .normalize("NFD") // 🔥 removes accents
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\w\s]/g, "")
     .trim();
 }
 
@@ -651,16 +662,15 @@ function isGreeting(msg) {
   const t = msg.toLowerCase().trim();
 
   const greetings = [
-    "hi", "hello", "hey", "yo",
-    "good morning", "good afternoon", "good evening",
-    "hola", "bonjour", "привіт", "добрий день", "hallo"
+    "hi","hello","hey",
+    "hola","bonjour","salut",
+    "привіт","добрий день"
   ];
 
-  // allow flexible matching
+  // ✅ STRICT match ONLY
   return greetings.some(g =>
     t === g ||
-    t.startsWith(g + " ") ||
-    t.includes(g)
+    t.startsWith(g + " ")
   );
 }
 
@@ -1145,19 +1155,44 @@ function isSemanticTrigger(msg) {
 function analyzeIntent(msg) {
   const lower = msg.toLowerCase();
 
-  if (isGreeting(msg)) return "greeting";
-
-  // 🔥 ABSOLUTE PRIORITY — SEMANTIC (STRONG DETECTION)
+    // 🔥 ABSOLUTE PRIORITY — SEMANTIC (STRONG DETECTION)
   if (
     /i want|i'm looking for|looking for|something with|something like|show me something/.test(lower)
   ) {
     return "semantic_search";
   }
 
-  // 🚫 BLOCK FAKE PRODUCT SEARCH TRIGGERS
+    // 🚫 BLOCK FAKE PRODUCT SEARCH TRIGGERS
   if (/with\s+\w+/.test(lower) && !lower.includes("product")) {
     return "semantic_search";
   }
+
+  // ✅ PRIORITY ORDER (VERY IMPORTANT)
+
+  // 1. semantic search FIRST
+  if (isSemanticTrigger(lower)) return "semantic_search";
+
+  // 2. product existence
+  if (matchIntent(lower, INTENTS.product_exists)) return "product_exists";
+
+  // 3. transactional intents
+  if (matchIntent(lower, INTENTS.payment)) return "payment";
+  if (matchIntent(lower, INTENTS.delivery)) return "delivery";
+
+  // 4. product-related
+  if (matchIntent(lower, INTENTS.price)) return "price";
+  if (matchIntent(lower, INTENTS.availability)) return "availability";
+
+  // 5. suggestions
+  if (matchIntent(lower, INTENTS.suggest)) return "suggest";
+
+  // 6. help/report
+  if (matchIntent(lower, INTENTS.report)) return "report";
+  if (matchIntent(lower, INTENTS.help)) return "help";
+
+  // 7. social (LOW PRIORITY)
+  if (isGreeting(lower)) return "greeting";
+  if (matchIntent(lower, INTENTS.thanks)) return "thanks";
 
   // NORMAL INTENTS
   for (let intent in INTENTS) {

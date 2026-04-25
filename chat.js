@@ -1205,8 +1205,6 @@ ${suggestions.map(p => "• " + p.name).join("\n")}`;
 ${t("askWhatToKnow")}`;
 }
 
-  const productId = extractProductName(msg);
-
   let productId = null;
 
 // 🚫 BLOCK product detection for semantic queries

@@ -1061,22 +1061,30 @@ function isSemanticTrigger(msg) {
 function analyzeIntent(msg) {
   const lower = msg.toLowerCase();
 
-  // 🚀 ABSOLUTE PRIORITY
-  if (isSemanticTrigger(lower)) {
+  // 🔥 ABSOLUTE PRIORITY — SEMANTIC (STRONG DETECTION)
+  if (
+    /i want|i'm looking for|looking for|something with|something like|show me something/.test(lower)
+  ) {
     return "semantic_search";
   }
 
+  // 🚫 BLOCK FAKE PRODUCT SEARCH TRIGGERS
+  if (/with\s+\w+/.test(lower) && !lower.includes("product")) {
+    return "semantic_search";
+  }
+
+  // NORMAL INTENTS
   for (let intent in INTENTS) {
     const phrases = Object.values(INTENTS[intent]).flat();
 
     for (let phrase of phrases) {
       if (lower.includes(phrase)) {
-        return intent; // ✅ DIRECT MATCH FIRST
+        return intent;
       }
     }
   }
 
-  // fallback to your old scoring
+  // SCORING FALLBACK
   let words = lower.split(" ");
   let scores = {};
 
@@ -1197,7 +1205,12 @@ ${suggestions.map(p => "• " + p.name).join("\n")}`;
 ${t("askWhatToKnow")}`;
 }
 
-  const productId = extractProductName(msg);
+  let productId = null;
+
+// 🚫 BLOCK product detection for semantic queries
+if (intent !== "semantic_search") {
+  productId = extractProductName(msg);
+}
   
   if (productId) {
 
@@ -1364,17 +1377,34 @@ if (memory.awaitingProduct) {
 
 if (intent === "semantic_search") {
 
-  const words = msg.split(" ");
-const expanded = await expandWordsAI(words);
-const enrichedQuery = expanded.join(" ");
+  const words = msg
+  .toLowerCase()
+  .replace(/[^\w\s]/g, "")
+  .split(" ")
+  .filter(w => w.length > 2);
+  const expanded = await expandWordsAI(words);
+  const enrichedQuery = expanded.join(" ");
 
-const matches = semanticSearchStrict(enrichedQuery);
+  const matches = semanticSearchStrict(enrichedQuery);
 
-  if (!matches.length) {
-    return t("noMatch");
+  // ✅ SMART THRESHOLD (dynamic)
+  let bestScore = matches[0]?.score || 0;
+
+  let filtered;
+
+  if (bestScore >= 8) {
+    filtered = matches.filter(p => p.score >= bestScore * 0.7);
+  } else if (bestScore >= 4) {
+    filtered = matches.filter(p => p.score >= bestScore * 0.5);
+  } else {
+    filtered = matches.slice(0, 3); // 🔥 NEVER EMPTY
   }
 
-  const best = matches.slice(0, 3);
+  if (!filtered.length) {
+    return t("noMatch"); // ❌ NO fallback to suggest
+  }
+
+  const best = filtered.slice(0, 3);
 
   memory.lastSuggested = best;
   memory.expectingChoice = true;
@@ -1387,6 +1417,9 @@ ${best.map(p => `• ${p.name} — ${p.price}`).join("\n")}
 👉 ${t("confirmChoice")}`;
 }
 
+  // 🚫 DO NOT override semantic search
+if (intent !== "semantic_search") {
+
   const fallbackSmart = searchProductsSmart(msg);
 
   if (fallbackSmart.length) {
@@ -1394,6 +1427,8 @@ ${best.map(p => `• ${p.name} — ${p.price}`).join("\n")}
 
 ${fallbackSmart.map(p => `• ${p.name} — ${p.price}`).join("\n")}`
   }
+
+}
 
   const fallbackDefault = getProductData().slice(0, 3);
 

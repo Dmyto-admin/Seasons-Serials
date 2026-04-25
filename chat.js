@@ -518,7 +518,6 @@ async function sendMessage(text) {
 
   } catch (err) {
     console.error(err);
-    alert("ERROR:" + err);
 
     response = clarifyResponse(text);
   }
@@ -1150,6 +1149,15 @@ function isSemanticTrigger(msg) {
     /je veux|je cherche|montre/.test(t) ||
     /я хочу|я шукаю|покажи|щось з/.test(t)
   );
+}
+
+function matchIntent(msg, intentObj) {
+  if (!intentObj) return false;
+
+  // flatten all language arrays into one list
+  const phrases = Object.values(intentObj).flat();
+
+  return phrases.some(phrase => msg.includes(phrase));
 }
 
 function analyzeIntent(msg) {

@@ -275,20 +275,22 @@ function formatMessage(text) {
   if (!text) return "";
 
   return text
-    // bold **text**
+    // bold
     .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
 
-    // italic *text*
+    // italic
     .replace(/\*(.*?)\*/g, "<em>$1</em>")
 
-    // highlight `text`
+    // highlight
     .replace(/`(.*?)`/g, "<span class='highlight'>$1</span>")
 
-    // new lines
-    .replace(/\n/g, "<br>")
+    // bullet system → PREMIUM INDENTED STYLE
+    .replace(/• (.*?)(<br>|$)/g,
+      "• <span class='bullet'>$1</span><br>"
+    )
 
-    // bullets
-    .replace(/• (.*?)(<br>|$)/g, "• <span class='bullet'>$1</span><br>");
+    // line breaks
+    .replace(/\n/g, "<br>");
 }
 
 //
@@ -651,16 +653,20 @@ function hasIntent(msg, keywords) {
 }
 
 function isGreeting(msg) {
-  const greetings = ["hi", "hello", "hey", "good morning", "good evening"];
+  const t = msg.toLowerCase().trim();
 
-  const words = msg.split(" ");
+  const greetings = [
+    "hi", "hello", "hey", "yo",
+    "good morning", "good afternoon", "good evening",
+    "hola", "bonjour", "привіт", "добрий день", "hallo"
+  ];
 
-  // ✅ ONLY greeting if message is SHORT and PURE
-  if (words.length <= 3 && greetings.some(g => msg === g || msg.startsWith(g))) {
-    return true;
-  }
-
-  return false;
+  // allow flexible matching
+  return greetings.some(g =>
+    t === g ||
+    t.startsWith(g + " ") ||
+    t.includes(g)
+  );
 }
 
 function correctTypos(text) {
@@ -727,11 +733,30 @@ const MESSAGES = {
     es: "😕 No encontré coincidencias.\nIntenta describirlo de otra forma.",
     fr: "😕 Je n’ai rien trouvé.\nEssayez autrement.",
     ua: "😕 Я нічого не знайшов.\nСпробуйте інакше."
-  }
+  },
+
+  noProducts: {
+      en: "😕 I couldn't find matching products.",
+      es: "😕 No encontré productos coincidentes.",
+      fr: "😕 Je n'ai trouvé aucun produit correspondant.",
+      ua: "😕 Я не знайшов відповідних товарів."
+    },
+  
+  reportStart: {
+      en: "I'm sorry 😔 What type of problem?\n• Payment\n• Product\n• Website",
+      es: "Lo siento 😔 ¿Qué tipo de problema?\n• Pago\n• Producto\n• Sitio web",
+      fr: "Désolé 😔 Quel type de problème ?\n• Paiement\n• Produit\n• Site web",
+      ua: "Вибачте 😔 Яка проблема?\n• Оплата\n• Товар\n• Сайт"
+    },
 };
 
-function m(key) {
-  return MESSAGES[key]?.[currentLang] || MESSAGES[key]?.en || key;
+function msg(key, sticker = "") {
+  const text =
+    MESSAGES[key]?.[currentLang] ||
+    MESSAGES[key]?.en ||
+    "";
+
+  return sticker ? `${sticker} ${text}` : text;
 }
 
 //
@@ -739,25 +764,12 @@ function m(key) {
 //
 function t(key) {
   const dict = {
-    noProducts: {
-      en: "I couldn't find matching products.",
-      es: "No encontré productos coincidentes.",
-      fr: "Je n'ai trouvé aucun produit correspondant.",
-      ua: "Я не знайшов відповідних товарів."
-    },
 
     help: {
       en: "I can help you find products, explain the store, or report a problem.",
       es: "Puedo ayudarte a encontrar productos o reportar un problema.",
       fr: "Je peux vous aider à trouver des produits ou signaler un problème.",
       ua: "Я можу допомогти знайти товари або повідомити про проблему."
-    },
-
-    reportStart: {
-      en: "I'm sorry 😔 What type of problem?\n• Payment\n• Product\n• Website",
-      es: "Lo siento 😔 ¿Qué tipo de problema?\n• Pago\n• Producto\n• Sitio web",
-      fr: "Désolé 😔 Quel type de problème ?\n• Paiement\n• Produit\n• Site web",
-      ua: "Вибачте 😔 Яка проблема?\n• Оплата\n• Товар\n• Сайт"
     },
 
     thanks: {

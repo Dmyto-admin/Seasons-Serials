@@ -9,11 +9,6 @@ import { semanticSearchStrict } from "./semantic-search.js";
 1. Store knowlegde, dictionary, memory and multilengual system
 */
 
-
-window.addEventListener("DOMContentLoaded", () => {
-  setTimeout(preloadEmbeddings, 500);
-});
-
 //
 // STORE KNOWLEDGE
 //
@@ -822,7 +817,12 @@ async function handleReportFlow(msg) {
   }
 
   chatState.step = "ask_desc";
-  return "Got it. Describe the issue.";
+  return multiLang({
+  en: "Got it. Describe the issue.",
+  es: "Entendido. Describe el problema.",
+  fr: "D'accord. Décrivez le problème.",
+  ua: "Зрозуміло. Опишіть проблему."
+});
 }
 
   // STEP 2 — DESCRIPTION
@@ -1040,11 +1040,29 @@ product_exists: {
 }
 };
 
+function isSemanticTrigger(msg) {
+  const patterns = [
+    // 🇬🇧 English
+    /i want/, /i'm looking for/, /looking for/, /show me something/,
+
+    // 🇪🇸 Spanish
+    /quiero/, /busco/, /muéstrame algo/, /algo con/,
+
+    // 🇫🇷 French
+    /je veux/, /je cherche/, /montre moi/, /quelque chose avec/,
+
+    // 🇺🇦 Ukrainian
+    /я хочу/, /я шукаю/, /покажи/, /щось з/
+  ];
+
+  return patterns.some(p => p.test(msg));
+}
+
 function analyzeIntent(msg) {
   const lower = msg.toLowerCase();
 
-  // 🔥 HARD OVERRIDE (VERY IMPORTANT)
-  if (/i want|im looking for|looking for|show me something/.test(lower)) {
+  // 🚀 ABSOLUTE PRIORITY
+  if (isSemanticTrigger(lower)) {
     return "semantic_search";
   }
 
@@ -1112,6 +1130,14 @@ function getProductData() {
       description
     };
   });
+}
+
+
+//
+// MULTILINGUAL HELPER
+//
+function multiLang(obj) {
+  return obj[currentLang] || obj.en;
 }
 
 //
@@ -1338,7 +1364,11 @@ if (memory.awaitingProduct) {
 
 if (intent === "semantic_search") {
 
-  const matches = semanticSearchStrict(msg);
+  const words = msg.split(" ");
+const expanded = await expandWordsAI(words);
+const enrichedQuery = expanded.join(" ");
+
+const matches = semanticSearchStrict(enrichedQuery);
 
   if (!matches.length) {
     return t("noMatch");
@@ -1377,7 +1407,12 @@ ${fallbackDefault.map(p => `• ${p.name} — ${p.price}`).join("\n")}`;
 
   if (!productId) {
     memory.awaitingProduct = false;
-    return "I couldn’t find that product. Did you mean something else?";
+    return multiLang({
+  en: "I couldn't find that product.",
+  es: "No encontré ese producto.",
+  fr: "Je n'ai pas trouvé ce produit.",
+  ua: "Я не знайшов цей товар."
+});
   }
 
   memory.lastProduct = productId;
@@ -1473,91 +1508,6 @@ function formatResponse(text) {
 function randomize(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
-
-
-//
-// SEMANTIC SEARCH
-//
-async function semanticSearchAI(msg) {
-  const products = getProductData();
-
-  const queryEmbedding = await getEmbedding(msg);
-  if (!queryEmbedding) return null;
-
-  const results = [];
-
-  for (let p of products) {
-    const emb = await getProductEmbedding(p);
-
-    const score = cosineSimilarity(queryEmbedding, emb);
-
-    results.push({
-      ...p,
-      score
-    });
-  }
-
-  results.sort((a, b) => b.score - a.score);
-
-  // 🔥 THRESHOLD CONTROL
-  const best = results[0];
-
-  if (!best || best.score < 0.35) {
-    return null; // ❌ no good match
-  }
-
-  return results.slice(0, 2);
-}
-
-
-//
-// COSINE SIMILARITY FOR SEMANTIC SEARCH
-//
-function cosineSimilarity(a, b) {
-  let dot = 0, magA = 0, magB = 0;
-
-  for (let i = 0; i < a.length; i++) {
-    dot += a[i] * b[i];
-    magA += a[i] * a[i];
-    magB += b[i] * b[i];
-  }
-
-  return dot / (Math.sqrt(magA) * Math.sqrt(magB));
-}
-
-const embeddingCache = new Map();
-
-async function preloadEmbeddings() {
-  const products = getProductData();
-
-  for (let p of products) {
-    const emb = await getEmbedding(p.name + " " + p.description);
-    if (emb) {
-      embeddingCache.set(p.id, emb);
-    }
-  }
-}
-
-async function getProductEmbedding(product) {
-  return embeddingCache.get(product.id) || null;
-}
-
-function detectCategory(words) {
-  let detected = [];
-
-  Object.entries(DICTIONARY).forEach(([key, group]) => {
-    const all = Array.isArray(group)
-      ? group
-      : [...group.core, ...group.related];
-
-    if (words.some(w => all.includes(w))) {
-      detected.push(key);
-    }
-  });
-
-  return detected;
-}
-
 
 //
 // CHANGE PRODUCTS EVEETY 48 HOURS

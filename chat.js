@@ -1061,30 +1061,22 @@ function isSemanticTrigger(msg) {
 function analyzeIntent(msg) {
   const lower = msg.toLowerCase();
 
-  // 🔥 ABSOLUTE PRIORITY — SEMANTIC (STRONG DETECTION)
-  if (
-    /i want|i'm looking for|looking for|something with|something like|show me something/.test(lower)
-  ) {
+  // 🚀 ABSOLUTE PRIORITY
+  if (isSemanticTrigger(lower)) {
     return "semantic_search";
   }
 
-  // 🚫 BLOCK FAKE PRODUCT SEARCH TRIGGERS
-  if (/with\s+\w+/.test(lower) && !lower.includes("product")) {
-    return "semantic_search";
-  }
-
-  // NORMAL INTENTS
   for (let intent in INTENTS) {
     const phrases = Object.values(INTENTS[intent]).flat();
 
     for (let phrase of phrases) {
       if (lower.includes(phrase)) {
-        return intent;
+        return intent; // ✅ DIRECT MATCH FIRST
       }
     }
   }
 
-  // SCORING FALLBACK
+  // fallback to your old scoring
   let words = lower.split(" ");
   let scores = {};
 
@@ -1205,12 +1197,7 @@ ${suggestions.map(p => "• " + p.name).join("\n")}`;
 ${t("askWhatToKnow")}`;
 }
 
-  let productId = null;
-
-// 🚫 BLOCK product detection for semantic queries
-if (intent !== "semantic_search") {
-  productId = extractProductName(msg);
-}
+  const productId = extractProductName(msg);
   
   if (productId) {
 
@@ -1377,34 +1364,20 @@ if (memory.awaitingProduct) {
 
 if (intent === "semantic_search") {
 
-  const words = msg
-  .toLowerCase()
-  .replace(/[^\w\s]/g, "")
-  .split(" ")
-  .filter(w => w.length > 2);
+  const words = msg.split(" ");
   const expanded = await expandWordsAI(words);
   const enrichedQuery = expanded.join(" ");
 
   const matches = semanticSearchStrict(enrichedQuery);
 
-  // ✅ SMART THRESHOLD (dynamic)
-  let bestScore = matches[0]?.score || 0;
+  // 🚫 HARD FILTER — ONLY HIGH CONFIDENCE
+  const strongMatches = matches.filter(p => p.score >= 6);
 
-  let filtered;
-
-  if (bestScore >= 8) {
-    filtered = matches.filter(p => p.score >= bestScore * 0.7);
-  } else if (bestScore >= 4) {
-    filtered = matches.filter(p => p.score >= bestScore * 0.5);
-  } else {
-    filtered = matches.slice(0, 3); // 🔥 NEVER EMPTY
+  if (!strongMatches.length) {
+    return t("noMatch"); // ❌ NO FALLBACK
   }
 
-  if (!filtered.length) {
-    return t("noMatch"); // ❌ NO fallback to suggest
-  }
-
-  const best = filtered.slice(0, 3);
+  const best = strongMatches.slice(0, 3);
 
   memory.lastSuggested = best;
   memory.expectingChoice = true;

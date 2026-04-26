@@ -2257,7 +2257,7 @@ input:-webkit-autofill:focus {
 }
 
 .btn.cancel {
-  background: #eee;
+  background: #ebebeb;
 }
 
 .btn.delete {
@@ -2266,7 +2266,7 @@ input:-webkit-autofill:focus {
 }
 
 btn.close-modal {
-    background: #eee;
+    background: #ebebeb;
 }
 
 .menu-wrapper {

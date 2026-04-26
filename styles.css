@@ -2251,6 +2251,10 @@ input:-webkit-autofill:focus {
   color: white;
 }
 
+btn.close-modal {
+    background: #eee;
+}
+
 .menu-wrapper {
   position: relative;
   display: inline-block;

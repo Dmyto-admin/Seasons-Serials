@@ -2211,9 +2211,18 @@ input:-webkit-autofill:focus {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.4);
-  display: none;
   align-items: center;
   justify-content: center;
+}
+
+.time-modal {
+    display: flex;
+    opacity: 1;
+    position: fixed;
+    insent: 0;
+    background: rgba(0,0,0,0.4);
+    align-items: center;
+    justify-content: center;
 }
 
 .modal.show {
@@ -2233,6 +2242,11 @@ input:-webkit-autofill:focus {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+}
+
+.time-modal-actions {
+    display: flex;
+    justify-content: center;
 }
 
 .btn {

@@ -435,7 +435,7 @@ document.addEventListener("click", (e) => {
     const modal = document.createElement("div");
     modal.className = "time-modal";
     modal.innerHTML = `
-      <div class="time-box">
+      <div class="modal">
         <h3>Message details</h3>
         <p>${new Date().toLocaleString()}</p>
         <button onclick="this.parentElement.parentElement.remove()">Close</button>

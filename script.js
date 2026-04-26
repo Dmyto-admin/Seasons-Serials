@@ -155,7 +155,6 @@ if (moreBtn && moreMenu) {
 
 const filterBtn = document.getElementById("filterBtn");
 const filtersMenu = document.getElementById("filtersMenu");
-const filtersBox = document.querySelector(".filters-box"); // ✅ ADD THIS
 
 if (filterBtn && filtersMenu) {
     filterBtn.addEventListener("click", e => {
@@ -178,9 +177,11 @@ const filterItems = Array.from(document.querySelectorAll(".filter-type-all-produ
 let currentIndex = -1;
 
 // Open dropdown → reset selection
-filterBtn.addEventListener("click", () => {
-    currentIndex = -1;
-});
+if (filterBtn) {
+    filterBtn.addEventListener("click", () => {
+        currentIndex = -1;
+    });
+}
 
 // Keyboard control
 document.addEventListener("keydown", (e) => {
@@ -223,7 +224,6 @@ function updateKeyboardSelection() {
 
 function closeDropdown() {
     filtersMenu.classList.remove("active");
-    filtersBox.classList.remove("open");
 }
 
 

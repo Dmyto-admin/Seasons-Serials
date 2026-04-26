@@ -154,7 +154,8 @@ if (moreBtn && moreMenu) {
 /* ---------- FILTERS DROPDOWN ---------- */
 
 const filterBtn = document.getElementById("filterBtn");
-const filtersMenu    = document.getElementById("filtersMenu");
+const filtersMenu = document.getElementById("filtersMenu");
+const filtersBox = document.getElementById("filtersBox"); // ✅ ADD THIS
 
 if (filterBtn && filtersMenu) {
     filterBtn.addEventListener("click", e => {

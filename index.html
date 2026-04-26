@@ -99,7 +99,7 @@
 
   <!-- HEADER -->
   <div id="chatHeader">
-    <span>Store AI Assistant</span>
+    <span>Seasons Serials AI Assistant</span>
     <ion-icon name="close" id="closeChat"></ion-icon>
   </div>
 
@@ -108,7 +108,7 @@
 
   <!-- SUGGESTIONS -->
   <div id="chatSuggestions">
-    <button class="chat-suggestion">What can I buy?</button>
+    <button class="chat-suggestion">What is Seasons Serials?</button>
     <button class="chat-suggestion">What are you used for?</button>
     <button class="chat-suggestion">Report error</button>
   </div>
@@ -125,20 +125,18 @@
     </button>
   </div>
 
-  <!-- DELETE MESSAGE MODAL -->
-  <div id="deleteModal" class="chat-modal hidden">
-      <div class="chat-modal-box">
-        <h3>Delete message?</h3>
-        <p>This cannot be undone.</p>
-
-        <div class="modal-actions">
-          <button id="cancelDelete">Cancel</button>
-          <button id="confirmDeleteBtn">Delete</button>
-        </div>
-      </div>
+  <!-- DELETE MODAL -->
+<div id="deleteModal" class="modal">
+  <div class="modal-box">
+    <h3>Delete message?</h3>
+    <p>This action cannot be undone.</p>
+    <div class="modal-actions">
+      <button id="cancelDelete" class="btn cancel">Cancel</button>
+      <button id="confirmDeleteBtn" class="btn delete">Delete</button>
     </div>
-
+  </div>
 </div>
+    
     
 <script src="script.js"></script>
 <script type="module" src="chat.js"></script>

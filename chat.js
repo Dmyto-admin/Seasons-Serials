@@ -190,8 +190,8 @@ function detectLanguage(text) {
   const t = text.toLowerCase();
 
   if (languageState.locked) return languageState.current;
-  
-  // forced switch
+
+  // 🔥 FORCED COMMANDS
   const forced = detectForcedLanguage(t);
   if (forced) {
     languageState.current = forced;
@@ -199,25 +199,43 @@ function detectLanguage(text) {
     return forced;
   }
 
-  // character-based detection (STRONG)
+  // 🔥 CHARACTER DETECTION (VERY STRONG)
   if (/[іїєґ]/.test(t)) return LANG.UA;
-  if (/[ñáéíóú]/.test(t)) return LANG.ES;
-  if (/[àâçéèêëîïôûùüÿ]/.test(t)) return LANG.FR;
+  if (/[ñ¿¡áéíóú]/.test(t)) return LANG.ES;
+  if (/[àâçéèêëîïôûùüÿœ]/.test(t)) return LANG.FR;
 
-  // keyword fallback
-  if (/\b(hola|gracias|precio)\b/.test(t)) return LANG.ES;
-  if (/\b(bonjour|merci|prix)\b/.test(t)) return LANG.FR;
-  
-  if (t.includes("switch to english")) return LANG.EN;
-  if (t.includes("français") || t.includes("parle français")) return LANG.FR;
-  if (t.includes("español") || t.includes("habla español")) return LANG.ES;
-  if (t.includes("українською") || t.includes("українська")) return LANG.UA;
+  // 🔥 WORD-BASED SCORING (NEW)
+  let scores = {
+    en: 0,
+    es: 0,
+    fr: 0,
+    ua: 0
+  };
 
-  if (!languageState.locked) {
-    if (/[іїєґ]/.test(t)) return LANG.UA;
-    if (t.includes("bonjour")) return LANG.FR;
-    if (t.includes("hola")) return LANG.ES;
-  }
+  const words = t.split(" ");
+
+  words.forEach(w => {
+    for (let group of Object.values(DICTIONARY)) {
+
+      if (group.multilingual?.es?.includes(w)) scores.es += 2;
+      if (group.multilingual?.fr?.includes(w)) scores.fr += 2;
+      if (group.multilingual?.ua?.includes(w)) scores.ua += 2;
+
+      if (group.core.includes(w) || group.related.includes(w)) {
+        scores.en += 1;
+      }
+    }
+
+    // 🔥 COMMON WORD BOOST
+    if (["the","and","is","what"].includes(w)) scores.en += 1;
+    if (["el","la","que","y"].includes(w)) scores.es += 1;
+    if (["le","la","et","est"].includes(w)) scores.fr += 1;
+    if (["і","це","що"].includes(w)) scores.ua += 1;
+  });
+
+  const best = Object.entries(scores).sort((a,b)=>b[1]-a[1])[0];
+
+  if (best[1] >= 2) return best[0];
 
   return languageState.current;
 }
@@ -502,7 +520,9 @@ function getTypingDelay(text) {
   return Math.min(2000, 500 + text.length * 20);
 }
 
+//
 // SEND MESSAGE
+//
 async function sendMessage(text) {
   if (!text.trim()) return;
 
@@ -561,6 +581,13 @@ async function getProductStatus(productId) {
 // SMART REPLY
 //
 async function generateSmartReply(input) {
+
+  // 🔥 HARD BLOCK: "something else" MUST NEVER FALLBACK
+const clean = input.toLowerCase().trim();
+
+if (/^something else$|^another$|^different$|^else$/.test(clean)) {
+  return await generateResponse("suggest", clean);
+}
 
   currentLang = detectLanguage(input);
   
@@ -977,12 +1004,12 @@ Thank you for helping us improve the platform.
 // SMART FALLBACK
 //
 function clarifyResponse(msg) {
-  return {
-    en: "Could you clarify a bit so I can help better?",
-    es: "¿Puedes aclarar un poco más?",
-    fr: "Peux-tu préciser un peu ?",
-    ua: "Можеш трохи уточнити?"
-  }[currentLang];
+  return `${t("confused")}
+
+💡 Try:
+• "show me products"
+• "something with nature"
+• "story for kids"`;
 }
 
 //
@@ -1179,6 +1206,8 @@ function analyzeIntent(msg) {
   const words = msg.split(" ").filter(w => w.length > 2);
 
   let scores = {};
+  let bestIntent = "clarify";
+  let bestScore = 0;
 
   for (let intent in INTENTS) {
     scores[intent] = 0;
@@ -1188,27 +1217,33 @@ function analyzeIntent(msg) {
     keywords.forEach(phrase => {
       const phraseWords = phrase.split(" ");
 
-      // ✅ FULL PHRASE MATCH (STRONG)
+      // 🔥 STRONG PHRASE MATCH
       if (msg.includes(phrase)) {
-        scores[intent] += 5;
+        scores[intent] += 8;
       }
 
-      // ✅ WORD MATCH (CONTROLLED)
+      // 🔥 PARTIAL MATCH (smarter)
       phraseWords.forEach(pw => {
         if (words.includes(pw)) {
-          scores[intent] += 1;
+          scores[intent] += 2;
         }
       });
     });
+
+    // 🔥 TRACK BEST
+    if (scores[intent] > bestScore) {
+      bestScore = scores[intent];
+      bestIntent = intent;
+    }
   }
 
-  // ✅ sort by strongest score
-  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+  // 🔥 CRITICAL: NEVER FALLBACK TO GREETING
+  if (bestIntent === "greeting" && bestScore < 8) {
+    return "clarify";
+  }
 
-  const [bestIntent, bestScore] = sorted[0];
-
-  // 🔥 VERY IMPORTANT THRESHOLD
-  if (bestScore < 2) return "clarify";
+  // 🔥 LOWER THRESHOLD → MORE UNDERSTANDING
+  if (bestScore < 3) return "clarify";
 
   return bestIntent;
 }
@@ -1293,9 +1328,10 @@ ${p.description}`;
 
   if (/^something else$|^another$|^different$|^else$/.test(msg.trim())) {
   memory.expectingChoice = false;
+  memory.lastSuggested = null;
   saveMemory();
 
-  return generateResponse("suggest", msg);
+  return await generateResponse("suggest", msg);
 }
 }
 

@@ -438,7 +438,7 @@ document.addEventListener("click", (e) => {
      <div class="modal-box">
         <h3>Message details</h3>
         <p>${new Date().toLocaleString()}</p>
-        <div class="modal-actions">
+        <div class="time-modal-actions">
            <button onclick="this.parentElement.parentElement.remove()" class="btn close-modal">Close</button>
         </div>
       </div>

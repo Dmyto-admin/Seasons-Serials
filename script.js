@@ -163,14 +163,11 @@ if (filterBtn && filtersMenu) {
 
         // close filters dropdown if open
         moreMenu?.classList.remove("active");
-
         filtersMenu.classList.toggle("active");
-        filtersBox.classList.toggle("open");
     });
 
     document.addEventListener("click", () => {
         filtersMenu.classList.remove("active");
-        filtersBox.classList.remove("open");
     });
 }
 
@@ -229,7 +226,7 @@ function closeDropdown() {
 }
 
 
-/* ---------- XXXXX ---------- */
+/* ----------  ---------- */
 
 
 /* ---------- WRAPPERS ---------- */

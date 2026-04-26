@@ -1019,11 +1019,23 @@ const INTENTS = {
   },
 
   suggest: {
-    en: ["what can i buy", "recommend", "suggest", "show"],
-    es: ["que puedo comprar", "recomienda"],
-    fr: ["que puis je acheter", "recommande"],
-    ua: ["що купити", "порадь"]
-  },
+  en: [
+    "what can i buy","recommend","suggest","show me","give me ideas",
+    "what do you have","products","show products","i want to buy","ideas"
+  ],
+  es: [
+    "que puedo comprar","recomienda","sugiere","muéstrame","ideas",
+    "productos","quiero comprar","que tienes","dame ideas","mostrar productos"
+  ],
+  fr: [
+    "que puis je acheter","recommande","suggere","montre moi","idees",
+    "produits","je veux acheter","que as tu","donne moi des idees","afficher produits"
+  ],
+  ua: [
+    "що купити","порадь","покажи","ідеї","товари",
+    "я хочу купити","що у вас є","покажи товари","дай ідеї","рекомендації"
+  ]
+},
 
   availability: {
     en: ["available", "in stock", "is it available", "can i buy"],
@@ -1142,63 +1154,63 @@ product_exists: {
 };
 
 function isSemanticTrigger(msg) {
-  const t = msg.toLowerCase();
+  const t = msg.toLowerCase().trim();
+
+  // 🚫 BLOCK CRITICAL WORDS (VERY IMPORTANT)
+  if (/^something else$/.test(t)) return false;
+  if (/^else$/.test(t)) return false;
 
   return (
-    /i want|i'm looking for|looking for|show me|something like|something with|find me/.test(t) ||
-    /quiero|busco|muéstrame|algo con/.test(t) ||
-    /je veux|je cherche|montre/.test(t) ||
-    /я хочу|я шукаю|покажи|щось з/.test(t)
+    /\bi want something\b/.test(t) ||
+    /\blooking for something\b/.test(t) ||
+    /\bsomething with\b/.test(t) ||
+    /\bfind me something\b/.test(t) ||
+
+    /\bquiero algo\b/.test(t) ||
+    /\balgo con\b/.test(t) ||
+
+    /\bje veux quelque chose\b/.test(t) ||
+
+    /\bя хочу щось\b/.test(t)
   );
 }
 
 function analyzeIntent(msg) {
-  const lower = msg.toLowerCase();
+  const words = msg.split(" ").filter(w => w.length > 2);
 
-     // 🔥 ABSOLUTE PRIORITY — SEMANTIC (STRONG DETECTION)
-  if (
-    /i want|i'm looking for|looking for/.test(lower)
-  ) {
-    return "semantic_search";
-  }
-
-  // 🚫 BLOCK FAKE PRODUCT SEARCH TRIGGERS
-  if (/with\s+\w+/.test(lower) && !lower.includes("product")) {
-    return "semantic_search";
-  }
-
-  // NORMAL INTENTS
-  for (let intent in INTENTS) {
-    const phrases = Object.values(INTENTS[intent]).flat();
-
-    for (let phrase of phrases) {
-      if (lower.includes(phrase)) {
-        return intent;
-      }
-    }
-  }
-
-  // SCORING FALLBACK
-  let words = lower.split(" ");
   let scores = {};
 
   for (let intent in INTENTS) {
     scores[intent] = 0;
 
-    const allWords = Object.values(INTENTS[intent]).flat();
+    const keywords = Object.values(INTENTS[intent]).flat();
 
-    allWords.forEach(keyword => {
-      keyword.split(" ").forEach(k => {
-        if (words.includes(k)) scores[intent]++;
+    keywords.forEach(phrase => {
+      const phraseWords = phrase.split(" ");
+
+      // ✅ FULL PHRASE MATCH (STRONG)
+      if (msg.includes(phrase)) {
+        scores[intent] += 5;
+      }
+
+      // ✅ WORD MATCH (CONTROLLED)
+      phraseWords.forEach(pw => {
+        if (words.includes(pw)) {
+          scores[intent] += 1;
+        }
       });
     });
   }
 
+  // ✅ sort by strongest score
   const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
 
-  if (sorted[0][1] === 0) return "clarify";
+  const [bestIntent, bestScore] = sorted[0];
 
-  return sorted[0][0];
+  // 🔥 VERY IMPORTANT THRESHOLD
+  if (bestScore < 2) return "clarify";
+
+  return bestIntent;
 }
 
 //
@@ -1279,12 +1291,12 @@ if (memory.expectingChoice) {
 ${p.description}`;
   }
 
-  if (/something else|another|different|else|something/.test(msg)) {
-    memory.expectingChoice = false;
-    saveMemory();
+  if (/^something else$|^another$|^different$|^else$/.test(msg.trim())) {
+  memory.expectingChoice = false;
+  saveMemory();
 
-    return generateResponse("suggest", msg);
-  }
+  return generateResponse("suggest", msg);
+}
 }
 
   if (intent === "product_exists") {

@@ -592,6 +592,18 @@ async function getProductStatus(productId) {
 }
 
 //
+// HELPER
+//
+function tryAnswerKnowledge(msg) {
+  for (let key in STORE_KNOWLEDGE) {
+    if (msg.includes(key)) {
+      return STORE_KNOWLEDGE[key];
+    }
+  }
+  return clarifyResponse(msg);
+}
+
+//
 // SMART REPLY
 //
 async function generateSmartReply(input) {
@@ -635,11 +647,34 @@ if (/^something else$|^another$|^different$|^else$/.test(clean)) {
     return "Звісно. Від тепер я відповідатиму українською.";
   }
 
-  let intent = analyzeIntent(msg);
+const goal = detectUserGoal(msg);
+let intent = analyzeIntent(msg);
 
-// 🔥 ONLY upgrade to semantic IF it's still vague
-if (intent === "clarify" && isSemanticTrigger(msg)) {
-  intent = "semantic_search";
+// 🔥 SMART DISAMBIGUATION LAYER
+if (intent === "clarify") {
+
+  // 1. Try product understanding first
+  const productGuess = searchProductsSmart(msg);
+  if (productGuess.length) {
+    return `${t("approxMatch")}
+
+${productGuess.map(p => `• ${p.name} — ${p.price}`).join("\n")}`;
+  }
+
+  // 2. If user expresses desire → semantic
+  if (goal === "desire") {
+    intent = "semantic_search";
+  }
+
+  // 3. If question → try knowledge
+  else if (goal === "question") {
+    return tryAnswerKnowledge(msg);
+  }
+
+  // 4. ONLY then fallback
+  else {
+    return clarifyResponse(msg);
+  }
 }
 
   const greet = isGreeting(msg);
@@ -1214,6 +1249,13 @@ function isSemanticTrigger(msg) {
 
     /\bя хочу щось\b/.test(t)
   );
+}
+
+function detectUserGoal(msg) {
+  if (/i want|quiero|je veux|я хочу/.test(msg)) return "desire";
+  if (/do you|can you|is it|есть ли/.test(msg)) return "question";
+  if (/show|list|give/.test(msg)) return "browse";
+  return "unknown";
 }
 
 function analyzeIntent(msg) {

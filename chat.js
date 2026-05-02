@@ -129,19 +129,6 @@ async function getEmbedding(text) {
   return data.data?.[0]?.embedding || null;
 }
 
-async function askAI(message) {
-  const res = await fetch("http://127.0.0.1:8000/chat", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ message })
-  });
-
-  const data = await res.json();
-  return data.reply;
-}
-
 //
 // INTERUPTS
 //
@@ -547,13 +534,13 @@ async function sendMessage(text) {
   let response;
 
   try {
-    // ✅ ONLY use your smart system
     response = await generateSmartReply(text);
 
     if (!response) throw new Error("Empty AI response");
 
   } catch (err) {
     console.error(err);
+
     response = clarifyResponse(text);
   }
 
@@ -562,7 +549,6 @@ async function sendMessage(text) {
     addMessage(response, "bot");
   }, getTypingDelay(response));
 }
-
 // INPUT SEND
 sendBtn.addEventListener("click", () => {
   sendMessage(chatInput.value);
@@ -589,18 +575,6 @@ async function getProductStatus(productId) {
   if (!snap.exists()) return "unknown";
 
   return snap.data().status; // available | reserved | sold
-}
-
-//
-// HELPER
-//
-function tryAnswerKnowledge(msg) {
-  for (let key in STORE_KNOWLEDGE) {
-    if (msg.includes(key)) {
-      return STORE_KNOWLEDGE[key];
-    }
-  }
-  return clarifyResponse(msg);
 }
 
 //
@@ -647,34 +621,11 @@ if (/^something else$|^another$|^different$|^else$/.test(clean)) {
     return "Звісно. Від тепер я відповідатиму українською.";
   }
 
-const goal = detectUserGoal(msg);
-let intent = analyzeIntent(msg);
+  let intent = analyzeIntent(msg);
 
-// 🔥 SMART DISAMBIGUATION LAYER
-if (intent === "clarify") {
-
-  // 1. Try product understanding first
-  const productGuess = searchProductsSmart(msg);
-  if (productGuess.length) {
-    return `${t("approxMatch")}
-
-${productGuess.map(p => `• ${p.name} — ${p.price}`).join("\n")}`;
-  }
-
-  // 2. If user expresses desire → semantic
-  if (goal === "desire") {
-    intent = "semantic_search";
-  }
-
-  // 3. If question → try knowledge
-  else if (goal === "question") {
-    return tryAnswerKnowledge(msg);
-  }
-
-  // 4. ONLY then fallback
-  else {
-    return clarifyResponse(msg);
-  }
+// 🔥 ONLY upgrade to semantic IF it's still vague
+if (intent === "clarify" && isSemanticTrigger(msg)) {
+  intent = "semantic_search";
 }
 
   const greet = isGreeting(msg);
@@ -1249,13 +1200,6 @@ function isSemanticTrigger(msg) {
 
     /\bя хочу щось\b/.test(t)
   );
-}
-
-function detectUserGoal(msg) {
-  if (/i want|quiero|je veux|я хочу/.test(msg)) return "desire";
-  if (/do you|can you|is it|есть ли/.test(msg)) return "question";
-  if (/show|list|give/.test(msg)) return "browse";
-  return "unknown";
 }
 
 function analyzeIntent(msg) {

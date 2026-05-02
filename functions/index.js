@@ -5,7 +5,7 @@ const { Resend } = require("resend");
 admin.initializeApp();
 const db = admin.firestore();
 
-const resend = new Resend("YOUR_API_KEY");
+const resend = new Resend("re_9VFz4M4u_A4675RQMBwdKukxLXrk7Zdrc");
 
 async function sendEmail(to, html) {
   await resend.emails.send({

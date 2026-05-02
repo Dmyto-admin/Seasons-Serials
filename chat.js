@@ -129,6 +129,19 @@ async function getEmbedding(text) {
   return data.data?.[0]?.embedding || null;
 }
 
+async function askAI(message) {
+  const res = await fetch("http://127.0.0.1:8000/chat", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ message })
+  });
+
+  const data = await res.json();
+  return data.reply;
+}
+
 //
 // INTERUPTS
 //
@@ -535,6 +548,8 @@ async function sendMessage(text) {
 
   try {
     response = await generateSmartReply(text);
+    response = await askAI(userMessage);
+    displayMessage(response);
 
     if (!response) throw new Error("Empty AI response");
 

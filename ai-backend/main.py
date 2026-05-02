@@ -1,54 +1,37 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import requests
-
-from ai_engine import CodeAI
+import os
 
 app = FastAPI()
-ai = CodeAI()
 
-class Query(BaseModel):
+class Msg(BaseModel):
     message: str
 
-def ask_local_ai(prompt):
-    res = requests.post(
-        "http://localhost:11434/api/generate",
-        json={
-            "model": "mistral",
-            "prompt": prompt,
-            "stream": False
-        }
-    )
-    return res.json()["response"]
+# 🔥 FREE AI (OpenRouter)
+API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 @app.post("/chat")
-def chat(q: Query):
-    context_chunks = ai.search(q.message)
-    context = "\n\n".join(context_chunks)
+async def chat(msg: Msg):
+    try:
+        response = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {API_KEY}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "mistralai/mistral-7b-instruct",
+                "messages": [
+                    {"role": "user", "content": msg.message}
+                ]
+            }
+        )
 
-    prompt = f"""
-You are an expert AI assistant for a web app called "Seasons Serials".
+        data = response.json()
+        reply = data["choices"][0]["message"]["content"]
 
-You understand:
-- frontend JavaScript
-- HTML structure
-- UI behavior
-- bugs and logic
+        return {"reply": reply}
 
-User question:
-{q.message}
-
-Relevant code:
-{context}
-
-Instructions:
-- Understand what the user wants
-- Detect their intent automatically
-- Explain clearly
-- Suggest fixes if needed
-- Be precise and helpful
-"""
-
-    reply = ask_local_ai(prompt)
-
-    return {"reply": reply}
+    except Exception as e:
+        return {"reply": f"Error: {str(e)}"}

@@ -866,11 +866,11 @@ const MESSAGES = {
 },
 
   problemChoise: {
-    en: "Please choose of the following: /n👉 **Payment** /n👉 **Product** /n👉 **Website** /n**👉 Other**",
-  es: "Por favor, elija entre las siguientes opciones: /n👉 **Pago** /n👉 **Producto** /n👉 **Sitio web** /n***👉 Otros**",
-  fr: "Veuillez choisir parmi les suivants : /n👉 **Paiement** /n👉 **Produit** /n👉 **Site web** /n**👉 Autre**",
-  ua: "Будь ласка, виберіть наступне: /n👉 **Оплата** /n👉 **Товар** /n👉 **Веб сайт** /n**👉 Інше**"
-});
+  en: "Please choose of the following: \n👉 **Payment** \n👉 **Product** \n👉 **Website** \n👉 **Other**",
+  es: "Por favor, elija entre las siguientes opciones: \n👉 **Pago** \n👉 **Producto** \n👉 **Sitio web** \n👉 **Otros**",
+  fr: "Veuillez choisir parmi les suivants : \n👉 **Paiement** \n👉 **Produit** \n👉 **Site web** \n👉 **Autre**",
+  ua: "Будь ласка, виберіть наступне: \n👉 **Оплата** \n👉 **Товар** \n👉 **Веб сайт** \n👉 **Інше**"
+}
   }
 
 

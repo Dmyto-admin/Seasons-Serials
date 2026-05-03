@@ -873,9 +873,6 @@ const MESSAGES = {
 }
   }
 
-
-};
-
 function t(key, sticker = "") {
   const text =
     MESSAGES[key]?.[currentLang] ||

@@ -729,7 +729,7 @@ function extractRawProductQuery(msg) {
     .replace(/does this product exist|check if this exists|do you have this|do you sell this/gi, "")
     .replace(/existe este producto|tienes este producto/gi, "")
     .replace(/ce produit existe|avez vous ce produit/gi, "")
-    .replace(/чи існує цей товар/gi, "")
+    .replace(/чи існує цей товар|ви це продаєте/gi, "")
     .trim();
 
   return cleaned;
@@ -789,10 +789,10 @@ const MESSAGES = {
     },
 
   loginHelp: {
-      en: "🔐 To log in, click on 'Login' in the navigation bar at the top of the page. Enter your credentials and you'll be inside your account.",
-      es: "🔐 Para iniciar sesión, haz clic en 'Login' en la barra superior.",
-      fr: "🔐 Pour vous connecter, cliquez sur 'Login' dans la barre de navigation.",
-      ua: "🔐 Щоб увійти, натисніть 'Login' у верхньому меню."
+      en: "🔐 To **log in**, click on 'Login' in the navigation bar at the top of the page. Enter your credentials and you'll be inside your account.",
+      es: "🔐 Para **iniciar sesión**, haz clic en 'Login' en la barra superior.",
+      fr: "🔐 Pour vous **connecter**, cliquez sur 'Login' dans la barre de navigation.",
+      ua: "🔐 Щоб **увійти**, натисніть 'Login' у верхньому меню."
     },
 
   payment: {
@@ -824,10 +824,10 @@ const MESSAGES = {
   },
 
   productExistsYes: {
-  en: "Yes ✅ we sell this product.",
-  es: "Sí ✅ vendemos este producto.",
-  fr: "Oui ✅ on vend ce produite.",
-  ua: "Так ✅ ми продаємо цей товар."
+  en: "**Yes** ✅ we sell this product.",
+  es: "**Sí** ✅ vendemos este producto.",
+  fr: "**Oui** ✅ on vend ce produite.",
+  ua: "**Так** ✅ ми продаємо цей товар."
 },
 
   productExistsNo: {
@@ -859,11 +859,19 @@ const MESSAGES = {
 },
 
   confirmChoice: {
-  en: "👌 Say 'yes' to see details or 'something else' if this is not something you're looking for",
-  es: "👌 Di 'sí' para ver detalles o 'otra cosa' si no es algo que buscas",
-  fr: "👌 Dites 'oui' pour voir les détails ou 'autre chose' si ce n’est pas quelque chose que vous cherchez",
-  ua: "👌 Скажіть 'так', щоб побачити деталі або 'щось інше', якщо це не є щось що ви шукаєте"
-}
+  en: "👌 Say **'yes'** to see details or **'something else'** if this is not something you're looking for",
+  es: "👌 Di **'sí'** para ver detalles u **'otra cosa'** si no es algo que buscas",
+  fr: "👌 Dites **'oui'** pour voir les détails ou **'autre chose'** si ce n’est pas quelque chose que vous cherchez",
+  ua: "👌 Скажіть **'так'**, щоб побачити деталі або **'щось інше'**, якщо це не є щось що ви шукаєте"
+},
+
+  problemChoise: {
+    en: "Please choose of the following: /n👉 **Payment** /n👉 **Product** /n👉 **Website** /n**👉 Other**",
+  es: "Por favor, elija entre las siguientes opciones: /n👉 **Pago** /n👉 **Producto** /n👉 **Sitio web** /n***👉 Otros**",
+  fr: "Veuillez choisir parmi les suivants : /n👉 **Paiement** /n👉 **Produit** /n👉 **Site web** /n**👉 Autre**",
+  ua: "Будь ласка, виберіть наступне: /n👉 **Оплата** /n👉 **Товар** /n👉 **Веб сайт** /n**👉 Інше**"
+});
+  }
 
 
 };
@@ -924,11 +932,11 @@ async function handleReportFlow(msg) {
   // STEP 1 — TYPE
   if (chatState.step === "ask_type") {
 
-  if (/pay|payment/.test(msg)) chatState.report.type = "payment";
-  else if (/product|item/.test(msg)) chatState.report.type = "product";
-  else if (/site|website|bug/.test(msg)) chatState.report.type = "website";
+  if (/pay|payment|оплата|платити|pago|peage/.test(msg)) chatState.report.type = "payment";
+  else if (/product|item|produit|producto|товар|продукт/.test(msg)) chatState.report.type = "product";
+  else if (/site|website|bug|página|pagina|web|веб|сторінка|else|otro|otra|autre|other/.test(msg)) chatState.report.type = "website";
   else {
-    return "Please choose: payment, product, or website.";
+    return `${t("problemChoise")}`;
   }
 
   chatState.step = "ask_desc";
@@ -1079,7 +1087,7 @@ const INTENTS = {
   },
 
   semantic_search: {
-    en: ["something like", "looking for", "i want something", "show me something"],
+    en: ["something like", "looking for", "i want something", "show me something", "something with", "i want"],
     es: ["algo con", "busco"],
     fr: ["quelque chose avec", "je cherche"],
     ua: ["щось з", "я шукаю"]
@@ -1484,7 +1492,7 @@ ${t("askDetails")}`;
 For example:
 • *something with mountains*
 • *a colorful summer picture*
-• *a story for kids*`;
+• *a story*`;
   }
 
 // 🔥 FOLLOW-UP HANDLING

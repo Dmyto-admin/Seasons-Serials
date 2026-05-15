@@ -227,6 +227,100 @@ const INTENT_DATABASE = {
     ]
   },
 
+  about_assistant: {
+    weight: 4,
+
+    phrases: [
+      "what do you do",
+      "what are you used for",
+      "your purpose",
+      "who are you",
+      "what can you do",
+
+      "para que sirves",
+      "que haces",
+
+      "a quoi tu sers",
+      "que fais tu",
+
+      "для чого ти",
+      "що ти робиш"
+    ]
+  },
+
+  seasons_serials: {
+    weight: 5,
+
+    phrases: [
+      "seasons serials",
+      "who created seasons serials",
+      "who owns seasons serials",
+      "company",
+      "about the company",
+
+      "empresa",
+
+      "entreprise",
+
+      "компанія"
+    ]
+  },
+
+  product_search: {
+    weight: 3,
+
+    phrases: [
+      "product",
+      "item",
+      "show item",
+      "find product",
+
+      "producto",
+
+      "produit",
+
+      "товар"
+    ]
+  },
+
+  cheapest: {
+    weight: 6,
+
+    phrases: [
+      "cheapest",
+      "lowest price",
+      "least expensive",
+      "budget option",
+      "most affordable",
+
+      "mas barato",
+      "más barato",
+
+      "moins cher",
+
+      "найдешевший"
+    ]
+  },
+
+  expensive: {
+    weight: 6,
+
+    phrases: [
+      "most expensive",
+      "highest price",
+      "premium",
+      "luxury",
+      "best quality",
+
+      "mas caro",
+      "más caro",
+
+      "plus cher",
+
+      "найдорожчий"
+    ]
+  },
+
   product_exists: {
     weight: 6,
 

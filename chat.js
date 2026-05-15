@@ -1021,6 +1021,29 @@ function clarifyResponse(msg) {
 • "story for kids"`;
 }
 
+function isSemanticTrigger(text) {
+
+  const strongSemanticPatterns = [
+
+    "something with",
+    "looking for",
+    "find me",
+    "show me something",
+    "i need something",
+    "similar to",
+
+    "algo con",
+    "je cherche",
+
+    "щось з",
+    "я шукаю"
+  ];
+
+  return strongSemanticPatterns.some(p =>
+    text.includes(p)
+  );
+}
+
 //
 // GET PRODUCT DATA
 //
@@ -1163,7 +1186,7 @@ if (intent !== "semantic_search") {
   
   function random(key, arr) {
     if (!Array.isArray(arr) || arr.length === 0) {
-      return "😔 I couldn't generate a response.";
+      return "😔 I couldn't generate a response. Try again.";
     }
 
     const last = responseHistory.get(key);

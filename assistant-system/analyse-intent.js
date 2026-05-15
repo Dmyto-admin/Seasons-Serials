@@ -583,10 +583,9 @@ function boostByStructure(text, intent) {
 
     if (
       text.includes("something with") ||
-      text.includes("looking for") ||
-      text.includes("i want something")
+      text.includes("looking for")
     ) {
-      boost += 10;
+      boost += 3;
     }
   }
 
@@ -733,19 +732,7 @@ export function analyzeIntent(message, context = {}) {
   }
 
   // MINIMUM CONFIDENCE
-  if (bestScore < 12) {
-
-    // SMART semantic fallback
-
-    if (
-      text.includes("want") ||
-      text.includes("looking") ||
-      text.includes("something") ||
-      text.includes("find")
-    ) {
-      return "semantic_search";
-    }
-
+  if (bestScore < 10) {
     return "clarify";
   }
 

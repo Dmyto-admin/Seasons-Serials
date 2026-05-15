@@ -1,11 +1,7 @@
 import { db } from "./store-system/firebase-config.js";
 import { addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
-import { semanticSearchStrict } from "./assistant-system/semantic-search.js";
-import {
-  analyzeIntentAdvanced,
-  normalizeAdvanced
-} from "./assistant-system/analyse-intent.js";
+import { semanticSearchStrict } from "./semantic-search.js";
 
 
 
@@ -553,7 +549,6 @@ async function sendMessage(text) {
     addMessage(response, "bot");
   }, getTypingDelay(response));
 }
-
 // INPUT SEND
 sendBtn.addEventListener("click", () => {
   sendMessage(chatInput.value);
@@ -602,7 +597,7 @@ if (/^something else$|^another$|^different$|^else$/.test(clean)) {
     currentLang = forcedLang;
   }
   
-  const msg = normalizeAdvanced(input);
+  const msg = normalize(input);
 
   if (msg.includes("auto language")) {
     languageState.locked = false;
@@ -626,15 +621,7 @@ if (/^something else$|^another$|^different$|^else$/.test(clean)) {
     return "Звісно. Від тепер я відповідатиму українською.";
   }
 
-  const analysis = analyzeIntentAdvanced(
-  msg,
-  INTENTS,
-  memory
-);
-
-let intent = analysis.intent;
-
-console.log(analysis);
+  let intent = analyzeIntent(msg);
 
 // 🔥 ONLY upgrade to semantic IF it's still vague
 if (intent === "clarify" && isSemanticTrigger(msg)) {

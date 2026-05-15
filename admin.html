@@ -33,40 +33,168 @@
     
     <div class="form-box">
         <h2>Manage Store Products</h2>
-        <div class="form-box-scroll">
+            <div class="form-box-scroll">
 
-            <div class="admin-product-list">
-                <p class="discount-title">Sale Product 1</p>
-                <button class="cancel-confirm" id="prod1AvailableBtn">Product 1 Available</button>
-                <button class="cancel-confirm" id="prod1SoldBtn">Product 1 Sold</button>
-                <p id="prod1Msg" class="discount-message"></p>
-        
-                <p class="discount-title">Sale Product 2</p>
-                <button class="cancel-confirm" id="prod2AvailableBtn">Product 2 Available</button>
-                <button class="cancel-confirm" id="prod2SoldBtn">Product 2 Sold</button>
-                <p id="prod2Msg" class="discount-message"></p>
-        
-                <p class="discount-title">Sale Product 3</p>
-                <button class="cancel-confirm" id="prod3AvailableBtn">Product 3 Available</button>
-                <button class="cancel-confirm" id="prod3SoldBtn">Product 3 Sold</button>
-                <p id="prod3Msg" class="discount-message"></p>
-            
-                <p class="discount-title">Sale Product 4</p>
-                <button class="cancel-confirm" id="prod4AvailableBtn">Product 4 Available</button>
-                <button class="cancel-confirm" id="prod4SoldBtn">Product 4 Sold</button>
-                <p id="prod4Msg" class="discount-message"></p>
-            
-                <p class="discount-title">Sale Product 5</p>
-                <button class="cancel-confirm" id="prod5AvailableBtn">Product 5 Available</button>
-                <button class="cancel-confirm" id="prod5SoldBtn">Product 5 Sold</button>
-                <p id="prod5Msg" class="discount-message"></p>
+                <div class="admin-product-list">
+                    <div class="admin-products-header">
 
-                <p class="discount-title">Sale Product 6</p>
-                <button class="cancel-confirm" id="prod6AvailableBtn">Product 6 Available</button>
-                <button class="cancel-confirm" id="prod6SoldBtn">Product 6 Sold</button>
-                <p id="prod6Msg" class="discount-message"></p>
-                <br>
-                <br>
+                        <button class="create-product-btn" id="openCreateProduct">
+                            +
+                        </button>
+                    </div>
+
+                    <div class="admin-products-grid">
+
+                        <div class="admin-product-card">
+                            <div class="product-card-top">
+                                <div>
+                                    <p class="product-number">Sale Product 1</p>
+                                    <h3 class="product-name">The Bamboo</h3>
+                                </div>
+
+                                <div class="product-status available">
+                                    Available
+                                </div>
+                            </div>
+
+                            <div class="product-card-buttons">
+                                <button class="modern-admin-btn available-btn" id="prod1AvailableBtn">
+                                    Mark Available
+                                </button>
+
+                                <button class="modern-admin-btn sold-btn" id="prod1SoldBtn">
+                                    Mark Sold
+                                </button>
+                            </div>
+
+                            <p id="prod1Msg" class="discount-message"></p>
+                        </div>
+
+                        <div class="admin-product-card">
+                            <div class="product-card-top">
+                                <div>
+                                    <p class="product-number">Sale Product 2</p>
+                                    <h3 class="product-name">Healthy Life</h3>
+                                </div>
+
+                                <div class="product-status available">
+                                    Available
+                                </div>
+                            </div>
+
+                            <div class="product-card-buttons">
+                                <button class="modern-admin-btn available-btn" id="prod2AvailableBtn">
+                                    Mark Available
+                                </button>
+
+                                <button class="modern-admin-btn sold-btn" id="prod2SoldBtn">
+                                    Mark Sold
+                                </button>
+                            </div>
+
+                            <p id="prod2Msg" class="discount-message"></p>
+                        </div>
+
+                        <div class="admin-product-card">
+                            <div class="product-card-top">
+                                <div>
+                                    <p class="product-number">Sale Product 3</p>
+                                    <h3 class="product-name">My Lovely Mountains</h3>
+                                </div>
+
+                                <div class="product-status available">
+                                    Available
+                                </div>
+                            </div>
+
+                            <div class="product-card-buttons">
+                                <button class="modern-admin-btn available-btn" id="prod3AvailableBtn">
+                                    Mark Available
+                                </button>
+
+                                <button class="modern-admin-btn sold-btn" id="prod3SoldBtn">
+                                    Mark Sold
+                                </button>
+                            </div>
+
+                            <p id="prod3Msg" class="discount-message"></p>
+                        </div>
+
+                        <div class="admin-product-card">
+                            <div class="product-card-top">
+                                <div>
+                                    <p class="product-number">Sale Product 4</p>
+                                    <h3 class="product-name">Summer Gold</h3>
+                                </div>
+
+                                <div class="product-status available">
+                                    Available
+                                </div>
+                            </div>
+
+                            <div class="product-card-buttons">
+                                <button class="modern-admin-btn available-btn" id="prod4AvailableBtn">
+                                    Mark Available
+                                </button>
+
+                                <button class="modern-admin-btn sold-btn" id="prod4SoldBtn">
+                                    Mark Sold
+                                </button>
+                            </div>
+
+                            <p id="prod4Msg" class="discount-message"></p>
+                        </div>
+
+                        <div class="admin-product-card">
+                            <div class="product-card-top">
+                                <div>
+                                    <p class="product-number">Sale Product 5</p>
+                                    <h3 class="product-name">Looking Into The Future</h3>
+                                </div>
+
+                                <div class="product-status available">
+                                    Available
+                                </div>
+                            </div>
+
+                            <div class="product-card-buttons">
+                                <button class="modern-admin-btn available-btn" id="prod5AvailableBtn">
+                                    Mark Available
+                                </button>
+
+                                <button class="modern-admin-btn sold-btn" id="prod5SoldBtn">
+                                    Mark Sold
+                                </button>
+                            </div>
+
+                            <p id="prod5Msg" class="discount-message"></p>
+                        </div>
+
+                        <div class="admin-product-card">
+                            <div class="product-card-top">
+                                <div>
+                                    <p class="product-number">Sale Product 6</p>
+                                    <h3 class="product-name">Let's go mushroom picking!</h3>
+                                </div>
+
+                                <div class="product-status available">
+                                    Available
+                                </div>
+                            </div>
+
+                            <div class="product-card-buttons">
+                                <button class="modern-admin-btn available-btn" id="prod6AvailableBtn">
+                                    Mark Available
+                                </button>
+
+                                <button class="modern-admin-btn sold-btn" id="prod6SoldBtn">
+                                    Mark Sold
+                                </button>
+                            </div>
+
+                            <p id="prod6Msg" class="discount-message"></p>
+                        </div>
+                    </div>
             </div>
         </div>
     </div>
@@ -148,6 +276,24 @@
       <button class="cancel-confirm" id="confirmNo">NO</button>
     </div>
   </div>
+</div>
+
+<div class="create-product-modal" id="createProductModal">
+
+    <div class="create-product-box">
+
+        <span class="create-product-close" id="closeCreateProduct">
+            <ion-icon name="close"></ion-icon>
+        </span>
+
+        <h2>Create Product</h2>
+
+        <div class="create-product-content">
+            CONTENT
+        </div>
+
+    </div>
+
 </div>
 
 <script src="script.js"></script>

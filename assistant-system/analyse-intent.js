@@ -89,11 +89,9 @@ const INTENT_DATABASE = {
     phrases: [
       "something with",
       "looking for",
-      "i want something",
-      "find something",
       "find me",
-      "i need something",
-      "show me something",
+      "i need something like",
+      "similar to",
 
       "algo con",
       "je cherche",

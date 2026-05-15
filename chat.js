@@ -553,6 +553,7 @@ async function sendMessage(text) {
     addMessage(response, "bot");
   }, getTypingDelay(response));
 }
+
 // INPUT SEND
 sendBtn.addEventListener("click", () => {
   sendMessage(chatInput.value);
@@ -601,7 +602,7 @@ if (/^something else$|^another$|^different$|^else$/.test(clean)) {
     currentLang = forcedLang;
   }
   
-  const msg = normalize(input);
+  const msg = normalizeAdvanced(input);
 
   if (msg.includes("auto language")) {
     languageState.locked = false;
@@ -625,7 +626,15 @@ if (/^something else$|^another$|^different$|^else$/.test(clean)) {
     return "Звісно. Від тепер я відповідатиму українською.";
   }
 
-  let intent = analyzeIntent(msg);
+  const analysis = analyzeIntentAdvanced(
+  msg,
+  INTENTS,
+  memory
+);
+
+let intent = analysis.intent;
+
+console.log(analysis);
 
 // 🔥 ONLY upgrade to semantic IF it's still vague
 if (intent === "clarify" && isSemanticTrigger(msg)) {

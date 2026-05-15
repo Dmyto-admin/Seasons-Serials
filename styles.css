@@ -1701,6 +1701,206 @@ input:-webkit-autofill:focus {
     gap: 15px;
 }
 
+/* =========================================
+   MODERN ADMIN PRODUCTS
+========================================= */
+
+.admin-products-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.admin-products-header h3 {
+    color: white;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.create-product-btn {
+    width: 45px;
+    height: 45px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,.2);
+    background: rgba(255,255,255,.08);
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    transition: .25s ease;
+    backdrop-filter: blur(10px);
+}
+
+.create-product-btn:hover {
+    transform: scale(1.08);
+    background: rgba(255,255,255,.18);
+    box-shadow: 0 0 20px rgba(255,255,255,.15);
+}
+
+.admin-products-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding-bottom: 20px;
+}
+
+.admin-product-card {
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 20px;
+    padding: 18px;
+    backdrop-filter: blur(10px);
+    transition: .25s ease;
+}
+
+.admin-product-card:hover {
+    transform: translateY(-2px);
+    background: rgba(255,255,255,.09);
+}
+
+.product-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.product-number {
+    color: rgba(255,255,255,.65);
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.product-name {
+    color: white;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.product-status {
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.product-status.available {
+    background: rgba(0,255,140,.15);
+    color: #4dffb8;
+}
+
+.product-status.sold {
+    background: rgba(255,70,70,.15);
+    color: #ff7b7b;
+}
+
+.product-card-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.modern-admin-btn {
+    flex: 1;
+    border: none;
+    border-radius: 14px;
+    padding: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: .25s ease;
+    color: white;
+}
+
+.available-btn {
+    background: linear-gradient(
+        135deg,
+        rgba(0,255,170,.22),
+        rgba(0,180,255,.22)
+    );
+}
+
+.sold-btn {
+    background: linear-gradient(
+        135deg,
+        rgba(255,70,70,.22),
+        rgba(255,120,120,.22)
+    );
+}
+
+.modern-admin-btn:hover {
+    transform: translateY(-2px);
+    opacity: .9;
+}
+
+/* =========================================
+   CREATE PRODUCT MODAL
+========================================= */
+
+.create-product-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+
+    opacity: 0;
+    pointer-events: none;
+    transition: .3s ease;
+}
+
+.create-product-modal.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.create-product-box {
+    width: 500px;
+    max-width: 90%;
+    min-height: 300px;
+
+    background: rgba(18,18,18,.82);
+    border: 1px solid rgba(255,255,255,.12);
+
+    border-radius: 28px;
+
+    backdrop-filter: blur(30px);
+
+    padding: 30px;
+
+    position: relative;
+
+    transform: scale(.9);
+    transition: .3s ease;
+}
+
+.create-product-modal.active .create-product-box {
+    transform: scale(1);
+}
+
+.create-product-close {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+
+    font-size: 26px;
+    color: white;
+
+    cursor: pointer;
+}
+
+.create-product-box h2 {
+    color: white;
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+.create-product-content {
+    color: rgba(255,255,255,.75);
+    font-size: 16px;
+}
+
 /* ADMIN INVOICES WRAPPER */
 
 .admin-actions {

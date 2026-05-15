@@ -3,6 +3,23 @@ import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.9.0/fireba
 import { collection, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 
+const createProductModal =
+    document.getElementById("createProductModal");
+
+const openCreateProduct =
+    document.getElementById("openCreateProduct");
+
+const closeCreateProduct =
+    document.getElementById("closeCreateProduct");
+
+openCreateProduct.addEventListener("click", () => {
+    createProductModal.classList.add("active");
+});
+
+closeCreateProduct.addEventListener("click", () => {
+    createProductModal.classList.remove("active");
+});
+
 const products = [
   { id:"saleProductOne", msg:"prod1Msg", a:"prod1AvailableBtn", s:"prod1SoldBtn" },
   { id:"saleProductTwo", msg:"prod2Msg", a:"prod2AvailableBtn", s:"prod2SoldBtn" },

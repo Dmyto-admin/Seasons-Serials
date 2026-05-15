@@ -84,7 +84,7 @@ const INTENT_DATABASE = {
   },
 
   semantic_search: {
-    weight: 6,
+    weight: 4,
 
     phrases: [
       "something with",
@@ -104,7 +104,7 @@ const INTENT_DATABASE = {
   },
 
   availability: {
-    weight: 5,
+    weight: 4,
 
     phrases: [
       "is it available",
@@ -156,7 +156,7 @@ const INTENT_DATABASE = {
   },
 
   report: {
-    weight: 6,
+    weight: 7,
 
     phrases: [
       "bug",

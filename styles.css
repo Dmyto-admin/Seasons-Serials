@@ -14,8 +14,6 @@ body {
     background: url('background.jpeg') no-repeat;
     background-size: cover;
     background-position: center;
-    margin: 0;
-    overflow-x: hidden;
 }
 
 /* Fullscreen canvas */

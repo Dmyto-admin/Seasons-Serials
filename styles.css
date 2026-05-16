@@ -60,6 +60,121 @@ body {
     }
 }
 
+/* MAIN CONTAINER */
+.alive-background {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+/* 🌫️ MIST */
+.mist {
+    position: absolute;
+    width: 140%;
+    height: 140%;
+
+    background:
+        radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);
+
+    filter: blur(60px);
+
+    opacity: 0.6;
+}
+
+.mist1 {
+    animation: drift1 30s ease-in-out infinite alternate;
+}
+
+.mist2 {
+    animation: drift2 40s ease-in-out infinite alternate;
+}
+
+/* 🌲 TREE SWAY */
+.tree-shadow {
+    position: absolute;
+    inset: 0;
+
+    background:
+        radial-gradient(circle at 20% 60%, rgba(0,0,0,0.08), transparent 35%);
+
+    transform-origin: bottom center;
+
+    animation: treeSway 8s ease-in-out infinite;
+}
+
+/* 🦌 DEER BREATHING */
+.deer-breath {
+    position: absolute;
+
+    right: 22%;
+    bottom: 18%;
+
+    width: 180px;
+    height: 180px;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(circle, rgba(255,255,255,0.03), transparent 70%);
+
+    animation: deerBreath 4s ease-in-out infinite;
+}
+
+/* ANIMATIONS */
+
+@keyframes drift1 {
+    from {
+        transform: translateX(-5%) translateY(-2%);
+    }
+
+    to {
+        transform: translateX(5%) translateY(2%);
+    }
+}
+
+@keyframes drift2 {
+    from {
+        transform: translateX(4%) translateY(2%);
+    }
+
+    to {
+        transform: translateX(-4%) translateY(-2%);
+    }
+}
+
+@keyframes treeSway {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    50% {
+        transform: rotate(0.3deg);
+    }
+
+    100% {
+        transform: rotate(0deg);
+    }
+}
+
+@keyframes deerBreath {
+    0% {
+        transform: scale(1);
+        opacity: 0.25;
+    }
+
+    50% {
+        transform: scale(1.04);
+        opacity: 0.4;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 0.25;
+    }
+}
+
 header {
     position: fixed;
     top: 0;

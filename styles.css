@@ -535,68 +535,48 @@ header {
 ========================= */
 
 .sale-product-box {
-    width: 210px;
-    min-height: 380px;
+    position: relative;
 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
+    width: 170px;
+    min-height: 290px;
 
-    padding: 18px 18px 20px 18px;
+    margin-left: 20px;
+    margin-right: 20px;
 
-    border-radius: 28px;
+    padding: 12px 12px 14px;
 
     background:
         linear-gradient(
             180deg,
-            rgba(235,245,255,0.90) 0%,
-            rgba(205,220,240,0.88) 100%
+            rgba(228,232,238,0.96) 0%,
+            rgba(198,205,215,0.93) 100%
         );
 
-    border: 1px solid rgba(255,255,255,0.28);
+    border: 1px solid rgba(255,255,255,0.38);
+    border-radius: 22px;
 
     box-shadow:
-        0 10px 30px rgba(0,0,0,0.22),
-        inset 0 1px 0 rgba(255,255,255,0.45);
+        0 8px 22px rgba(0,0,0,0.22),
+        inset 0 1px 0 rgba(255,255,255,0.35);
 
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(10px);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    text-align: center;
 
     transition:
-        transform 0.25s ease,
-        box-shadow 0.25s ease,
-        background 0.25s ease;
-
-    position: relative;
-    overflow: hidden;
+        transform 0.22s ease,
+        box-shadow 0.22s ease;
 }
-
-/* Hover effect */
 
 .sale-product-box:hover {
-    transform: translateY(-6px);
+    transform: translateY(-3px);
 
     box-shadow:
-        0 18px 40px rgba(0,0,0,0.30),
-        0 0 25px rgba(120,170,255,0.20);
-}
-
-/* subtle glow overlay */
-
-.sale-product-box::before {
-    content: "";
-
-    position: absolute;
-    inset: 0;
-
-    background:
-        linear-gradient(
-            135deg,
-            rgba(255,255,255,0.20),
-            transparent 40%
-        );
-
-    pointer-events: none;
+        0 14px 28px rgba(0,0,0,0.28);
 }
 
 .products-row {
@@ -611,30 +591,33 @@ header {
 ========================= */
 
 .store-img {
-    width: 140px;
-    height: 140px;
+    width: 120px;
+    height: 120px;
 
     object-fit: cover;
 
-    border-radius: 22px;
+    border-radius: 18px;
 
-    margin-bottom: 18px;
+    margin-top: 2px;
+    margin-bottom: 12px;
 
-    border: 2px solid rgba(255,255,255,0.5);
+    border: 1px solid rgba(255,255,255,0.45);
 
     box-shadow:
-        0 6px 18px rgba(0,0,0,0.18);
+        0 5px 14px rgba(0,0,0,0.18);
+
+    cursor: pointer;
 
     transition:
-        transform 0.25s ease,
-        box-shadow 0.25s ease;
+        transform 0.22s ease,
+        box-shadow 0.22s ease;
 }
 
 .sale-product-box:hover .store-img {
-    transform: scale(1.03);
+    transform: scale(1.025);
 
     box-shadow:
-        0 12px 25px rgba(0,0,0,0.24);
+        0 10px 18px rgba(0,0,0,0.22);
 }
 
 .store-img-t2 {
@@ -1118,53 +1101,48 @@ header {
 .buyBtn {
     width: 100%;
 
-    margin-top: 18px;
+    margin-top: auto;
 
     border: none;
-    border-radius: 18px;
+    border-radius: 14px;
 
-    padding: 15px 0;
+    padding: 11px 0;
 
-    font-size: 1.15rem;
-    font-weight: 700;
+    font-size: 1rem;
+    font-weight: 600;
 
     color: white;
 
     background:
         linear-gradient(
             180deg,
-            #3d78c9 0%,
-            #1f4f97 100%
+            #3f73c6 0%,
+            #24539e 100%
         );
 
     box-shadow:
-        0 8px 18px rgba(20,50,110,0.35),
-        inset 0 1px 0 rgba(255,255,255,0.25);
+        0 5px 14px rgba(20,50,110,0.28);
 
     cursor: pointer;
 
     transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease,
-        background 0.2s ease;
+        transform 0.18s ease,
+        box-shadow 0.18s ease,
+        background 0.18s ease;
 }
 
 .buyBtn:hover {
-    transform: translateY(-2px);
+    transform: translateY(-1px);
 
     background:
         linear-gradient(
             180deg,
-            #4a88dd 0%,
-            #2758a5 100%
+            #4b84dd 0%,
+            #2d63b8 100%
         );
 
     box-shadow:
-        0 12px 24px rgba(20,50,110,0.42);
-}
-
-.buyBtn:active {
-    transform: scale(0.98);
+        0 8px 18px rgba(20,50,110,0.34);
 }
 
 .reserved-state {
@@ -1186,29 +1164,25 @@ header {
 .product-name {
     display: block;
 
-    text-align: center;
-
-    font-size: 1.28rem;
+    font-size: 1rem;
     font-weight: 700;
 
     color: #102846;
 
-    margin-bottom: 10px;
-
     line-height: 1.35;
+
+    margin-bottom: 6px;
 }
 
 .product-price {
     display: block;
 
-    text-align: center;
+    font-size: 1.05rem;
+    font-weight: 700;
 
-    font-size: 1.35rem;
-    font-weight: 800;
+    color: #24539e;
 
-    color: #204f8d;
-
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
 
 /* =========================
@@ -1220,7 +1194,7 @@ header {
 
     color: #2d67b2;
 
-    text-decoration: none;
+    text-decoration: underline;
 
     font-size: 0.95rem;
     font-weight: 600;
@@ -2060,16 +2034,16 @@ input:-webkit-autofill:focus {
     background:
         linear-gradient(
             180deg,
-            rgba(210,225,245,0.92),
-            rgba(180,205,235,0.90)
+            rgba(228,235,245,0.95),
+            rgba(205,218,235,0.92)
         );
 
-    border: 1px solid rgba(255,255,255,0.22);
+    border: 1px solid rgba(255,255,255,0.35);
+
+    border-radius: 22px;
 
     box-shadow:
-        0 10px 24px rgba(0,0,0,0.22);
-
-    border-radius: 24px;
+        0 8px 20px rgba(0,0,0,0.18);
 
     color: #14345f;
 }
@@ -2082,27 +2056,29 @@ input:-webkit-autofill:focus {
     background:
         linear-gradient(
             180deg,
-            #4d82cf 0%,
-            #285aa5 100%
+            #3f73c6 0%,
+            #24539e 100%
         );
 
     color: white;
 
     border: none;
 
+    border-radius: 16px;
+
     box-shadow:
-        0 8px 18px rgba(0,0,0,0.25);
+        0 6px 16px rgba(20,50,110,0.28);
 
     transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease;
+        transform 0.18s ease,
+        box-shadow 0.18s ease;
 }
 
 .create-product-btn:hover {
     transform: translateY(-2px);
 
     box-shadow:
-        0 12px 24px rgba(0,0,0,0.30);
+        0 10px 22px rgba(20,50,110,0.34);
 }
 
 .admin-product-card:hover {
@@ -2118,13 +2094,13 @@ input:-webkit-autofill:focus {
 }
 
 .product-number {
-    color: rgba(255,255,255,.65);
+    color: rgba(20,52,95,.65);
     font-size: 13px;
     margin-bottom: 4px;
 }
 
 .admin-product-name {
-    color: white;
+    color: #14345f;
     font-size: 22px;
     font-weight: 600;
 }

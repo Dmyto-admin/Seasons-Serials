@@ -1171,7 +1171,7 @@ header {
 
     line-height: 1.35;
 
-    margin-bottom: 6px;
+    margin-bottom: 4.5px;
 }
 
 .product-price {
@@ -1197,7 +1197,7 @@ header {
     text-decoration: underline;
 
     font-size: 0.95rem;
-    font-weight: 600;
+    font-weight: 400;
 
     transition:
         color 0.2s ease,

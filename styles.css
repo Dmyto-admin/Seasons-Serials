@@ -2026,19 +2026,32 @@ input:-webkit-autofill:focus {
     max-width: 90%;
     min-height: 300px;
 
-    background: rgba(18,18,18,.82);
-    border: 1px solid rgba(255,255,255,.12);
+    background:
+        linear-gradient(
+            145deg,
+            rgba(205,215,225,0.92),
+            rgba(185,195,208,0.88)
+        );
+
+    border: 1px solid rgba(255,255,255,0.35);
 
     border-radius: 28px;
 
-    backdrop-filter: blur(30px);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
 
     padding: 30px;
 
     position: relative;
 
-    transform: scale(.9);
-    transition: .3s ease;
+    box-shadow:
+        0 20px 60px rgba(0,0,0,0.35),
+        inset 0 1px 0 rgba(255,255,255,0.45);
+
+    transform: scale(.92);
+    transition:
+        transform .35s ease,
+        opacity .35s ease;
 }
 
 .create-product-modal.active .create-product-box {
@@ -2057,13 +2070,15 @@ input:-webkit-autofill:focus {
 }
 
 .create-product-box h2 {
-    color: white;
+    color: #10233d;
     font-size: 28px;
+    font-weight: 700;
+    letter-spacing: .3px;
     margin-bottom: 20px;
 }
 
 .create-product-content {
-    color: rgba(255,255,255,.75);
+    color: rgba(20,30,45,0.75);
     font-size: 16px;
 }
 
@@ -2316,6 +2331,8 @@ input:-webkit-autofill:focus {
     margin-top: 10px;
 }
 
+/*  CHAT  */
+
 #chatButton {
   position: fixed;
   bottom: 25px;
@@ -2341,7 +2358,7 @@ input:-webkit-autofill:focus {
     transform 0.25s ease,
     box-shadow 0.25s ease;
 
-  z-index: 9999;
+  z-index: 5000;
 }
 
 /* 👇 hover effect */

@@ -19,6 +19,24 @@ body {
     overflow-x: hidden;
 }
 
+body::before {
+    content: "";
+
+    position: fixed;
+    inset: 0;
+
+    background:
+        linear-gradient(
+            to bottom,
+            rgba(8,15,25,0.20),
+            rgba(10,20,35,0.35)
+        );
+
+    pointer-events: none;
+
+    z-index: 0;
+}
+
 /* 🌫️ BACKGROUND CANVAS */
 #mistCanvas {
     position: fixed;
@@ -1025,22 +1043,52 @@ header {
 }
 
 .buyBtn {
-    display: block;
-    width: 145px;
-    height: 45px;
-    background: #0045bc;
+    width: 150px;
+    height: 48px;
+
+    border: 1px solid rgba(255,255,255,0.08);
+
+    border-radius: 16px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #2b5fa8,
+            #173b6e
+        );
+
+    color: white;
+
     font-weight: 600;
-    color: #fff;
-    border: 1px solid rgba(225, 225, 225, .5);
-    border-radius: 13px;
-    margin-bottom: 10px;
+    font-size: 14px;
+    letter-spacing: .3px;
+
     cursor: pointer;
-    margin-left: 7%;
-    margin-right: 7%;
+
+    transition:
+        transform .22s ease,
+        box-shadow .22s ease,
+        background .22s ease;
+
+    box-shadow:
+        0 10px 24px rgba(0,0,0,0.28);
+
+    backdrop-filter: blur(10px);
 }
 
 .buyBtn:hover {
-    background: #002a73;
+    transform: translateY(-2px);
+
+    background:
+        linear-gradient(
+            135deg,
+            #3b74c5,
+            #214a82
+        );
+
+    box-shadow:
+        0 14px 30px rgba(0,0,0,0.38),
+        0 0 14px rgba(120,170,255,0.16);
 }
 
 .reserved-state {
@@ -1897,10 +1945,13 @@ input:-webkit-autofill:focus {
     backdrop-filter: blur(10px);
 }
 
-.create-product-btn:hover {
-    transform: scale(1.08);
-    background: rgba(255,255,255,.18);
-    box-shadow: 0 0 20px rgba(255,255,255,.15);
+.admin-product-card:hover {
+    transform: translateY(-4px);
+
+    border: 1px solid rgba(120,180,255,0.16);
+
+    box-shadow:
+        0 18px 45px rgba(0,0,0,0.42);
 }
 
 .admin-products-grid {
@@ -1911,12 +1962,28 @@ input:-webkit-autofill:focus {
 }
 
 .admin-product-card {
-    background: rgba(255,255,255,.06);
-    border: 1px solid rgba(255,255,255,.12);
-    border-radius: 20px;
-    padding: 18px;
-    backdrop-filter: blur(10px);
-    transition: .25s ease;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(18,32,48,0.78),
+            rgba(10,22,36,0.88)
+        );
+
+    border: 1px solid rgba(255,255,255,0.08);
+
+    border-radius: 24px;
+
+    padding: 20px;
+
+    backdrop-filter: blur(16px);
+
+    box-shadow:
+        0 12px 35px rgba(0,0,0,0.30);
+
+    transition:
+        transform .25s ease,
+        border .25s ease,
+        box-shadow .25s ease;
 }
 
 .admin-product-card:hover {
@@ -1967,34 +2034,50 @@ input:-webkit-autofill:focus {
 
 .modern-admin-btn {
     flex: 1;
-    border: none;
-    border-radius: 14px;
-    padding: 12px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: .25s ease;
-    color: white;
-}
 
+    border: 1px solid rgba(255,255,255,0.08);
+
+    border-radius: 16px;
+
+    padding: 13px;
+
+    color: white;
+
+    font-weight: 600;
+    letter-spacing: .3px;
+
+    cursor: pointer;
+
+    backdrop-filter: blur(10px);
+
+    transition:
+        transform .22s ease,
+        box-shadow .22s ease,
+        opacity .22s ease;
+}
 .available-btn {
-    background: linear-gradient(
-        135deg,
-        rgba(0,255,170,.22),
-        rgba(0,180,255,.22)
-    );
+    background:
+        linear-gradient(
+            135deg,
+            rgba(48,145,105,0.95),
+            rgba(24,92,74,0.95)
+        );
 }
 
 .sold-btn {
-    background: linear-gradient(
-        135deg,
-        rgba(255,70,70,.22),
-        rgba(255,120,120,.22)
-    );
+    background:
+        linear-gradient(
+            135deg,
+            rgba(176,70,70,0.95),
+            rgba(110,38,38,0.95)
+        );
 }
 
 .modern-admin-btn:hover {
     transform: translateY(-2px);
-    opacity: .9;
+
+    box-shadow:
+        0 12px 24px rgba(0,0,0,0.28);
 }
 
 /* =========================================

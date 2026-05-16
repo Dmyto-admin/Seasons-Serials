@@ -1178,6 +1178,8 @@ header {
     transition:
         color 0.2s ease,
         transform 0.2s ease;
+
+    margin-bottom: 5px;
 }
 
 .more-info-product:hover {
@@ -2010,16 +2012,16 @@ input:-webkit-autofill:focus {
     background:
         linear-gradient(
             180deg,
-            rgba(228,235,245,0.95),
-            rgba(205,218,235,0.92)
+            rgba(210,225,245,0.92),
+            rgba(180,205,235,0.90)
         );
 
-    border: 1px solid rgba(255,255,255,0.35);
-
-    border-radius: 22px;
+    border: 1px solid rgba(255,255,255,0.22);
 
     box-shadow:
-        0 8px 20px rgba(0,0,0,0.18);
+        0 10px 24px rgba(0,0,0,0.22);
+
+    border-radius: 24px;
 
     color: #14345f;
 }
@@ -2032,34 +2034,27 @@ input:-webkit-autofill:focus {
     background:
         linear-gradient(
             180deg,
-            #3f73c6 0%,
-            #24539e 100%
+            #4d82cf 0%,
+            #285aa5 100%
         );
 
     color: white;
 
     border: none;
 
-    border-radius: 16px;
-
     box-shadow:
-        0 6px 16px rgba(20,50,110,0.28);
+        0 8px 18px rgba(0,0,0,0.25);
 
     transition:
-        transform 0.18s ease,
-        box-shadow 0.18s ease;
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 .create-product-btn:hover {
     transform: translateY(-2px);
 
     box-shadow:
-        0 10px 22px rgba(20,50,110,0.34);
-}
-
-.admin-product-card:hover {
-    transform: translateY(-2px);
-    background: rgba(255,255,255,.09);
+        0 12px 24px rgba(0,0,0,0.30);
 }
 
 .product-card-top {

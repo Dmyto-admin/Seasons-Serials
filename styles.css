@@ -19,24 +19,6 @@ body {
     overflow-x: hidden;
 }
 
-body::before {
-    content: "";
-
-    position: fixed;
-    inset: 0;
-
-    background:
-        linear-gradient(
-            to bottom,
-            rgba(8,15,25,0.20),
-            rgba(10,20,35,0.35)
-        );
-
-    pointer-events: none;
-
-    z-index: 0;
-}
-
 /* 🌫️ BACKGROUND CANVAS */
 #mistCanvas {
     position: fixed;

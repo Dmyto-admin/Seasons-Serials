@@ -599,7 +599,7 @@ header {
     border-radius: 18px;
 
     margin-top: 2px;
-    margin-bottom: 9.5px;
+    margin-bottom: 9px;
 
     border: 1px solid rgba(255,255,255,0.45);
 
@@ -618,30 +618,6 @@ header {
 
     box-shadow:
         0 10px 18px rgba(0,0,0,0.22);
-}
-
-.store-img-t2 {
-    display: block;
-    height: 105px;
-    width: 115px;
-    margin-left: 14%;
-    margin-right: 14%;
-    margin-top: 10px;
-    border: 1px solid rgba(225, 225, 225, .5);
-    border-radius: 20px;
-    cursor: pointer;
-}
-
-.store-img-t3 {
-    display: block;
-    height: 96px;
-    width: 129px;
-    margin-left: 10%;
-    margin-right: 10%;
-    margin-top: 10px;
-    border: 1px solid rgba(225, 225, 225, .5);
-    border-radius: 20px;
-    cursor: pointer;
 }
 
 #imageViewer {
@@ -1182,7 +1158,7 @@ header {
 
     color: #24539e;
 
-    margin-bottom: 8.5px;
+    margin-bottom: 8px;
 }
 
 /* =========================
@@ -1196,8 +1172,8 @@ header {
 
     text-decoration: underline;
 
-    font-size: 0.95rem;
-    font-weight: 400;
+    font-size: 0.85rem;
+    font-weight: 500;
 
     transition:
         color 0.2s ease,

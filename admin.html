@@ -290,7 +290,94 @@
         <h2>Create Product</h2>
 
         <div class="create-product-content">
-            CONTENT
+
+            <p class="next-product-number">
+                This product has the number
+                <span id="nextProductNumber">1</span>
+                in Seasons Serials Store
+            </p>
+
+            <!-- NAME -->
+            <div class="admin-input-box">
+                <label>Product Name</label>
+
+                <input
+                    type="text"
+                    id="createProductName"
+                    maxlength="80"
+                >
+            </div>
+
+            <!-- PRICE -->
+            <div class="admin-input-box">
+                <label>Product Price</label>
+
+                <input
+                    type="number"
+                    id="createProductPrice"
+                    min="1"
+                    step="1"
+                >
+
+                <p class="price-error hidden" id="priceError">
+                    This price is unsupported
+                </p>
+            </div>
+
+            <!-- IMAGE -->
+            <div class="admin-input-box">
+                <label>Product Image (.png only)</label>
+
+                <input
+                    type="file"
+                    id="createProductImage"
+                    accept=".png,image/png"
+                >
+            </div>
+
+            <!-- DESCRIPTION -->
+            <div class="admin-input-box">
+                <label>Description</label>
+
+                <textarea
+                    id="createProductDescription"
+                    rows="6"
+                    maxlength="2000"
+                ></textarea>
+            </div>
+
+            <!-- CATEGORY -->
+            <div class="admin-input-box">
+                <label>Category</label>
+
+                <select id="createProductCategory">
+
+                    <option value="picture">Picture</option>
+
+                    <option value="story">Story</option>
+
+                    <option value="decoration">Decoration</option>
+
+                    <option value="handcraft">Handcraft</option>
+
+                    <option value="ticket">Ticket</option>
+
+                </select>
+            </div>
+
+            <!-- BUTTONS -->
+            <div class="create-product-actions">
+
+                <button id="confirmCreateProduct">
+                    Create Product
+                </button>
+
+                <button id="cancelCreateProduct">
+                    Cancel
+                </button>
+
+            </div>
+
         </div>
 
     </div>

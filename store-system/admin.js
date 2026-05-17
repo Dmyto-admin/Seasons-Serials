@@ -20,6 +20,74 @@ closeCreateProduct.addEventListener("click", () => {
     createProductModal.classList.remove("active");
 });
 
+document.addEventListener("keydown", (e) => {
+
+    if(e.key === "Escape") {
+
+        closeCreateProductModal();
+
+    }
+
+});
+
+const createModal =
+document.getElementById("createProductModal");
+
+createModal.addEventListener("click", (e) => {
+
+    if(e.target === createModal) {
+
+        closeCreateProductModal();
+
+    }
+
+});
+
+function clearCreateProductFields() {
+
+    document.getElementById("createProductName").value = "";
+
+    document.getElementById("createProductPrice").value = "";
+
+    document.getElementById("createProductImage").value = "";
+
+    document.getElementById("createProductDescription").value = "";
+
+    document.getElementById("createProductCategory").value = "picture";
+
+}
+
+function validatePrice(price) {
+
+    const value = Number(price);
+
+    if(
+        !Number.isInteger(value)
+        || value <= 0
+    ) {
+        return false;
+    }
+
+    return true;
+}
+
+const priceInput = document.getElementById("createProductPrice");
+const priceError = document.getElementById("priceError");
+
+priceInput.addEventListener("input", () => {
+
+    if(validatePrice(priceInput.value)) {
+
+        priceError.classList.add("hidden");
+
+    } else {
+
+        priceError.classList.remove("hidden");
+
+    }
+
+});
+
 const products = [
   { id:"saleProductOne", msg:"prod1Msg", a:"prod1AvailableBtn", s:"prod1SoldBtn" },
   { id:"saleProductTwo", msg:"prod2Msg", a:"prod2AvailableBtn", s:"prod2SoldBtn" },

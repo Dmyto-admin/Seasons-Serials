@@ -2002,7 +2002,12 @@ input:-webkit-autofill:focus {
     height: 45px;
     border-radius: 14px;
     border: 1px solid rgba(255,255,255,.2);
-    background: rgba(255,255,255,.08);
+    background: 
+        linear-gradient(
+            180deg,
+            rgba(120, 160, 200, 0.30),
+            rgba(80, 120, 170, 0.40)
+        );
     color: white;
     font-size: 28px;
     cursor: pointer;
@@ -2027,11 +2032,11 @@ input:-webkit-autofill:focus {
 }
 
 .admin-product-card {
-    background:
+    background: 
         linear-gradient(
             180deg,
-            rgba(18,32,48,0.78),
-            rgba(10,22,36,0.88)
+            rgba(120, 160, 200, 0.30),
+            rgba(80, 120, 170, 0.40)
         );
 
     border: 1px solid rgba(255,255,255,0.08);

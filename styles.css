@@ -2235,6 +2235,90 @@ input:-webkit-autofill:focus {
     font-size: 16px;
 }
 
+.admin-input-box {
+    margin-bottom: 18px;
+}
+
+.admin-input-box label {
+    display: block;
+    margin-bottom: 8px;
+
+    color: #10233d;
+    font-weight: 600;
+}
+
+.admin-input-box input,
+.admin-input-box textarea,
+.admin-input-box select {
+
+    width: 100%;
+
+    border: none;
+    outline: none;
+
+    border-radius: 14px;
+
+    padding: 14px;
+
+    font-size: 15px;
+
+    background: rgba(255,255,255,.7);
+
+    box-sizing: border-box;
+}
+
+.admin-input-box textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.create-product-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 25px;
+}
+
+#createProductCategory {
+    cursor: pointer;
+}
+
+#confirmCreateProduct,
+#cancelCreateProduct {
+
+    flex: 1;
+
+    border: none;
+
+    border-radius: 14px;
+
+    padding: 14px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+#confirmCreateProduct {
+    background: #215fcf;
+    color: white;
+}
+
+#cancelCreateProduct {
+    background: #d9dee7;
+}
+
+.price-error {
+    color: red;
+    margin-top: 8px;
+    font-size: 14px;
+}
+
+.next-product-number {
+    margin-bottom: 25px;
+    font-weight: 600;
+    color: #10233d;
+}
+
 /* ADMIN INVOICES WRAPPER */
 
 .admin-actions {

@@ -338,7 +338,7 @@ const INTENT_DATABASE = {
   },
 
   sorry: {
-    weight: 2,
+    weight: 4,
 
     phrases: [
       "bad",

@@ -134,20 +134,25 @@ products.forEach(p=>{
 
 
 function parseDate(dateStr) {
-  if (!dateStr) return new Date(0);
 
-  const parts = dateStr.split("/");
+    if (!dateStr) {
+        return new Date(0);
+    }
 
-  let day = parts[0];
-  let month = parts[1];
-  let year = parts[2];
+    const parts = dateStr.split("/");
 
-  // 🔥 handle 2-digit year like "26"
-  if (year.length === 2) {
-    year = "20" + year;
-  }
+    if (parts.length < 3) {
+        console.warn("Invalid date:", dateStr);
+        return new Date(0);
+    }
 
-  return new Date(`${year}-${month}-${day}`);
+    let [day, month, year] = parts;
+
+    if (year && year.length === 2) {
+        year = "20" + year;
+    }
+
+    return new Date(`${year}-${month}-${day}`);
 }
 
 function formatTime(ms) {

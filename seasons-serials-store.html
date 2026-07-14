@@ -162,22 +162,48 @@
                 <div class="products-row">
                     <div class="sale-product-box" id="saleProductSix">
                             <img
-                            src="img-sale/img-sale-6-thumb.png"
-                            alt="IMG-SALE-6-'OFF TO THE MUSHROOM HUNT!'"
-                            data-full="img-sale/fullscreen/img-sale-6.png"
-                            class="store-img"
-                            id="storeImgSix"
-                            >
+                                src="img-sale/img-sale-6-thumb.png"
+                                data-full="img-sale/fullscreen/img-sale-6.png"
+                                data-gallery='[
+                                  "img-sale/fullscreen/img-sale-6.png",
+                                  "img-sale/fullscreen/img-sale-6-two.png"
+                                ]'
+                                class="store-img"
+                                id="storeImgSix"
+                                >
                             <div>
                                 <span class="product-name">"OFF TO THE MUSHROOM HUNT!"</span>
                                 <p>
                                     <span class="product-price">5.75€</span>
                                 </p>
                                 <p>
-                                    <a href="off-to-the-mushroom-hunt/more-information" class="more-info-product" data-wrapper="wrapperInfoLet'sGoMushroomPicking">Click here for details</a>
+                                    <a href="off-to-the-mushroom-hunt/more-information" class="more-info-product" data-wrapper="wrapperInfoOffToTheMushroomHunt">Click here for details</a>
                                 </p>
                             </div>
                             <button class="buyBtn" id="buyBtnSix">Buy!</button>
+                        </div>
+
+                        <div class="sale-product-box" id="saleProductSeven">
+                            <img
+                                src="img-sale/img-sale-7-thumb.png"
+                                data-full="img-sale/fullscreen/img-sale-7.png"
+                                data-gallery='[
+                                  "img-sale/fullscreen/img-sale-7.png",
+                                  "img-sale/fullscreen/img-sale-7-two.png"
+                                ]'
+                                class="store-img"
+                                id="storeImgSeven"
+                                >
+                            <div>
+                                <span class="product-name">"THE JOURNEY HOME"</span>
+                                <p>
+                                    <span class="product-price">5.75€</span>
+                                </p>
+                                <p>
+                                    <a href="the-journey-home/more-information" class="more-info-product" data-wrapper="wrapperInfoTheJourneyHome">Click here for details</a>
+                                </p>
+                            </div>
+                            <button class="buyBtn" id="buyBtnSeven">Buy!</button>
                         </div>
                     </div>
             </div>
@@ -324,7 +350,7 @@
     </div>
 </div>
 
-<div class="sale-info-wrapper" id="wrapperInfoLet'sGoMushroomPicking">
+<div class="sale-info-wrapper" id="wrapperInfoOffToTheMushroomHunt">
     <h2>Product information</h2>
     <span class="icon-close"><ion-icon name="close"></ion-icon></span>
     <div class="form-box-scroll">
@@ -350,19 +376,49 @@
     </div>
 </div>
 
+<div class="sale-info-wrapper" id="wrapperInfoTheJourneyHome">
+    <h2>Product information</h2>
+    <span class="icon-close"><ion-icon name="close"></ion-icon></span>
+    <div class="form-box-scroll">
+    <div class="profile-info">
+        <p>
+            <span class="profile-info-cat">Product name:</span>
+            <span class="discount-info">"THE JOURNEY HOME"</span>
+        </p>
+        <p>
+            <span class="profile-info-cat">Product type:</span>
+            <span class="discount-info">Story</span>
+        </p>
+        <p>
+            <span class="profile-info-cat">Description:</span>
+            <span class="discount-info">
+                Chirpy is very excited and a little nervous because he is finally heading home with his family after a long journey from the warm southern lands. But when a game of hide-and-seek with a new friend leads him into unexpected trouble, the little swallow must find his courage and cleverness to get back safely. Join Chirpy and his family in this heartwarming spring story as their journey home turns into an unexpected adventure full of surprises.
+            <br>
+            <span>
+                Perfect for preschool and primary school children.
+        </p>
+    </div>
+    </div>
+</div>
+
 
 <!-- FULLSCREEN IMAGE VIEWER -->
 <div id="imageViewer">
+
     <span class="image-viewer-close">
         <ion-icon name="close"></ion-icon>
     </span>
 
-      <img
-         src=""
-          id="imageViewerImg"
-         alt="IMAGE VIEWER FULLSCREEN"
-        data-full=""
-       >
+    <button id="viewerPrev" class="viewer-arrow">❮</button>
+
+    <img
+        src=""
+        id="imageViewerImg"
+        alt=""
+    >
+
+    <button id="viewerNext" class="viewer-arrow">❯</button>
+
 </div>
 
 <!-- CHECKOUT MODAL -->

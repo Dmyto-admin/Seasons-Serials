@@ -2,6 +2,32 @@
 
 console.log("script.js loaded");
 
+/* MOBILE BEHAVIOR */
+
+const isMobile = window.matchMedia("(max-width:768px)").matches;
+
+if (isMobile) {
+
+    const warning = document.getElementById("mobileWarning");
+    const blank = document.getElementById("mobileBlankScreen");
+
+    warning.style.display = "flex";
+
+    document.getElementById("mobileOkay").onclick = () => {
+
+        warning.style.display = "none";
+        blank.style.display = "block";
+
+    };
+
+    document.getElementById("mobileContinue").onclick = () => {
+
+        warning.style.display = "none";
+
+    };
+
+}
+
 /* ---------- USERS DATABASE ---------- */
 
 const USERS = [
@@ -376,22 +402,90 @@ const imageViewer = document.getElementById('imageViewer');
 const imageViewerImg = document.getElementById('imageViewerImg');
 const imageViewerClose = document.querySelector('.image-viewer-close');
 
+const viewerPrev = document.getElementById("viewerPrev");
+const viewerNext = document.getElementById("viewerNext");
+
 let zoomed = false;
 let baseRect = null;
 
+let currentGallery = [];
+let arrowIndex = 0;
+
 /* OPEN ANY STORE IMAGE */
-document.querySelectorAll('.store-img, .store-img-t2, .store-img-t3').forEach(img => {
-    img.addEventListener('click', () => {
-        imageViewerImg.src = img.dataset.full;
+document.querySelectorAll(".store-img, .store-img-t2, .store-img-t3").forEach(img=>{
+    img.addEventListener("click",()=>{
+
+      if (img.dataset.gallery) {
+        currentGallery = JSON.parse(img.dataset.gallery);
+        arrowIndex = currentGallery.indexOf(img.dataset.full);
+
+        if(arrowIndex === -1)
+            arrowIndex = 0;
+
+       } else {
+         currentGallery = [img.dataset.full];
+         arrowIndex = 0;
+       }
+
+        showCurrentImage();
 
         imageViewer.classList.add('active');
         screenOverlay.classList.add('active');
 
         zoomed = false;
         imageViewerImg.style.transform = "scale(1)";
-        imageViewerImg.style.transformOrigin = "center center";
         imageViewerImg.style.cursor = "zoom-in";
+
     });
+
+});
+
+function showCurrentImage() {
+
+    imageViewerImg.src = currentGallery[arrowIndex];
+
+    // Hide left arrow if we're at the first image
+    viewerPrev.classList.toggle(
+        "hidden",
+        arrowIndex === 0
+    );
+
+    // Hide right arrow if we're at the last image
+    viewerNext.classList.toggle(
+        "hidden",
+        arrowIndex === currentGallery.length - 1
+    );
+
+}
+
+viewerNext.onclick = () => {
+
+    if (arrowIndex < currentGallery.length - 1) {
+        arrowIndex++;
+        showCurrentImage();
+    }
+
+};
+
+viewerPrev.onclick = () => {
+
+    if (arrowIndex > 0) {
+        arrowIndex--;
+        showCurrentImage();
+    }
+
+};
+
+document.addEventListener("keydown",(e)=>{
+
+    if(!imageViewer.classList.contains("active")) return;
+
+    if(e.key==="ArrowRight")
+        viewerNext.click();
+
+    if(e.key==="ArrowLeft")
+        viewerPrev.click();
+
 });
 
 /* CLOSE */

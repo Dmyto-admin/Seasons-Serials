@@ -1,237 +1,364 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Seasons Serials</title>
 
-    <meta name="description" content="Seasons Serials – explore stories, access your account, and shop our online store for unique creations and much more">
-    <meta name="keywords" content="Seasons Serials, seasons serials website, seasons serials login, seasons serials">
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta
+      name="description"
+      content="Seasons Serials – explore stories, access your account, and shop our online store for unique creations and much more"
+    />
+    <meta
+      name="keywords"
+      content="Seasons Serials, seasons serials website, seasons serials login, seasons serials"
+    />
 
-    <link rel="stylesheet" href="styles.css">
-</head>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
 
-<body onload="autoRedirectFromLogin()">
+    <link rel="stylesheet" href="styles.css" />
+  </head>
 
-<div class="alive-background">
+  <body onload="autoRedirectFromLogin()">
+    <!-- MOBILE WARNING -->
+    <div id="mobileWarning">
+      <div class="mobileWarningBox">
+        <h2>Mobile Version</h2>
 
-  <!-- 🌫️ Floating mist -->
-  <div class="mist mist1"></div>
-  <div class="mist mist2"></div>
+        <p>The mobile version of this website is still not developed.</p>
 
-  <!-- 🌲 Tree movement -->
-  <div class="tree-shadow"></div>
-
-  <!-- 🦌 Deer breathing -->
-  <div class="deer-breath"></div>
-
-</div>
-
-<canvas id="mistCanvas"></canvas>
-<div class="fog-overlay"></div>
-
-<header>
-    <h2 class="logo">Seasons Serials</h2>
-    <div class="nav-gap"></div>
-    <nav class="navigation">
-      <a href="home" class="nav-home"><ion-icon name="home"></ion-icon></a>
-      <a href="https://about-seasons-serials.netlify.app/" target="_blank">About</a>
-      <a href="services">Support</a>
-      <a href="contacts">Contacts</a>
-      <a href="seasons-serials-store.html" id="saleBtn">Sale</a>
-      <button class="btnLogin-popup" id="loginBtn">Login</button>
-  </nav>  
-</header>
-
-<div class="wrapper">
-  <span class="icon-close"><ion-icon name="close"></ion-icon></span>
-    <div class="form-box login">
-        <h2>Login</h2>
-
-        <form onsubmit="login(); return false;">
-            <div class="input-box">
-                <span class="icon"><ion-icon name="mail"></ion-icon></span>
-                <input type="email" id="email" required>
-                <label>Email</label>
-            </div>
-
-            <div class="input-box">
-                <span class="icon"><ion-icon name="lock-closed"></ion-icon></span>
-                <input type="password" id="password" required>
-                <label>Password</label>
-            </div>
-
-            <div class="remember-forgot">
-                <label>
-                    <input type="checkbox" id="rememberMe"> Remember me
-                </label>
-            </div>
-
-            <button type="submit" class="btn">Login</button>
-            <p class="invalid" id="error"></p>
-        </form>
+        <div class="mobileButtons">
+          <button id="mobileOkay">Okay</button>
+          <button id="mobileContinue">See it anyway</button>
+        </div>
+      </div>
     </div>
-</div>
 
-<div class="wrapper-home" id="wrapperHome" style="display: none">
-    <span class="icon-close">
+    <!-- WHITE SCREEN -->
+    <div id="mobileBlankScreen"></div>
+
+    <div class="alive-background">
+      <!-- 🌫️ Floating mist -->
+      <div class="mist mist1"></div>
+      <div class="mist mist2"></div>
+
+      <!-- 🌲 Tree movement -->
+      <div class="tree-shadow"></div>
+
+      <!-- 🦌 Deer breathing -->
+      <div class="deer-breath"></div>
+    </div>
+
+    <canvas id="mistCanvas"></canvas>
+    <div class="fog-overlay"></div>
+
+    <header>
+      <h2 class="logo">Seasons Serials</h2>
+      <div class="nav-gap"></div>
+      <nav class="navigation">
+        <a href="home" class="nav-home"><ion-icon name="home"></ion-icon></a>
+        <a href="https://about-seasons-serials.netlify.app/" target="_blank"
+          >About</a
+        >
+        <a href="services">Support</a>
+        <a href="contacts">Contacts</a>
+        <a href="seasons-serials-store.html" id="saleBtn">Sale</a>
+        <button class="btnLogin-popup" id="loginBtn">Login</button>
+      </nav>
+    </header>
+
+    <div class="wrapper">
+      <span class="icon-close"><ion-icon name="close"></ion-icon></span>
+
+      <!--Login box-->
+      <div class="form-box login">
+        <h2>Login</h2>
+        <form
+          onsubmit="
+            login();
+            return false;
+          "
+        >
+          <div class="input-box">
+            <span class="icon"><ion-icon name="mail"></ion-icon></span>
+            <input type="email" id="email" required />
+            <label id="emailLabel">Email</label>
+          </div>
+
+          <div class="input-box">
+            <span class="icon"><ion-icon name="lock-closed"></ion-icon></span>
+            <input type="password" id="password" required />
+            <label id="passwordLabel">Password</label>
+          </div>
+
+          <div class="remember-forgot">
+            <label>
+              <input type="checkbox" id="rememberMe" /> Remember me
+            </label>
+          </div>
+
+          <button type="submit" class="btn">Login</button>
+          <p class="invalid" id="error"></p>
+          <!--Don't have an account-->
+          <div class="login-register">
+            <p>
+              Don't have an account?
+              <a href="#" class="register-link">Register</a>
+            </p>
+          </div>
+        </form>
+      </div>
+
+      <!--Register box-->
+      <div class="form-box register">
+        <h2>Registration</h2>
+        <div class="form-box-scroll">
+          <form action="#" id="registerForm">
+            <!--Email-->
+            <div class="input-box" id="registerUsernameBox">
+              <span class="icon"><ion-icon name="person"></ion-icon></span>
+              <input type="text" id="registerUsername" required />
+              <label id="registerUsernameLabel">Username</label>
+              <p class="input-error-message" id="usernameErrorMessage"></p>
+            </div>
+            <!--Email-->
+            <div class="input-box" id="registerEmailBox">
+              <span class="icon"><ion-icon name="mail"></ion-icon></span>
+              <input type="email" id="registerEmail" required />
+              <label id="registerEmailLabel">Email</label>
+              <p class="input-error-message" id="emailErrorMessage"></p>
+            </div>
+            <!--Password-->
+            <div class="input-box" id="registerPasswordBox">
+              <span class="icon"><ion-icon name="lock-closed"></ion-icon></span>
+              <input type="password" id="registerPassword" required />
+              <label id="registerPasswordLabel">Password</label>
+              <p class="input-error-message" id="passwordErrorMessage"></p>
+            </div>
+            <!--Confirm Password-->
+            <div class="input-box" id="registerRepeatPasswordBox">
+              <span class="icon">
+                <ion-icon name="shield-checkmark"></ion-icon>
+              </span>
+              <input type="password" id="registerRepeatPassword" required />
+              <label id="registerRepeatPasswordLabel">Confirm password</label>
+              <p
+                class="input-error-message"
+                id="repeatPasswordErrorMessage"
+              ></p>
+            </div>
+            <!--Phone number-->
+            <div class="input-box" id="registerPhoneBox">
+              <span class="icon"><ion-icon name="call"></ion-icon></span>
+              <input type="tel" id="registerPhone" required />
+              <label id="registerPhoneLabel">Phone number</label>
+              <p class="input-error-message" id="phoneErrorMessage"></p>
+            </div>
+            <!--Terms & Conditions-->
+            <div class="terms-agree">
+              <label
+                ><input type="checkbox" required /> I agree to the terms &
+                conditions</label
+              >
+            </div>
+            <!--Btn Register-->
+            <button type="submit" class="btn">Register</button>
+            <!--Don't have an account-->
+            <div class="login-register">
+              <p>
+                Already have an account?
+                <a href="#" class="login-link">Login</a>
+              </p>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="wrapper-home" id="wrapperHome" style="display: none">
+      <span class="icon-close">
         <ion-icon name="close"></ion-icon>
-    </span>
+      </span>
 
-    <div class="form-box login">
+      <div class="form-box login">
         <h2>Home</h2>
 
         <div class="form-box-scroll">
-            <img class="seasons-serials-img" src="img/seasons-serials.jpg" alt="Seasons Serials img">
-        <div class="profile-info">
+          <img
+            class="seasons-serials-img"
+            src="img/seasons-serials.jpg"
+            alt="Seasons Serials img"
+          />
+          <div class="profile-info">
             <p>
-                <span class="our-frase">Seasons Serials -</span>
+              <span class="our-frase">Seasons Serials -</span>
             </p>
             <p>
-                <span class="our-frase">You order, we crate!</span>
+              <span class="our-frase">You order, we crate!</span>
             </p>
-            <br>
+            <br />
             <p>
-                <span class="profile-info-cat">Where should we start today?</span>
+              <span class="profile-info-cat">Where should we start today?</span>
             </p>
             <p>
-                <span>Seasons Serials – explore stories, access your account, and shop our online store for unique creations and much more</span>            </p>
+              <span
+                >Seasons Serials – explore stories, access your account, and
+                shop our online store for unique creations and much more</span
+              >
+            </p>
+          </div>
         </div>
+      </div>
+    </div>
+
+    <div id="chatButton">
+      <ion-icon name="chatbubbles"></ion-icon>
+    </div>
+
+    <!-- 💬 CHAT PANEL -->
+    <div id="chatPanel">
+      <!-- HEADER -->
+      <div id="chatHeader">
+        <span>Seasons Serials AI Assistant</span>
+        <ion-icon name="close" id="closeChat"></ion-icon>
+      </div>
+
+      <!-- MESSAGES -->
+      <div id="chatMessages"></div>
+
+      <!-- SUGGESTIONS -->
+      <div id="chatSuggestions">
+        <button class="chat-suggestion">What is Seasons Serials?</button>
+        <button class="chat-suggestion">What are you used for?</button>
+        <button class="chat-suggestion">Report error</button>
+      </div>
+
+      <!-- INPUT -->
+      <div id="chatInputBox">
+        <input
+          type="text"
+          id="chatInput"
+          placeholder="Ask anything about Seasons Serials"
+        />
+        <button id="sendBtn">
+          <ion-icon name="send"></ion-icon>
+        </button>
+      </div>
+    </div>
+    <!-- DELETE MODAL -->
+    <div id="deleteModal" class="modal">
+      <div class="modal-box">
+        <h3>Delete message?</h3>
+        <p>This action cannot be undone.</p>
+        <div class="modal-actions">
+          <button id="cancelDelete" class="btn cancel">Cancel</button>
+          <button id="confirmDeleteBtn" class="btn delete">Delete</button>
         </div>
+      </div>
     </div>
-</div>
 
-<div id="chatButton">
-  <ion-icon name="chatbubbles"></ion-icon>
-</div>
+    <script>
+      const canvas = document.getElementById("mistCanvas");
+      const ctx = canvas.getContext("2d");
 
-<!-- 💬 CHAT PANEL -->
-<div id="chatPanel">
+      let width, height;
 
-  <!-- HEADER -->
-  <div id="chatHeader">
-    <span>Seasons Serials AI Assistant</span>
-    <ion-icon name="close" id="closeChat"></ion-icon>
-  </div>
+      function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      }
+      window.addEventListener("resize", resize);
+      resize();
 
-  <!-- MESSAGES -->
-  <div id="chatMessages"></div>
+      // 🌫️ Particles
+      const particles = [];
 
-  <!-- SUGGESTIONS -->
-  <div id="chatSuggestions">
-    <button class="chat-suggestion">What is Seasons Serials?</button>
-    <button class="chat-suggestion">What are you used for?</button>
-    <button class="chat-suggestion">Report error</button>
-  </div>
+      for (let i = 0; i < 120; i++) {
+        particles.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          r: Math.random() * 2.5 + 0.5,
+          vx: (Math.random() - 0.5) * 0.3,
+          vy: (Math.random() - 0.5) * 0.2,
+          alpha: Math.random() * 0.5 + 0.2,
+        });
+      }
 
-  <!-- INPUT -->
-  <div id="chatInputBox">
-    <input 
-      type="text" 
-      id="chatInput" 
-      placeholder="Ask anything about Seasons Serials"
-    >
-    <button id="sendBtn">
-      <ion-icon name="send"></ion-icon>
-    </button>
-  </div>
+      function drawMist(x, y, size, alpha) {
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, size);
+        gradient.addColorStop(0, `rgba(200, 220, 255, ${alpha})`);
+        gradient.addColorStop(1, "rgba(200, 220, 255, 0)");
 
-  <!-- DELETE MODAL -->
-<div id="deleteModal" class="modal">
-  <div class="modal-box">
-    <h3>Delete message?</h3>
-    <p>This action cannot be undone.</p>
-    <div class="modal-actions">
-      <button id="cancelDelete" class="btn cancel">Cancel</button>
-      <button id="confirmDeleteBtn" class="btn delete">Delete</button>
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      function animate() {
+        ctx.clearRect(0, 0, width, height);
+
+        // 🌫️ drifting mist blobs
+        for (let i = 0; i < 18; i++) {
+          drawMist(
+            Math.sin(Date.now() * 0.0002 + i) * width * 0.5 + width / 2,
+            Math.cos(Date.now() * 0.00015 + i) * height * 0.5 + height / 2,
+            200 + i * 20,
+            0.029,
+          );
+        }
+
+        // ✨ particles
+        for (let p of particles) {
+          p.x += p.vx;
+          p.y += p.vy;
+
+          if (p.x < 0) p.x = width;
+          if (p.x > width) p.x = 0;
+          if (p.y < 0) p.y = height;
+          if (p.y > height) p.y = 0;
+
+          ctx.fillStyle = `rgba(220, 240, 255, ${p.alpha})`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        requestAnimationFrame(animate);
+      }
+
+      animate();
+    </script>
+
+    <div id="loadModal" class="load-modal">
+      <div class="load-box">
+        <h2 id="loadTitle">Wait...</h2>
+
+        <div id="loader" class="spinner"></div>
+
+        <div id="resultIcon" class="hidden"></div>
+      </div>
     </div>
-  </div>
-</div>
-    
 
-<script>
-const canvas = document.getElementById("mistCanvas");
-const ctx = canvas.getContext("2d");
-
-let width, height;
-
-function resize() {
-  width = canvas.width = window.innerWidth;
-  height = canvas.height = window.innerHeight;
-}
-window.addEventListener("resize", resize);
-resize();
-
-// 🌫️ Particles
-const particles = [];
-
-for (let i = 0; i < 120; i++) {
-  particles.push({
-    x: Math.random() * width,
-    y: Math.random() * height,
-    r: Math.random() * 2.5 + 0.5,
-    vx: (Math.random() - 0.5) * 0.3,
-    vy: (Math.random() - 0.5) * 0.2,
-    alpha: Math.random() * 0.5 + 0.2
-  });
-}
-
-function drawMist(x, y, size, alpha) {
-  const gradient = ctx.createRadialGradient(x, y, 0, x, y, size);
-  gradient.addColorStop(0, `rgba(200, 220, 255, ${alpha})`);
-  gradient.addColorStop(1, "rgba(200, 220, 255, 0)");
-
-  ctx.fillStyle = gradient;
-  ctx.beginPath();
-  ctx.arc(x, y, size, 0, Math.PI * 2);
-  ctx.fill();
-}
-
-function animate() {
-  ctx.clearRect(0, 0, width, height);
-
-  // 🌫️ drifting mist blobs
-  for (let i = 0; i < 18; i++) {
-    drawMist(
-      Math.sin(Date.now() * 0.0002 + i) * width * 0.5 + width / 2,
-      Math.cos(Date.now() * 0.00015 + i) * height * 0.5 + height / 2,
-      200 + i * 20,
-      0.029
-    );
-  }
-
-  // ✨ particles
-  for (let p of particles) {
-    p.x += p.vx;
-    p.y += p.vy;
-
-    if (p.x < 0) p.x = width;
-    if (p.x > width) p.x = 0;
-    if (p.y < 0) p.y = height;
-    if (p.y > height) p.y = 0;
-
-    ctx.fillStyle = `rgba(220, 240, 255, ${p.alpha})`;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  requestAnimationFrame(animate);
-}
-
-animate();
-</script>
-    
-<script src="script.js"></script>
-<script type="module" src="chat.js"></script>
-<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
-
-</body>
+    <script src="script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/libphonenumber-js@1.12.12/bundle/libphonenumber-max.js"></script>
+    <script type="module" src="register.js"></script>
+    <script type="module" src="chat.js"></script>
+    <script
+      type="module"
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"
+    ></script>
+    <script
+      nomodule
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"
+    ></script>
+  </body>
 </html>

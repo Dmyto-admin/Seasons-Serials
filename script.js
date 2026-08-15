@@ -77,7 +77,27 @@ function login() {
     );
 
     if (!foundUser) {
-        document.getElementById("error").textContent = "Invalid email or password";
+        const error = document.getElementById("error");
+
+        error.textContent = "Invalid email or password";
+        error.classList.add("show");
+
+        document.getElementById("email")
+            .closest(".input-box")
+            .classList.add("error");
+
+        document.getElementById("password")
+            .closest(".input-box")
+            .classList.add("error");
+
+        document.getElementById("passwordLabel")
+            .classList.add("error");
+
+        document.getElementById("emailLabel")
+            .classList.add("error");
+
+        document.querySelector(".wrapper")?.classList.add("error");
+
         return;
     }
 
@@ -130,9 +150,104 @@ function protectPage(allowedRole) {
 /* ---------- LOGIN POPUP ---------- */
 
 document.addEventListener("DOMContentLoaded", () => {
+
+    const error = document.getElementById("error");
+
+    ["email", "password"].forEach(id => {
+
+        const input = document.getElementById(id);
+
+        if (!input) return;
+
+        input.addEventListener("input", () => {
+
+            error.textContent = "";
+            error.classList.remove("show");
+
+            document.getElementById("email")
+                ?.closest(".input-box")
+                ?.classList.remove("error");
+
+            document.getElementById("password")
+                ?.closest(".input-box")
+                ?.classList.remove("error");
+
+            document.getElementById("passwordLabel")
+                ?.classList.remove("error");
+
+            document.getElementById("emailLabel")
+                ?.classList.remove("error");
+
+            document.querySelector(".wrapper")
+                ?.classList.remove("error");
+
+        });
+
+    });
+
     const wrapper = document.querySelector(".wrapper");
     const closeIcon = document.querySelector(".icon-close");
     const loginBtn = document.querySelector("#loginBtn");
+    const loginLink = document.querySelector('.login-link');
+    const registerLink = document.querySelector('.register-link');
+
+    function clearAuthForms() {
+
+    const loginForm = document.querySelector(".form-box.login form");
+    const registerForm = document.getElementById("registerForm");
+
+    [loginForm, registerForm].forEach(form => {
+
+        if (!form) return;
+
+        form.reset();
+
+        form.querySelectorAll("input").forEach(input => {
+            input.value = "";
+            input.checked = false;
+        });
+
+    });
+
+    // Remove active/error states
+    document.querySelectorAll(
+        ".form-box.login .input-box, #registerForm .input-box"
+    ).forEach(box => {
+        box.classList.remove("active", "error");
+    });
+
+    document.querySelectorAll(
+        ".form-box.login label, #registerForm label"
+    ).forEach(label => {
+        label.classList.remove("error");
+    });
+
+    // Clear all error messages
+    document.querySelectorAll(
+        "#error, .input-error-message"
+    ).forEach(message => {
+        message.textContent = "";
+        message.classList.remove("show");
+    });
+
+    document.querySelector(".wrapper")?.classList.remove("error");
+}
+
+
+    if (registerLink && wrapper) {
+       registerLink.addEventListener("click", () => {
+            clearAuthForms();
+            wrapper.classList.add("active");
+       });
+    }
+
+    if (loginLink && wrapper) {
+        loginLink.addEventListener("click", () => {
+            clearAuthForms();
+            window.clearRegistrationStates?.();
+            wrapper.classList.remove("active");
+        });
+    }
 
     // ✅ LOGIN BUTTON
     if (loginBtn) {
@@ -157,6 +272,30 @@ document.addEventListener("DOMContentLoaded", () => {
     if (closeIcon && wrapper) {
         closeIcon.onclick = () => wrapper.classList.remove("active-popup");
     }
+});
+
+document.querySelectorAll(".input-box input").forEach(input => {
+
+    function updateLabel(){
+
+        const box = input.closest(".input-box");
+
+        if(input.value.trim() !== ""){
+
+            box.classList.add("active");
+
+        }else{
+
+            box.classList.remove("active");
+
+        }
+
+    }
+
+    input.addEventListener("input", updateLabel);
+
+    updateLabel();
+
 });
 
 /* ---------- DROPDOWN ---------- */
@@ -211,7 +350,7 @@ if (filterBtn) {
 
 // Keyboard control
 document.addEventListener("keydown", (e) => {
-    if (!filtersMenu.classList.contains("active")) return;
+    if (!filtersMenu?.classList.contains("active")) return;
 
     if (e.key === "ArrowDown") {
         e.preventDefault();
@@ -249,7 +388,7 @@ function updateKeyboardSelection() {
 }
 
 function closeDropdown() {
-    filtersMenu.classList.remove("active");
+    filtersMenu?.classList.remove("active");
 }
 
 
@@ -352,7 +491,7 @@ document.querySelectorAll("[data-wrapper]").forEach(btn => {
         if(!wrapper) return;
 
         wrapper.classList.add("active");
-        screenOverlay.classList.add("active");
+        screenOverlay?.classList.add("active");
 
     });
 
@@ -366,7 +505,7 @@ function closeWrappers(){
     saleWrappers.forEach(wrapper => wrapper.classList.remove("active"));
 
     if(!imageViewer.classList.contains("active")){
-        screenOverlay.classList.remove("active");
+        screenOverlay?.classList.remove("active");
     }
 
 }
@@ -383,7 +522,7 @@ document.querySelectorAll(".sale-info-wrapper .icon-close").forEach(icon => {
 
 /* CLOSE ON OVERLAY */
 
-screenOverlay.addEventListener("click", closeWrappers);
+screenOverlay?.addEventListener("click", closeWrappers);
 
 
 /* CLOSE ON ESC */
@@ -412,122 +551,172 @@ let currentGallery = [];
 let arrowIndex = 0;
 
 /* OPEN ANY STORE IMAGE */
-document.querySelectorAll(".store-img, .store-img-t2, .store-img-t3").forEach(img=>{
-    img.addEventListener("click",()=>{
 
-      if (img.dataset.gallery) {
-        currentGallery = JSON.parse(img.dataset.gallery);
-        arrowIndex = currentGallery.indexOf(img.dataset.full);
+if (imageViewer && imageViewerImg && viewerPrev && viewerNext) {
 
-        if(arrowIndex === -1)
-            arrowIndex = 0;
+    document.querySelectorAll(".store-img, .store-img-t2, .store-img-t3").forEach(img => {
 
-       } else {
-         currentGallery = [img.dataset.full];
-         arrowIndex = 0;
-       }
+        img.addEventListener("click", () => {
 
-        showCurrentImage();
+            if (img.dataset.gallery) {
 
-        imageViewer.classList.add('active');
-        screenOverlay.classList.add('active');
+                currentGallery = JSON.parse(img.dataset.gallery);
+                arrowIndex = currentGallery.indexOf(img.dataset.full);
 
-        zoomed = false;
-        imageViewerImg.style.transform = "scale(1)";
-        imageViewerImg.style.cursor = "zoom-in";
+                if (arrowIndex === -1)
+                    arrowIndex = 0;
+
+            } else {
+
+                currentGallery = [img.dataset.full];
+                arrowIndex = 0;
+
+            }
+
+            showCurrentImage();
+
+            imageViewer.classList.add("active");
+            screenOverlay?.classList.add("active");
+
+            zoomed = false;
+            imageViewerImg.style.transform = "scale(1)";
+            imageViewerImg.style.cursor = "zoom-in";
+
+        });
 
     });
 
-});
 
-function showCurrentImage() {
+    function showCurrentImage() {
 
-    imageViewerImg.src = currentGallery[arrowIndex];
+        imageViewerImg.src = currentGallery[arrowIndex];
 
-    // Hide left arrow if we're at the first image
-    viewerPrev.classList.toggle(
-        "hidden",
-        arrowIndex === 0
+        viewerPrev.classList.toggle(
+            "hidden",
+            arrowIndex === 0
+        );
+
+        viewerNext.classList.toggle(
+            "hidden",
+            arrowIndex === currentGallery.length - 1
+        );
+
+    }
+
+
+    viewerNext.onclick = () => {
+
+        if (arrowIndex < currentGallery.length - 1) {
+
+            arrowIndex++;
+            showCurrentImage();
+
+        }
+
+    };
+
+
+    viewerPrev.onclick = () => {
+
+        if (arrowIndex > 0) {
+
+            arrowIndex--;
+            showCurrentImage();
+
+        }
+
+    };
+
+
+    document.addEventListener("keydown", (e) => {
+
+        if (!imageViewer.classList.contains("active"))
+            return;
+
+        if (e.key === "ArrowRight")
+            viewerNext.click();
+
+        if (e.key === "ArrowLeft")
+            viewerPrev.click();
+
+    });
+
+
+    /* CLOSE */
+
+    function closeImageViewer() {
+
+        imageViewer.classList.remove("active");
+        screenOverlay?.classList.remove("active");
+
+    }
+
+
+    imageViewerClose?.addEventListener(
+        "click",
+        closeImageViewer
     );
 
-    // Hide right arrow if we're at the last image
-    viewerNext.classList.toggle(
-        "hidden",
-        arrowIndex === currentGallery.length - 1
-    );
+
+    imageViewer.addEventListener("click", (e) => {
+
+        if (e.target === imageViewer)
+            closeImageViewer();
+
+    });
+
+
+    document.addEventListener("keydown", (e) => {
+
+        if (e.key === "Escape")
+            closeImageViewer();
+
+    });
+
+
+    /* ZOOM */
+
+    imageViewerImg.addEventListener("click", (e) => {
+
+        e.stopPropagation();
+
+        zoomed = !zoomed;
+
+        if (zoomed) {
+
+            imageViewerImg.style.transform = "scale(2)";
+            imageViewerImg.style.cursor = "zoom-out";
+
+        } else {
+
+            imageViewerImg.style.transform = "scale(1)";
+            imageViewerImg.style.transformOrigin = "center center";
+            imageViewerImg.style.cursor = "zoom-in";
+
+        }
+
+    });
+
+
+    imageViewerImg.addEventListener("mousemove", (e) => {
+
+        if (!zoomed)
+            return;
+
+        const rect = imageViewerImg.getBoundingClientRect();
+
+        const x =
+            ((e.clientX - rect.left) / rect.width) * 100;
+
+        const y =
+            ((e.clientY - rect.top) / rect.height) * 100;
+
+        imageViewerImg.style.transformOrigin =
+            `${x}% ${y}%`;
+
+    });
 
 }
-
-viewerNext.onclick = () => {
-
-    if (arrowIndex < currentGallery.length - 1) {
-        arrowIndex++;
-        showCurrentImage();
-    }
-
-};
-
-viewerPrev.onclick = () => {
-
-    if (arrowIndex > 0) {
-        arrowIndex--;
-        showCurrentImage();
-    }
-
-};
-
-document.addEventListener("keydown",(e)=>{
-
-    if(!imageViewer.classList.contains("active")) return;
-
-    if(e.key==="ArrowRight")
-        viewerNext.click();
-
-    if(e.key==="ArrowLeft")
-        viewerPrev.click();
-
-});
-
-/* CLOSE */
-function closeImageViewer() {
-    imageViewer.classList.remove('active');
-    screenOverlay.classList.remove('active');
-}
-
-imageViewerClose.addEventListener('click', closeImageViewer);
-
-imageViewer.addEventListener('click', (e) => {
-    if (e.target === imageViewer) closeImageViewer();
-});
-
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeImageViewer();
-});
-
-/* ZOOM */
-imageViewerImg.addEventListener('click', (e) => {
-    e.stopPropagation();
-    zoomed = !zoomed;
-
-    if (zoomed) {
-        imageViewerImg.style.transform = "scale(2)";
-        imageViewerImg.style.cursor = "zoom-out";
-    } else {
-        imageViewerImg.style.transform = "scale(1)";
-        imageViewerImg.style.transformOrigin = "center center";
-        imageViewerImg.style.cursor = "zoom-in";
-    }
-});
-
-imageViewerImg.addEventListener('mousemove', (e) => {
-    if (!zoomed) return;
-
-    const rect = imageViewerImg.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-
-    imageViewerImg.style.transformOrigin = `${x}% ${y}%`;
-});
 
 
 // ===== SALE COUNTDOWN TIMER (ENDS 03/03/2026) =====

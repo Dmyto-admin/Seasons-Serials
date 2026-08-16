@@ -18,29 +18,45 @@ async function generateVerificationLink(firebaseUser){
     const idToken =
         await firebaseUser.getIdToken();
 
-    const response =
-        await fetch("/api/generate-verification-link", {
-            method: "POST",
+    const isLocal =
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1";
 
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${idToken}`
+    const apiBaseUrl =
+        isLocal
+            ? "https://seasons-serials.vercel.app"
+            : "";
+
+    const response =
+        await fetch(
+            `${apiBaseUrl}/api/generate-verification-link`,
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${idToken}`
+                }
             }
-        });
+        );
 
     if(!response.ok){
+
         throw new Error(
             "Unable to generate verification link."
         );
+
     }
 
     const data =
         await response.json();
 
     if(!data.verificationLink){
+
         throw new Error(
             "Firebase did not return a verification link."
         );
+
     }
 
     return data.verificationLink;
@@ -1397,21 +1413,6 @@ async function registerUser(){
     text-align:center;
     margin-bottom:32px;
 ">
-
-    <div style="
-        display:inline-block;
-        padding:7px 12px;
-        border-radius:20px;
-        background:#edf8f1;
-        color:#23834a;
-        font-size:11px;
-        font-weight:700;
-        letter-spacing:.7px;
-        text-transform:uppercase;
-        margin-bottom:16px;
-    ">
-        Registration successful
-    </div>
 
     <h2 style="
         margin:0;

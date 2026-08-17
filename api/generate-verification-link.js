@@ -1,5 +1,12 @@
-const { initializeApp, cert, getApps } = require("firebase-admin/app");
-const { getAuth } = require("firebase-admin/auth");
+const {
+    initializeApp,
+    cert,
+    getApps
+} = require("firebase-admin/app");
+
+const {
+    getAuth
+} = require("firebase-admin/auth");
 
 function getFirebaseAdmin(){
 
@@ -38,6 +45,7 @@ function getFirebaseAdmin(){
 
 }
 
+
 module.exports = async function handler(req, res){
 
     if(req.method !== "POST"){
@@ -47,6 +55,7 @@ module.exports = async function handler(req, res){
         });
 
     }
+
 
     try{
 
@@ -61,35 +70,63 @@ module.exports = async function handler(req, res){
 
         }
 
+
         const idToken =
             authorization.substring(7);
+
 
         const auth =
             getFirebaseAdmin();
 
+
         const decodedToken =
             await auth.verifyIdToken(idToken);
+
 
         const email =
             decodedToken.email;
 
+
         if(!email){
 
             return res.status(400).json({
-                error: "Firebase user has no email address."
+                error:
+                    "Firebase user has no email address."
             });
 
         }
 
+
+        /*
+         * Firebase will verify the email first.
+         *
+         * After verification Firebase will redirect
+         * the user to this page.
+         */
+
+        const actionCodeSettings = {
+
+            url: `https://seasons-serials.vercel.app/verify-email.html?email=${encodeURIComponent(email)}`,
+
+            handleCodeInApp: false
+
+        };
+
+
         const verificationLink =
             await auth.generateEmailVerificationLink(
-                email
+                email,
+                actionCodeSettings
             );
 
+
         return res.status(200).json({
+
             verificationLink:
                 verificationLink
+
         });
+
 
     }catch(error){
 
@@ -98,9 +135,12 @@ module.exports = async function handler(req, res){
             error
         );
 
+
         return res.status(500).json({
+
             error:
                 "Unable to generate verification link."
+
         });
 
     }

@@ -1,394 +1,417 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Admin</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
 
-    <link rel="stylesheet" href="styles.css">
-</head>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
 
-<body class="page-margaryta" data-page="protected" onload="protectPage('admin')">
-    
-<header>
-    <h2 class="logo">Seasons Serials</h2>
-    <div class="nav-gap"></div>
-    <nav class="navigation">
+  <body
+    class="page-margaryta"
+    data-page="protected"
+    onload="protectPage('admin')"
+  >
+    <header>
+      <h2 class="logo">Seasons Serials</h2>
+      <div class="nav-gap"></div>
+      <nav class="navigation">
         <a href="manage-invoices" id="openPayments">Invoices</a>
         <a href="manage-store-products" id="products-btn">Products</a>
-        <a href="pyments-admin" class="nav-myp">Payments</a>
+        <a href="payments-admin" class="nav-myp">Payments</a>
         <button class="btnLogin-popup" onclick="logout()">Logout</button>
-    </nav>
-</header>
+      </nav>
+    </header>
 
-<div class="wrapper-admin-products">
-    <span class="icon-close">
+    <div class="wrapper-admin-products">
+      <span class="icon-close">
         <ion-icon name="close"></ion-icon>
-    </span>
-    
-    <div class="form-box">
+      </span>
+
+      <div class="form-box">
         <h2>Manage Store Products</h2>
-            <div class="form-box-scroll">
-
-                <div class="admin-product-list">
-                    <div class="admin-products-header">
-
-                        <button class="create-product-btn" id="openCreateProduct">
-                            +
-                        </button>
-                    </div>
-
-                    <div class="admin-products-grid">
-
-                        <div class="admin-product-card">
-                            <div class="product-card-top">
-                                <div>
-                                    <p class="product-number">Sale Product 1</p>
-                                    <h3 class="admin-product-name">The Bamboo</h3>
-                                </div>
-
-                                <div class="product-status available">
-                                    Available
-                                </div>
-                            </div>
-
-                            <div class="product-card-buttons">
-                                <button class="modern-admin-btn available-btn" id="prod1AvailableBtn">
-                                    Mark Available
-                                </button>
-
-                                <button class="modern-admin-btn sold-btn" id="prod1SoldBtn">
-                                    Mark Sold
-                                </button>
-                            </div>
-
-                            <p id="prod1Msg" class="discount-message"></p>
-                        </div>
-
-                        <div class="admin-product-card">
-                            <div class="product-card-top">
-                                <div>
-                                    <p class="product-number">Sale Product 2</p>
-                                    <h3 class="admin-product-name">Healthy Life</h3>
-                                </div>
-
-                                <div class="product-status available">
-                                    Available
-                                </div>
-                            </div>
-
-                            <div class="product-card-buttons">
-                                <button class="modern-admin-btn available-btn" id="prod2AvailableBtn">
-                                    Mark Available
-                                </button>
-
-                                <button class="modern-admin-btn sold-btn" id="prod2SoldBtn">
-                                    Mark Sold
-                                </button>
-                            </div>
-
-                            <p id="prod2Msg" class="discount-message"></p>
-                        </div>
-
-                        <div class="admin-product-card">
-                            <div class="product-card-top">
-                                <div>
-                                    <p class="product-number">Sale Product 3</p>
-                                    <h3 class="admin-product-name">My Lovely Mountains</h3>
-                                </div>
-
-                                <div class="product-status available">
-                                    Available
-                                </div>
-                            </div>
-
-                            <div class="product-card-buttons">
-                                <button class="modern-admin-btn available-btn" id="prod3AvailableBtn">
-                                    Mark Available
-                                </button>
-
-                                <button class="modern-admin-btn sold-btn" id="prod3SoldBtn">
-                                    Mark Sold
-                                </button>
-                            </div>
-
-                            <p id="prod3Msg" class="discount-message"></p>
-                        </div>
-
-                        <div class="admin-product-card">
-                            <div class="product-card-top">
-                                <div>
-                                    <p class="product-number">Sale Product 4</p>
-                                    <h3 class="admin-product-name">Summer Gold</h3>
-                                </div>
-
-                                <div class="product-status available">
-                                    Available
-                                </div>
-                            </div>
-
-                            <div class="product-card-buttons">
-                                <button class="modern-admin-btn available-btn" id="prod4AvailableBtn">
-                                    Mark Available
-                                </button>
-
-                                <button class="modern-admin-btn sold-btn" id="prod4SoldBtn">
-                                    Mark Sold
-                                </button>
-                            </div>
-
-                            <p id="prod4Msg" class="discount-message"></p>
-                        </div>
-
-                        <div class="admin-product-card">
-                            <div class="product-card-top">
-                                <div>
-                                    <p class="product-number">Sale Product 5</p>
-                                    <h3 class="admin-product-name">Looking Into The Future</h3>
-                                </div>
-
-                                <div class="product-status available">
-                                    Available
-                                </div>
-                            </div>
-
-                            <div class="product-card-buttons">
-                                <button class="modern-admin-btn available-btn" id="prod5AvailableBtn">
-                                    Mark Available
-                                </button>
-
-                                <button class="modern-admin-btn sold-btn" id="prod5SoldBtn">
-                                    Mark Sold
-                                </button>
-                            </div>
-
-                            <p id="prod5Msg" class="discount-message"></p>
-                        </div>
-
-                        <div class="admin-product-card">
-                            <div class="product-card-top">
-                                <div>
-                                    <p class="product-number">Sale Product 6</p>
-                                    <h3 class="admin-product-name">Let's go mushroom picking!</h3>
-                                </div>
-
-                                <div class="product-status available">
-                                    Available
-                                </div>
-                            </div>
-
-                            <div class="product-card-buttons">
-                                <button class="modern-admin-btn available-btn" id="prod6AvailableBtn">
-                                    Mark Available
-                                </button>
-
-                                <button class="modern-admin-btn sold-btn" id="prod6SoldBtn">
-                                    Mark Sold
-                                </button>
-                            </div>
-
-                            <p id="prod6Msg" class="discount-message"></p>
-                        </div>
-                    </div>
+        <div class="form-box-scroll">
+          <div class="admin-product-list">
+            <div class="admin-products-header">
+              <button class="create-product-btn" id="openCreateProduct">
+                +
+              </button>
             </div>
+
+            <div class="admin-products-grid">
+              <div class="admin-product-card">
+                <div class="product-card-top">
+                  <div>
+                    <p class="product-number">Sale Product 1</p>
+                    <h3 class="admin-product-name">The Bamboo</h3>
+                  </div>
+
+                  <div class="product-status available">Available</div>
+                </div>
+
+                <div class="product-card-buttons">
+                  <button
+                    class="modern-admin-btn available-btn"
+                    id="prod1AvailableBtn"
+                  >
+                    Mark Available
+                  </button>
+
+                  <button class="modern-admin-btn sold-btn" id="prod1SoldBtn">
+                    Mark Sold
+                  </button>
+                </div>
+
+                <p id="prod1Msg" class="discount-message"></p>
+              </div>
+
+              <div class="admin-product-card">
+                <div class="product-card-top">
+                  <div>
+                    <p class="product-number">Sale Product 2</p>
+                    <h3 class="admin-product-name">Healthy Life</h3>
+                  </div>
+
+                  <div class="product-status available">Available</div>
+                </div>
+
+                <div class="product-card-buttons">
+                  <button
+                    class="modern-admin-btn available-btn"
+                    id="prod2AvailableBtn"
+                  >
+                    Mark Available
+                  </button>
+
+                  <button class="modern-admin-btn sold-btn" id="prod2SoldBtn">
+                    Mark Sold
+                  </button>
+                </div>
+
+                <p id="prod2Msg" class="discount-message"></p>
+              </div>
+
+              <div class="admin-product-card">
+                <div class="product-card-top">
+                  <div>
+                    <p class="product-number">Sale Product 3</p>
+                    <h3 class="admin-product-name">My Lovely Mountains</h3>
+                  </div>
+
+                  <div class="product-status available">Available</div>
+                </div>
+
+                <div class="product-card-buttons">
+                  <button
+                    class="modern-admin-btn available-btn"
+                    id="prod3AvailableBtn"
+                  >
+                    Mark Available
+                  </button>
+
+                  <button class="modern-admin-btn sold-btn" id="prod3SoldBtn">
+                    Mark Sold
+                  </button>
+                </div>
+
+                <p id="prod3Msg" class="discount-message"></p>
+              </div>
+
+              <div class="admin-product-card">
+                <div class="product-card-top">
+                  <div>
+                    <p class="product-number">Sale Product 4</p>
+                    <h3 class="admin-product-name">Summer Gold</h3>
+                  </div>
+
+                  <div class="product-status available">Available</div>
+                </div>
+
+                <div class="product-card-buttons">
+                  <button
+                    class="modern-admin-btn available-btn"
+                    id="prod4AvailableBtn"
+                  >
+                    Mark Available
+                  </button>
+
+                  <button class="modern-admin-btn sold-btn" id="prod4SoldBtn">
+                    Mark Sold
+                  </button>
+                </div>
+
+                <p id="prod4Msg" class="discount-message"></p>
+              </div>
+
+              <div class="admin-product-card">
+                <div class="product-card-top">
+                  <div>
+                    <p class="product-number">Sale Product 5</p>
+                    <h3 class="admin-product-name">Looking Into The Future</h3>
+                  </div>
+
+                  <div class="product-status available">Available</div>
+                </div>
+
+                <div class="product-card-buttons">
+                  <button
+                    class="modern-admin-btn available-btn"
+                    id="prod5AvailableBtn"
+                  >
+                    Mark Available
+                  </button>
+
+                  <button class="modern-admin-btn sold-btn" id="prod5SoldBtn">
+                    Mark Sold
+                  </button>
+                </div>
+
+                <p id="prod5Msg" class="discount-message"></p>
+              </div>
+
+              <div class="admin-product-card">
+                <div class="product-card-top">
+                  <div>
+                    <p class="product-number">Sale Product 6</p>
+                    <h3 class="admin-product-name">
+                      Off to the mushroom hunt!
+                    </h3>
+                  </div>
+
+                  <div class="product-status available">Available</div>
+                </div>
+
+                <div class="product-card-buttons">
+                  <button
+                    class="modern-admin-btn available-btn"
+                    id="prod6AvailableBtn"
+                  >
+                    Mark Available
+                  </button>
+
+                  <button class="modern-admin-btn sold-btn" id="prod6SoldBtn">
+                    Mark Sold
+                  </button>
+                </div>
+
+                <p id="prod6Msg" class="discount-message"></p>
+              </div>
+
+              <div class="admin-product-card">
+                <div class="product-card-top">
+                  <div>
+                    <p class="product-number">Sale Product 7</p>
+                    <h3 class="admin-product-name">The Journey Home</h3>
+                  </div>
+
+                  <div class="product-status available">Available</div>
+                </div>
+
+                <div class="product-card-buttons">
+                  <button
+                    class="modern-admin-btn available-btn"
+                    id="prod7AvailableBtn"
+                  >
+                    Mark Available
+                  </button>
+
+                  <button class="modern-admin-btn sold-btn" id="prod7SoldBtn">
+                    Mark Sold
+                  </button>
+                </div>
+
+                <p id="prod7Msg" class="discount-message"></p>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
-</div>
 
-<div class="wrapper-payments">
-    <span class="icon-close">
+    <div class="wrapper-payments">
+      <span class="icon-close">
         <ion-icon name="close"></ion-icon>
-    </span>
+      </span>
 
-    <div class="form-box">
+      <div class="form-box">
         <h2>My payments</h2>
 
-    <div class="form-box-scroll">
-        <div class="profile-info">
+        <div class="form-box-scroll">
+          <div class="profile-info">
             <p>
-                <span class="payments-notice">All the payments you realised in Seasons Serials in 2026 will be shown here</span>
+              <span class="payments-notice"
+                >All the payments you realised in Seasons Serials in 2026 will
+                be shown here</span
+              >
             </p>
-            <img src="no-payment-yet.png" alt="no-payments-yet">
+            <img src="no-payment-yet.png" alt="no-payments-yet" />
             <p>
-                <span class="no-payment-yet-text">No payments yet</span>
+              <span class="no-payment-yet-text">No payments yet</span>
             </p>
+          </div>
         </div>
+      </div>
     </div>
-    </div>
-</div>
 
-<!-- LOGOS:
+    <!-- LOGOS:
     <ion-icon name="checkmark"></ion-icon>
     <ion-icon name="close"></ion-icon>
     <ion-icon name="menu"></ion-icon>
     <ion-icon name="chatbubbles"></ion-icon>
 -->
-    
-<div class="wrapper-admin-payments">
-    <span class="icon-close">
+
+    <div class="wrapper-admin-payments">
+      <span class="icon-close">
         <ion-icon name="close"></ion-icon>
-    </span>
-    <div class="form-box">
+      </span>
+      <div class="form-box">
         <h2>Manage All Invoices</h2>
 
         <div class="form-box-scroll">
-            <div class="profile-info">
-                <div class="invoice-tools">
+          <div class="profile-info">
+            <div class="invoice-tools">
+              <div class="search-box">
+                <span class="search-icon">
+                  <ion-icon name="search"></ion-icon>
+                </span>
+                <input
+                  id="searchInvoice"
+                  placeholder="Search invoice ID or user email..."
+                />
+              </div>
 
-                  <div class="search-box">
-                    <span class="search-icon">
-                        <ion-icon name="search"></ion-icon>
-                    </span>
-                    <input id="searchInvoice" placeholder="Search invoice ID or user email...">
-                  </div>
+              <input id="filterUser" placeholder="Filter by user email" />
 
-                  <input id="filterUser" placeholder="Filter by user email">
+              <div class="date-group">
+                <input id="fromDate" type="date" />
+                <input id="toDate" type="date" />
+              </div>
 
-                  <div class="date-group">
-                    <input id="fromDate" type="date">
-                    <input id="toDate" type="date">
-                  </div>
-
-                  <div class="btn-group">
-                    <button id="applyFilters">Apply</button>
-                    <button id="resetFilters">Reset</button>
-                  </div>
-
-                </div>
-                <div class="admin-invoices-container"></div>
+              <div class="btn-group">
+                <button id="applyFilters">Apply</button>
+                <button id="resetFilters">Reset</button>
+              </div>
             </div>
+            <div class="admin-invoices-container"></div>
+          </div>
         </div>
+      </div>
     </div>
-</div>
 
+    <div class="checkout-modal" id="confirmModal">
+      <div class="checkout-box" style="width: 300px">
+        <h2 id="confirmText">Are you sure?</h2>
 
-<div class="checkout-modal" id="confirmModal">
-  <div class="checkout-box" style="width: 300px;">
-    <h2 id="confirmText">Are you sure?</h2>
-
-    <div class="confirm-actions">
-      <button class="cancel-confirm" id="confirmYes">YES</button>
-      <button class="cancel-confirm" id="confirmNo">NO</button>
+        <div class="confirm-actions">
+          <button class="cancel-confirm" id="confirmYes">YES</button>
+          <button class="cancel-confirm" id="confirmNo">NO</button>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
-<div class="create-product-modal" id="createProductModal">
-
-    <div class="create-product-box">
-
+    <div class="create-product-modal" id="createProductModal">
+      <div class="create-product-box">
         <span class="create-product-close" id="closeCreateProduct">
-            <ion-icon name="close"></ion-icon>
+          <ion-icon name="close"></ion-icon>
         </span>
 
         <h2>Create Product</h2>
 
         <div class="create-product-content">
+          <p class="next-product-number">
+            This product has the number
+            <span id="nextProductNumber">1</span>
+            in Seasons Serials Store
+          </p>
 
-            <p class="next-product-number">
-                This product has the number
-                <span id="nextProductNumber">1</span>
-                in Seasons Serials Store
+          <!-- NAME -->
+          <div class="admin-input-box">
+            <label>Product Name</label>
+
+            <input type="text" id="createProductName" maxlength="80" />
+          </div>
+
+          <!-- PRICE -->
+          <div class="admin-input-box">
+            <label>Product Price</label>
+
+            <input type="number" id="createProductPrice" min="1" step="1" />
+
+            <p class="price-error hidden" id="priceError">
+              This price is unsupported
             </p>
+          </div>
 
-            <!-- NAME -->
-            <div class="admin-input-box">
-                <label>Product Name</label>
+          <!-- IMAGE -->
+          <div class="admin-input-box">
+            <label>Product Image (.png only)</label>
 
-                <input
-                    type="text"
-                    id="createProductName"
-                    maxlength="80"
-                >
-            </div>
+            <input
+              type="file"
+              id="createProductImage"
+              accept=".png,image/png"
+            />
+          </div>
 
-            <!-- PRICE -->
-            <div class="admin-input-box">
-                <label>Product Price</label>
+          <!-- DESCRIPTION -->
+          <div class="admin-input-box">
+            <label>Description</label>
 
-                <input
-                    type="number"
-                    id="createProductPrice"
-                    min="1"
-                    step="1"
-                >
+            <textarea
+              id="createProductDescription"
+              rows="6"
+              maxlength="2000"
+            ></textarea>
+          </div>
 
-                <p class="price-error hidden" id="priceError">
-                    This price is unsupported
-                </p>
-            </div>
+          <!-- CATEGORY -->
+          <div class="admin-input-box">
+            <label>Category</label>
 
-            <!-- IMAGE -->
-            <div class="admin-input-box">
-                <label>Product Image (.png only)</label>
+            <select id="createProductCategory">
+              <option value="picture">Picture</option>
 
-                <input
-                    type="file"
-                    id="createProductImage"
-                    accept=".png,image/png"
-                >
-            </div>
+              <option value="story">Story</option>
 
-            <!-- DESCRIPTION -->
-            <div class="admin-input-box">
-                <label>Description</label>
+              <option value="decoration">Decoration</option>
 
-                <textarea
-                    id="createProductDescription"
-                    rows="6"
-                    maxlength="2000"
-                ></textarea>
-            </div>
+              <option value="handcraft">Handcraft</option>
 
-            <!-- CATEGORY -->
-            <div class="admin-input-box">
-                <label>Category</label>
+              <option value="ticket">Ticket</option>
+            </select>
+          </div>
 
-                <select id="createProductCategory">
+          <!-- BUTTONS -->
+          <div class="create-product-actions">
+            <button id="confirmCreateProduct">Create Product</button>
 
-                    <option value="picture">Picture</option>
-
-                    <option value="story">Story</option>
-
-                    <option value="decoration">Decoration</option>
-
-                    <option value="handcraft">Handcraft</option>
-
-                    <option value="ticket">Ticket</option>
-
-                </select>
-            </div>
-
-            <!-- BUTTONS -->
-            <div class="create-product-actions">
-
-                <button id="confirmCreateProduct">
-                    Create Product
-                </button>
-
-                <button id="cancelCreateProduct">
-                    Cancel
-                </button>
-
-            </div>
-
+            <button id="cancelCreateProduct">Cancel</button>
+          </div>
         </div>
-
+      </div>
     </div>
 
-</div>
-
-<script src="script.js"></script>
-<script type="module" src="store-system/admin.js"></script>
-<script type="module" src="store-system/dmytro.js"></script>
-<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
-
-</body>
+    <script src="script.js"></script>
+    <script type="module" src="store-system/admin.js"></script>
+    <script type="module" src="store-system/dmytro.js"></script>
+    <script type="module" src="auth.js"></script>
+    <script
+      type="module"
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"
+    ></script>
+    <script
+      nomodule
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"
+    ></script>
+  </body>
 </html>

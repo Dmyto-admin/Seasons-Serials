@@ -1387,7 +1387,7 @@ async function registerUser(){
         color:rgba(255,255,255,.70);
         letter-spacing:.5px;
     ">
-        Your account has been created
+        Registration Successful
     </div>
 
 </div>

@@ -205,35 +205,24 @@ async function activateAccount(){
             "Your email has been verified. We are completing your account activation.";
 
 
-const isLocal =
-    window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1";
+        const response =
+            await fetch(
+                "/api/activate-account",
+                {
+                    method:"POST",
 
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
 
-const apiBaseUrl =
-    isLocal
-        ? "https://seasons-serials.vercel.app"
-        : "";
+                    body:
+                        JSON.stringify({
+                            email:email
+                        })
 
-
-const response =
-    await fetch(
-        `${apiBaseUrl}/api/activate-account`,
-        {
-            method:"POST",
-
-            headers:{
-                "Content-Type":
-                    "application/json"
-            },
-
-            body:
-                JSON.stringify({
-                    email:email
-                })
-
-        }
-    );
+                }
+            );
 
 
         const data =

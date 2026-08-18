@@ -4,11 +4,9 @@ const {
     getApps
 } = require("firebase-admin/app");
 
-
 const {
     getAuth
 } = require("firebase-admin/auth");
-
 
 const {
     getFirestore
@@ -72,85 +70,39 @@ function getFirebaseServices(){
 
 
 /*
- * Allowed browser origins.
+ * Allowed frontend origins.
  *
- * Local development is allowed because
- * the frontend calls this deployed API.
+ * Local:
+ *     http://127.0.0.1:5500
+ *     http://localhost:5500
  *
- * Production remains the Seasons Serials
- * Vercel website.
+ * Production:
+ *     https://seasons-serials.vercel.app
  */
 
-function isAllowedOrigin(origin){
+const ALLOWED_ORIGINS = [
 
-    if(!origin){
+    "http://127.0.0.1:5500",
 
-        return false;
+    "http://localhost:5500",
 
-    }
+    "https://seasons-serials.vercel.app"
 
-
-    if(
-        origin ===
-        "https://seasons-serials.vercel.app"
-    ){
-
-        return true;
-
-    }
-
-
-    try{
-
-        const url =
-            new URL(origin);
-
-
-        /*
-         * Allow localhost and 127.0.0.1
-         * regardless of the Live Server port.
-         */
-
-        if(
-            url.protocol === "http:" &&
-            (
-                url.hostname === "127.0.0.1" ||
-                url.hostname === "localhost"
-            )
-        ){
-
-            return true;
-
-        }
-
-    }catch{
-
-        return false;
-
-    }
-
-
-    return false;
-
-}
+];
 
 
 module.exports = async function handler(req,res){
 
     /*
-     * Browser origin.
+     * CORS
      */
 
     const origin =
         req.headers.origin || "";
 
 
-    /*
-     * CORS headers.
-     */
-
     if(
-        isAllowedOrigin(origin)
+        ALLOWED_ORIGINS.includes(origin)
     ){
 
         res.setHeader(
@@ -158,18 +110,20 @@ module.exports = async function handler(req,res){
             origin
         );
 
-
         res.setHeader(
             "Access-Control-Allow-Methods",
             "POST, OPTIONS"
         );
 
-
         res.setHeader(
             "Access-Control-Allow-Headers",
-            "Content-Type"
+            "Content-Type, Authorization"
         );
 
+        res.setHeader(
+            "Access-Control-Max-Age",
+            "86400"
+        );
 
         res.setHeader(
             "Vary",
@@ -180,15 +134,13 @@ module.exports = async function handler(req,res){
 
 
     /*
-     * Browser CORS preflight.
+     * Browser preflight request.
      */
 
-    if(
-        req.method === "OPTIONS"
-    ){
+    if(req.method === "OPTIONS"){
 
         if(
-            !isAllowedOrigin(origin)
+            !ALLOWED_ORIGINS.includes(origin)
         ){
 
             return res.status(403).json({
@@ -210,9 +162,7 @@ module.exports = async function handler(req,res){
      * Only POST is allowed.
      */
 
-    if(
-        req.method !== "POST"
-    ){
+    if(req.method !== "POST"){
 
         return res.status(405).json({
 
@@ -225,17 +175,18 @@ module.exports = async function handler(req,res){
 
 
     /*
-     * Reject unknown origins.
+     * Reject unknown browser origins.
      */
 
     if(
-        !isAllowedOrigin(origin)
+        origin &&
+        !ALLOWED_ORIGINS.includes(origin)
     ){
 
         return res.status(403).json({
 
             error:
-                `Origin not allowed: ${origin || "unknown"}`
+                "Origin not allowed."
 
         });
 
@@ -272,7 +223,7 @@ module.exports = async function handler(req,res){
 
 
         /*
-         * Find the Firebase Authentication user.
+         * Find Firebase Authentication user.
          */
 
         const firebaseUser =
@@ -282,7 +233,7 @@ module.exports = async function handler(req,res){
 
 
         /*
-         * Firebase itself must confirm
+         * Firebase must confirm
          * that the email was verified.
          */
 
@@ -311,11 +262,10 @@ module.exports = async function handler(req,res){
 
 
         /*
-         * Atomically check and activate
-         * the account.
+         * Atomically activate the account.
          *
-         * This prevents repeatedly writing
-         * accountActivated: true.
+         * This guarantees that accountActivated
+         * is changed only on the first activation.
          */
 
         const activationResult =
@@ -373,7 +323,7 @@ module.exports = async function handler(req,res){
 
 
         /*
-         * The account was already activated.
+         * Already activated.
          */
 
         if(
@@ -409,7 +359,8 @@ module.exports = async function handler(req,res){
         });
 
 
-    }catch(error){
+    }
+    catch(error){
 
         console.error(
             "Account activation error:",

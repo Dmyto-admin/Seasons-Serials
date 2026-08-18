@@ -71,8 +71,84 @@ function getFirebaseServices(){
 
 module.exports = async function handler(req,res){
 
-    if(req.method !== "POST"){
+    const origin =
+        req.headers.origin;
 
+
+    function isAllowedOrigin(origin){
+
+        if(!origin){
+            return false;
+        }
+
+        if(
+            /^http:\/\/localhost(?::\d+)?$/.test(origin) ||
+            /^https:\/\/localhost(?::\d+)?$/.test(origin) ||
+            /^http:\/\/127\.0\.0\.1(?::\d+)?$/.test(origin) ||
+            /^https:\/\/127\.0\.0\.1(?::\d+)?$/.test(origin)
+        ){
+            return true;
+        }
+
+        if(
+            origin ===
+            "https://seasons-serials.vercel.app"
+        ){
+            return true;
+        }
+
+        return false;
+
+    }
+
+
+    if(isAllowedOrigin(origin)){
+
+        res.setHeader(
+            "Access-Control-Allow-Origin",
+            origin
+        );
+
+    }
+
+    res.setHeader(
+        "Access-Control-Allow-Methods",
+        "POST, OPTIONS"
+    );
+
+    res.setHeader(
+        "Access-Control-Allow-Headers",
+        "Content-Type"
+    );
+
+    res.setHeader(
+        "Access-Control-Max-Age",
+        "86400"
+    );
+
+    res.setHeader(
+        "Vary",
+        "Origin"
+    );
+
+
+    if(req.method === "OPTIONS"){
+
+        if(!isAllowedOrigin(origin)){
+
+            return res.status(403).json({
+                error:
+                    "Origin not allowed."
+            });
+
+        }
+
+        return res.status(204).end();
+
+    }
+
+
+    if(req.method !== "POST"){
         return res.status(405).json({
 
             error:

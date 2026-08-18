@@ -12,6 +12,21 @@ const email =
         .trim()
         .toLowerCase();
 
+/*
+ * API location.
+ *
+ * Local website:
+ *     http://127.0.0.1:5500
+ *
+ * The API itself still runs on Vercel.
+ */
+
+const API_BASE_URL =
+    window.location.hostname === "127.0.0.1" ||
+    window.location.hostname === "localhost"
+        ? "https://seasons-serials.vercel.app"
+        : "";
+
 
 const title =
     document.getElementById(
@@ -207,22 +222,22 @@ async function activateAccount(){
 
         const response =
             await fetch(
-                "/api/activate-account",
+                `${API_BASE_URL}/api/activate-account`,
                 {
                     method:"POST",
 
                     headers:{
                         "Content-Type":
-                            "application/json"
+                        "application/json"
                     },
 
                     body:
                         JSON.stringify({
-                            email:email
-                        })
+                        email:email
+            })
 
                 }
-            );
+        );
 
 
         const data =

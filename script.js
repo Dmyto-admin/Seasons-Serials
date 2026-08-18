@@ -646,3 +646,100 @@ document.querySelectorAll(".sale-timer").forEach(timer => {
     updateTimer();
     setInterval(updateTimer, 1000); // update every second
 });
+
+document.addEventListener("DOMContentLoaded",()=>{
+
+    if(
+        sessionStorage.getItem(
+            "openLoginAfterVerification"
+        ) === "true"
+    ){
+
+        /*
+         * Remove it immediately.
+         *
+         * This makes the action happen only
+         * once after the verification redirect.
+         */
+
+        sessionStorage.removeItem(
+            "openLoginAfterVerification"
+        );
+
+
+        /*
+         * Open login.
+         */
+
+        openAuthWrapper();
+
+    }
+
+});
+
+function showVerificationNotice(){
+
+    const overlay =
+        document.getElementById(
+            "verificationNotice"
+        );
+
+    if(!overlay){
+        return;
+    }
+
+
+    overlay.classList.add("show");
+
+}
+
+
+function hideVerificationNotice(){
+
+    const overlay =
+        document.getElementById(
+            "verificationNotice"
+        );
+
+    if(!overlay){
+        return;
+    }
+
+
+    overlay.classList.remove("show");
+
+}
+
+
+const verificationNoticeClose =
+    document.getElementById(
+        "verificationNoticeClose"
+    );
+
+
+const verificationNoticeOkay =
+    document.getElementById(
+        "verificationNoticeOkay"
+    );
+
+
+verificationNoticeClose?.addEventListener(
+    "click",
+    hideVerificationNotice
+);
+
+
+verificationNoticeOkay?.addEventListener(
+    "click",
+    hideVerificationNotice
+);
+
+
+document.getElementById("verificationNotice")?.addEventListener("click", event => {
+
+    if(event.target.id === "verificationNotice"){
+        hideVerificationNotice();
+    }
+
+    }
+);

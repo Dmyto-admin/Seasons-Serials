@@ -4,9 +4,11 @@ const {
     getApps
 } = require("firebase-admin/app");
 
+
 const {
     getAuth
 } = require("firebase-admin/auth");
+
 
 const {
     getFirestore
@@ -69,14 +71,171 @@ function getFirebaseServices(){
 }
 
 
+/*
+ * Allowed browser origins.
+ *
+ * Local development is allowed because
+ * the frontend calls this deployed API.
+ *
+ * Production remains the Seasons Serials
+ * Vercel website.
+ */
+
+function isAllowedOrigin(origin){
+
+    if(!origin){
+
+        return false;
+
+    }
+
+
+    if(
+        origin ===
+        "https://seasons-serials.vercel.app"
+    ){
+
+        return true;
+
+    }
+
+
+    try{
+
+        const url =
+            new URL(origin);
+
+
+        /*
+         * Allow localhost and 127.0.0.1
+         * regardless of the Live Server port.
+         */
+
+        if(
+            url.protocol === "http:" &&
+            (
+                url.hostname === "127.0.0.1" ||
+                url.hostname === "localhost"
+            )
+        ){
+
+            return true;
+
+        }
+
+    }catch{
+
+        return false;
+
+    }
+
+
+    return false;
+
+}
+
+
 module.exports = async function handler(req,res){
 
-    if(req.method !== "POST"){
+    /*
+     * Browser origin.
+     */
+
+    const origin =
+        req.headers.origin || "";
+
+
+    /*
+     * CORS headers.
+     */
+
+    if(
+        isAllowedOrigin(origin)
+    ){
+
+        res.setHeader(
+            "Access-Control-Allow-Origin",
+            origin
+        );
+
+
+        res.setHeader(
+            "Access-Control-Allow-Methods",
+            "POST, OPTIONS"
+        );
+
+
+        res.setHeader(
+            "Access-Control-Allow-Headers",
+            "Content-Type"
+        );
+
+
+        res.setHeader(
+            "Vary",
+            "Origin"
+        );
+
+    }
+
+
+    /*
+     * Browser CORS preflight.
+     */
+
+    if(
+        req.method === "OPTIONS"
+    ){
+
+        if(
+            !isAllowedOrigin(origin)
+        ){
+
+            return res.status(403).json({
+
+                error:
+                    "Origin not allowed."
+
+            });
+
+        }
+
+
+        return res.status(204).end();
+
+    }
+
+
+    /*
+     * Only POST is allowed.
+     */
+
+    if(
+        req.method !== "POST"
+    ){
 
         return res.status(405).json({
 
             error:
                 "Method not allowed."
+
+        });
+
+    }
+
+
+    /*
+     * Reject unknown origins.
+     */
+
+    if(
+        !isAllowedOrigin(origin)
+    ){
+
+        return res.status(403).json({
+
+            error:
+                `Origin not allowed: ${origin || "unknown"}`
 
         });
 
@@ -261,6 +420,7 @@ module.exports = async function handler(req,res){
         return res.status(500).json({
 
             error:
+                error.message ||
                 "Unable to activate account."
 
         });

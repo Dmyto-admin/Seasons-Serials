@@ -5,13 +5,273 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>Verify Account — Seasons Serials</title>
+    <title>Account Activation — Seasons Serials</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Poppins", sans-serif;
+      }
+
+      body {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background:
+          radial-gradient(
+            circle at top left,
+            rgba(255, 255, 255, 0.08),
+            transparent 35%
+          ),
+          linear-gradient(135deg, #0f202d, #162938, #0b1821);
+        color: #162938;
+        padding: 25px;
+      }
+
+      .verification-container {
+        width: 100%;
+
+        max-width: 520px;
+
+        background: rgba(255, 255, 255, 0.96);
+
+        border-radius: 24px;
+
+        padding: 50px 40px;
+
+        text-align: center;
+
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+
+        animation: containerAppear 0.6s ease;
+      }
+
+      @keyframes containerAppear {
+        from {
+          opacity: 0;
+
+          transform: translateY(25px) scale(0.97);
+        }
+
+        to {
+          opacity: 1;
+
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      .brand {
+        font-size: 14px;
+
+        font-weight: 700;
+
+        letter-spacing: 2px;
+
+        text-transform: uppercase;
+
+        color: #7b8992;
+
+        margin-bottom: 30px;
+      }
+
+      .icon-wrapper {
+        width: 90px;
+
+        height: 90px;
+
+        margin: 0 auto 25px;
+
+        border-radius: 50%;
+
+        display: flex;
+
+        justify-content: center;
+
+        align-items: center;
+
+        background: #eef3f6;
+      }
+
+      .icon {
+        font-size: 42px;
+
+        line-height: 1;
+      }
+
+      .loading-icon {
+        width: 38px;
+
+        height: 38px;
+
+        border: 4px solid #dce4e9;
+
+        border-top-color: #162938;
+
+        border-radius: 50%;
+
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .success-icon {
+        color: #162938;
+
+        animation: successAppear 0.5s ease;
+      }
+
+      @keyframes successAppear {
+        from {
+          opacity: 0;
+
+          transform: scale(0.4);
+        }
+
+        to {
+          opacity: 1;
+
+          transform: scale(1);
+        }
+      }
+
+      .already-icon {
+        color: #6c7a83;
+      }
+
+      .error-icon {
+        color: #a33d3d;
+      }
+
+      h1 {
+        font-size: 28px;
+
+        line-height: 1.25;
+
+        margin-bottom: 14px;
+
+        color: #162938;
+      }
+
+      p {
+        font-size: 15px;
+
+        line-height: 1.7;
+
+        color: #71808a;
+      }
+
+      .countdown {
+        margin-top: 24px;
+
+        padding: 14px 18px;
+
+        border-radius: 12px;
+
+        background: #f3f6f8;
+
+        color: #5f6e77;
+
+        font-size: 14px;
+      }
+
+      .countdown strong {
+        color: #162938;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      .progress {
+        height: 4px;
+
+        width: 100%;
+
+        background: #e7ecef;
+
+        border-radius: 10px;
+
+        margin-top: 28px;
+
+        overflow: hidden;
+      }
+
+      .progress-bar {
+        height: 100%;
+
+        width: 0%;
+
+        background: #162938;
+
+        border-radius: 10px;
+      }
+
+      .progress-bar.animate {
+        animation: progressAnimation 5s linear forwards;
+      }
+
+      @keyframes progressAnimation {
+        from {
+          width: 0%;
+        }
+
+        to {
+          width: 100%;
+        }
+      }
+
+      @media (max-width: 600px) {
+        .verification-container {
+          padding: 40px 25px;
+        }
+
+        h1 {
+          font-size: 24px;
+        }
+      }
+    </style>
   </head>
 
   <body>
-    <h1 id="verificationTitle">Verifying your account...</h1>
+    <main class="verification-container">
+      <div class="brand">Seasons Serials</div>
 
-    <p id="verificationMessage">Please wait.</p>
+      <div class="icon-wrapper" id="iconWrapper">
+        <div class="loading-icon" id="loadingIcon"></div>
+      </div>
+
+      <h1 id="verificationTitle">Activating your account...</h1>
+
+      <p id="verificationMessage">
+        Please wait while we finish setting up your account.
+      </p>
+
+      <div class="countdown hidden" id="countdown">
+        Redirecting to login in
+        <strong id="countdownNumber">5</strong>
+        seconds...
+      </div>
+
+      <div class="progress hidden" id="progress">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+    </main>
 
     <script type="module" src="./verify-email.js"></script>
   </body>

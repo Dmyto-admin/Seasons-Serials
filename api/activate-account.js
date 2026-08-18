@@ -113,8 +113,7 @@ module.exports = async function handler(req,res){
 
 
         /*
-         * Find the Firebase Authentication
-         * user by email.
+         * Find the Firebase Authentication user.
          */
 
         const firebaseUser =
@@ -124,12 +123,8 @@ module.exports = async function handler(req,res){
 
 
         /*
-         * THIS is the important security check.
-         *
-         * We do not trust the browser.
-         *
-         * Firebase itself must say that the
-         * email is verified.
+         * Firebase itself must confirm
+         * that the email was verified.
          */
 
         if(
@@ -147,29 +142,110 @@ module.exports = async function handler(req,res){
 
 
         /*
-         * Firebase says the email is verified.
-         *
-         * Now activate the Firestore account.
+         * Firestore user document.
          */
 
-        await db
-            .collection("users")
-            .doc(email)
-            .update({
+        const userRef =
+            db
+                .collection("users")
+                .doc(email);
 
-                accountActivated:
-                    true
+
+        /*
+         * Atomically check and activate
+         * the account.
+         *
+         * This prevents repeatedly writing
+         * accountActivated: true.
+         */
+
+        const activationResult =
+            await db.runTransaction(
+                async transaction => {
+
+                    const userSnapshot =
+                        await transaction.get(
+                            userRef
+                        );
+
+
+                    if(!userSnapshot.exists){
+
+                        throw new Error(
+                            "User account does not exist."
+                        );
+
+                    }
+
+
+                    const userData =
+                        userSnapshot.data();
+
+
+                    /*
+                     * Already activated.
+                     */
+
+                    if(
+                        userData.accountActivated === true
+                    ){
+
+                        return "alreadyActivated";
+
+                    }
+
+
+                    /*
+                     * First activation.
+                     */
+
+                    transaction.update(
+                        userRef,
+                        {
+                            accountActivated: true
+                        }
+                    );
+
+
+                    return "activated";
+
+                }
+            );
+
+
+        /*
+         * The account was already activated.
+         */
+
+        if(
+            activationResult ===
+            "alreadyActivated"
+        ){
+
+            return res.status(200).json({
+
+                success: true,
+
+                accountActivated: true,
+
+                alreadyActivated: true
 
             });
 
+        }
+
+
+        /*
+         * First successful activation.
+         */
 
         return res.status(200).json({
 
-            success:
-                true,
+            success: true,
 
-            accountActivated:
-                true
+            accountActivated: true,
+
+            alreadyActivated: false
 
         });
 

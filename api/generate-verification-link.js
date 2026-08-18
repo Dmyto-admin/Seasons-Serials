@@ -1,106 +1,85 @@
-const {
+import {
+    getApps,
     initializeApp,
-    cert,
-    getApps
-} = require("firebase-admin/app");
+    cert
+} from "firebase-admin/app";
 
-const {
+import {
     getAuth
-} = require("firebase-admin/auth");
+} from "firebase-admin/auth";
 
 
-function getFirebaseAdmin(){
+function getFirebaseAdmin() {
 
-    if(getApps().length){
+    if (getApps().length > 0) {
         return getAuth();
     }
-
 
     const privateKey =
         process.env.FIREBASE_PRIVATE_KEY
             ?.replace(/\\n/g, "\n");
 
-
-    if(
+    if (
         !process.env.FIREBASE_PROJECT_ID ||
         !process.env.FIREBASE_CLIENT_EMAIL ||
         !privateKey
-    ){
-
+    ) {
         throw new Error(
             "Firebase Admin environment variables are missing."
         );
-
     }
-
 
     initializeApp({
 
-        credential:
-            cert({
+        credential: cert({
 
-                projectId:
-                    process.env.FIREBASE_PROJECT_ID,
+            projectId:
+                process.env.FIREBASE_PROJECT_ID,
 
-                clientEmail:
-                    process.env.FIREBASE_CLIENT_EMAIL,
+            clientEmail:
+                process.env.FIREBASE_CLIENT_EMAIL,
 
-                privateKey:
-                    privateKey
+            privateKey:
+                privateKey
 
-            })
+        })
 
     });
-
 
     return getAuth();
 
 }
 
 
-/*
- * Allowed website origins
- */
+function isAllowedOrigin(origin) {
 
-function isAllowedOrigin(origin){
-
-    if(!origin){
+    if (!origin) {
         return false;
     }
 
-
     /*
      * Local development
-     *
-     * Allows:
-     * http://localhost
-     * http://localhost:5500
-     * http://127.0.0.1
-     * http://127.0.0.1:5500
-     * etc.
      */
 
-    if(
-        /^https?:\/\/localhost(?::\d+)?$/.test(origin) ||
-        /^https?:\/\/127\.0\.0\.1(?::\d+)?$/.test(origin)
-    ){
-
+    if (
+        /^http:\/\/localhost(?::\d+)?$/.test(origin) ||
+        /^https:\/\/localhost(?::\d+)?$/.test(origin) ||
+        /^http:\/\/127\.0\.0\.1(?::\d+)?$/.test(origin) ||
+        /^https:\/\/127\.0\.0\.1(?::\d+)?$/.test(origin)
+    ) {
         return true;
-
     }
 
 
     /*
-     * Production website
+     * Production
      */
 
-    if(
+    if (
         origin ===
         "https://seasons-serials.vercel.app"
-    ){
-
+    ) {
         return true;
-
     }
 
 
@@ -109,7 +88,7 @@ function isAllowedOrigin(origin){
 }
 
 
-module.exports = async function handler(req,res){
+export default async function handler(req, res) {
 
     const origin =
         req.headers.origin;
@@ -119,7 +98,7 @@ module.exports = async function handler(req,res){
      * CORS
      */
 
-    if(isAllowedOrigin(origin)){
+    if (isAllowedOrigin(origin)) {
 
         res.setHeader(
             "Access-Control-Allow-Origin",
@@ -128,18 +107,20 @@ module.exports = async function handler(req,res){
 
     }
 
-
     res.setHeader(
         "Access-Control-Allow-Methods",
         "POST, OPTIONS"
     );
-
 
     res.setHeader(
         "Access-Control-Allow-Headers",
         "Content-Type, Authorization"
     );
 
+    res.setHeader(
+        "Access-Control-Max-Age",
+        "86400"
+    );
 
     res.setHeader(
         "Vary",
@@ -148,81 +129,68 @@ module.exports = async function handler(req,res){
 
 
     /*
-     * IMPORTANT:
-     *
-     * Browser sends OPTIONS before the POST
-     * because we use Authorization.
+     * Browser preflight request
      */
 
-    if(req.method === "OPTIONS"){
+    if (req.method === "OPTIONS") {
 
-        return res
-            .status(204)
-            .end();
+        if (!isAllowedOrigin(origin)) {
+
+            return res.status(403).json({
+                error: "Origin not allowed."
+            });
+
+        }
+
+        return res.status(204).end();
 
     }
 
 
     /*
-     * Only POST is allowed
+     * Only POST
      */
 
-    if(req.method !== "POST"){
+    if (req.method !== "POST") {
 
-        return res
-            .status(405)
-            .json({
-
-                error:
-                    "Method not allowed."
-
-            });
+        return res.status(405).json({
+            error: "Method not allowed."
+        });
 
     }
 
 
     /*
-     * Reject unknown origins
+     * Check origin
      */
 
-    if(!isAllowedOrigin(origin)){
+    if (!isAllowedOrigin(origin)) {
 
-        return res
-            .status(403)
-            .json({
-
-                error:
-                    "Origin not allowed."
-
-            });
+        return res.status(403).json({
+            error: "Origin not allowed."
+        });
 
     }
 
 
-    try{
+    try {
 
         /*
-         * Get Firebase ID token
+         * Authorization header
          */
 
         const authorization =
-            req.headers.authorization || "";
+            req.headers.authorization;
 
+        if (
+            !authorization ||
+            !authorization.startsWith("Bearer ")
+        ) {
 
-        if(
-            !authorization.startsWith(
-                "Bearer "
-            )
-        ){
-
-            return res
-                .status(401)
-                .json({
-
-                    error:
-                        "Missing authorization token."
-
-                });
+            return res.status(401).json({
+                error:
+                    "Missing authorization token."
+            });
 
         }
 
@@ -235,7 +203,7 @@ module.exports = async function handler(req,res){
          * Firebase Admin
          */
 
-        const auth =
+        const adminAuth =
             getFirebaseAdmin();
 
 
@@ -244,85 +212,57 @@ module.exports = async function handler(req,res){
          */
 
         const decodedToken =
-            await auth.verifyIdToken(
+            await adminAuth.verifyIdToken(
                 idToken
             );
 
 
-        const email =
-            decodedToken.email;
+        if (!decodedToken.email) {
 
-
-        if(!email){
-
-            return res
-                .status(400)
-                .json({
-
-                    error:
-                        "Firebase user has no email address."
-
-                });
+            return res.status(400).json({
+                error:
+                    "Firebase user has no email address."
+            });
 
         }
 
 
         /*
          * Generate verification link
-         *
-         * IMPORTANT:
-         * The verification page stays on Vercel.
-         *
-         * This is what allows the same link to work
-         * whether registration was started locally
-         * or on the production website.
          */
 
-        const actionCodeSettings = {
-
-            url:
-                `https://seasons-serials.vercel.app/verify-email.html?email=${encodeURIComponent(email)}`,
-
-            handleCodeInApp:
-                false
-
-        };
-
-
         const verificationLink =
-            await auth.generateEmailVerificationLink(
-                email,
-                actionCodeSettings
-            );
+            await adminAuth
+                .generateEmailVerificationLink(
+                    decodedToken.email,
+                    {
+                        url:
+                            "https://seasons-serials.vercel.app/"
+                    }
+                );
 
 
-        return res
-            .status(200)
-            .json({
+        return res.status(200).json({
 
-                verificationLink:
-                    verificationLink
+            verificationLink
 
-            });
+        });
 
 
-    }catch(error){
+    } catch (error) {
 
         console.error(
             "Verification link generation error:",
             error
         );
 
+        return res.status(500).json({
 
-        return res
-            .status(500)
-            .json({
+            error:
+                "Unable to generate verification link."
 
-                error:
-                    "Unable to generate verification link."
-
-            });
+        });
 
     }
 
-};
+}

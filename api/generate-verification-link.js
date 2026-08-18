@@ -1,17 +1,16 @@
-import {
-    getApps,
+const {
     initializeApp,
-    cert
-} from "firebase-admin/app";
+    cert,
+    getApps
+} = require("firebase-admin/app");
 
-import {
+const {
     getAuth
-} from "firebase-admin/auth";
+} = require("firebase-admin/auth");
 
+function getFirebaseAdmin(){
 
-function getFirebaseAdmin() {
-
-    if (getApps().length > 0) {
+    if(getApps().length){
         return getAuth();
     }
 
@@ -19,20 +18,18 @@ function getFirebaseAdmin() {
         process.env.FIREBASE_PRIVATE_KEY
             ?.replace(/\\n/g, "\n");
 
-    if (
+    if(
         !process.env.FIREBASE_PROJECT_ID ||
         !process.env.FIREBASE_CLIENT_EMAIL ||
         !privateKey
-    ) {
+    ){
         throw new Error(
             "Firebase Admin environment variables are missing."
         );
     }
 
     initializeApp({
-
         credential: cert({
-
             projectId:
                 process.env.FIREBASE_PROJECT_ID,
 
@@ -41,9 +38,7 @@ function getFirebaseAdmin() {
 
             privateKey:
                 privateKey
-
         })
-
     });
 
     return getAuth();
@@ -51,107 +46,9 @@ function getFirebaseAdmin() {
 }
 
 
-function isAllowedOrigin(origin) {
+module.exports = async function handler(req, res){
 
-    if (!origin) {
-        return false;
-    }
-
-    /*
-     * Local development
-     */
-
-    if (
-        /^http:\/\/localhost(?::\d+)?$/.test(origin) ||
-        /^https:\/\/localhost(?::\d+)?$/.test(origin) ||
-        /^http:\/\/127\.0\.0\.1(?::\d+)?$/.test(origin) ||
-        /^https:\/\/127\.0\.0\.1(?::\d+)?$/.test(origin)
-    ) {
-        return true;
-    }
-
-
-    /*
-     * Production
-     */
-
-    if (
-        origin ===
-        "https://seasons-serials.vercel.app"
-    ) {
-        return true;
-    }
-
-
-    return false;
-
-}
-
-
-export default async function handler(req, res) {
-
-    const origin =
-        req.headers.origin;
-
-
-    /*
-     * CORS
-     */
-
-    if (isAllowedOrigin(origin)) {
-
-        res.setHeader(
-            "Access-Control-Allow-Origin",
-            origin
-        );
-
-    }
-
-    res.setHeader(
-        "Access-Control-Allow-Methods",
-        "POST, OPTIONS"
-    );
-
-    res.setHeader(
-        "Access-Control-Allow-Headers",
-        "Content-Type, Authorization"
-    );
-
-    res.setHeader(
-        "Access-Control-Max-Age",
-        "86400"
-    );
-
-    res.setHeader(
-        "Vary",
-        "Origin"
-    );
-
-
-    /*
-     * Browser preflight request
-     */
-
-    if (req.method === "OPTIONS") {
-
-        if (!isAllowedOrigin(origin)) {
-
-            return res.status(403).json({
-                error: "Origin not allowed."
-            });
-
-        }
-
-        return res.status(204).end();
-
-    }
-
-
-    /*
-     * Only POST
-     */
-
-    if (req.method !== "POST") {
+    if(req.method !== "POST"){
 
         return res.status(405).json({
             error: "Method not allowed."
@@ -160,36 +57,15 @@ export default async function handler(req, res) {
     }
 
 
-    /*
-     * Check origin
-     */
-
-    if (!isAllowedOrigin(origin)) {
-
-        return res.status(403).json({
-            error: "Origin not allowed."
-        });
-
-    }
-
-
-    try {
-
-        /*
-         * Authorization header
-         */
+    try{
 
         const authorization =
-            req.headers.authorization;
+            req.headers.authorization || "";
 
-        if (
-            !authorization ||
-            !authorization.startsWith("Bearer ")
-        ) {
+        if(!authorization.startsWith("Bearer ")){
 
             return res.status(401).json({
-                error:
-                    "Missing authorization token."
+                error: "Missing authorization token."
             });
 
         }
@@ -199,25 +75,19 @@ export default async function handler(req, res) {
             authorization.substring(7);
 
 
-        /*
-         * Firebase Admin
-         */
-
-        const adminAuth =
+        const auth =
             getFirebaseAdmin();
 
 
-        /*
-         * Verify Firebase user
-         */
-
         const decodedToken =
-            await adminAuth.verifyIdToken(
-                idToken
-            );
+            await auth.verifyIdToken(idToken);
 
 
-        if (!decodedToken.email) {
+        const email =
+            decodedToken.email;
+
+
+        if(!email){
 
             return res.status(400).json({
                 error:
@@ -228,33 +98,43 @@ export default async function handler(req, res) {
 
 
         /*
-         * Generate verification link
+         * Firebase will verify the email first.
+         *
+         * After verification Firebase will redirect
+         * the user to this page.
          */
 
+        const actionCodeSettings = {
+
+            url: `https://seasons-serials.vercel.app/verify-email.html?email=${encodeURIComponent(email)}`,
+
+            handleCodeInApp: false
+
+        };
+
+
         const verificationLink =
-            await adminAuth
-                .generateEmailVerificationLink(
-                    decodedToken.email,
-                    {
-                        url:
-                            "https://seasons-serials.vercel.app/"
-                    }
-                );
+            await auth.generateEmailVerificationLink(
+                email,
+                actionCodeSettings
+            );
 
 
         return res.status(200).json({
 
-            verificationLink
+            verificationLink:
+                verificationLink
 
         });
 
 
-    } catch (error) {
+    }catch(error){
 
         console.error(
             "Verification link generation error:",
             error
         );
+
 
         return res.status(500).json({
 
@@ -265,4 +145,4 @@ export default async function handler(req, res) {
 
     }
 
-}
+};

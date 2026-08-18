@@ -1667,10 +1667,13 @@ address and activate your Seasons Serials account.
             "Account Created!"
         );
 
-        markRegistrationCompleted();
-        switchToLogin();
-        closeAuthWrapper();
-        checkRegisterButton();
+    markRegistrationCompleted();
+    switchToLogin();
+    openAuthWrapper();
+    checkRegisterButton();
+    setTimeout(() => {
+        showVerificationNotice();
+    }, 400);
 
 
     }catch(error){

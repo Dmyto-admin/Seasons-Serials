@@ -4,14 +4,23 @@ const {
     getApps
 } = require("firebase-admin/app");
 
+
 const {
     getAuth
 } = require("firebase-admin/auth");
+
 
 const {
     getFirestore
 } = require("firebase-admin/firestore");
 
+
+
+/*
+ * ---------------------------------------------------------
+ * FIREBASE ADMIN
+ * ---------------------------------------------------------
+ */
 
 function getFirebaseServices(){
 
@@ -38,6 +47,7 @@ function getFirebaseServices(){
         initializeApp({
 
             credential:
+
                 cert({
 
                     projectId:
@@ -69,61 +79,122 @@ function getFirebaseServices(){
 }
 
 
+
 /*
- * Allowed frontend origins.
- *
- * Local:
- *     http://127.0.0.1:5500
- *     http://localhost:5500
- *
- * Production:
- *     https://seasons-serials.vercel.app
+ * ---------------------------------------------------------
+ * ALLOWED ORIGINS
+ * ---------------------------------------------------------
  */
 
-const ALLOWED_ORIGINS = [
+function isAllowedOrigin(origin){
 
-    "http://127.0.0.1:5500",
+    if(!origin){
 
-    "http://localhost:5500",
+        return true;
 
-    "https://seasons-serials.vercel.app"
-
-];
+    }
 
 
-module.exports = async function handler(req,res){
+    try{
 
-    /*
-     * CORS
-     */
+        const url =
+            new URL(origin);
+
+
+        /*
+         * Production
+         */
+
+        if(
+            url.protocol === "https:" &&
+            url.hostname ===
+                "seasons-serials.vercel.app"
+        ){
+
+            return true;
+
+        }
+
+
+        /*
+         * Local development
+         */
+
+        if(
+            url.protocol === "http:" &&
+            (
+                url.hostname === "localhost" ||
+                url.hostname === "127.0.0.1"
+            )
+        ){
+
+            return true;
+
+        }
+
+    }
+    catch{
+
+        return false;
+
+    }
+
+
+    return false;
+
+}
+
+
+
+/*
+ * ---------------------------------------------------------
+ * HANDLER
+ * ---------------------------------------------------------
+ */
+
+module.exports =
+async function handler(req,res){
+
 
     const origin =
         req.headers.origin || "";
 
 
-    if(
-        ALLOWED_ORIGINS.includes(origin)
-    ){
+    /*
+     * -----------------------------------------------------
+     * CORS
+     * -----------------------------------------------------
+ */
 
-        res.setHeader(
-            "Access-Control-Allow-Origin",
-            origin
-        );
+    if(isAllowedOrigin(origin)){
+
+        if(origin){
+
+            res.setHeader(
+                "Access-Control-Allow-Origin",
+                origin
+            );
+
+        }
+
 
         res.setHeader(
             "Access-Control-Allow-Methods",
             "POST, OPTIONS"
         );
 
+
         res.setHeader(
             "Access-Control-Allow-Headers",
-            "Content-Type, Authorization"
+            "Content-Type"
         );
+
 
         res.setHeader(
             "Access-Control-Max-Age",
             "86400"
         );
+
 
         res.setHeader(
             "Vary",
@@ -133,15 +204,16 @@ module.exports = async function handler(req,res){
     }
 
 
+
     /*
-     * Browser preflight request.
-     */
+     * -----------------------------------------------------
+     * PREFLIGHT
+     * -----------------------------------------------------
+ */
 
     if(req.method === "OPTIONS"){
 
-        if(
-            !ALLOWED_ORIGINS.includes(origin)
-        ){
+        if(!isAllowedOrigin(origin)){
 
             return res.status(403).json({
 
@@ -158,9 +230,12 @@ module.exports = async function handler(req,res){
     }
 
 
+
     /*
-     * Only POST is allowed.
-     */
+     * -----------------------------------------------------
+     * METHOD
+     * -----------------------------------------------------
+ */
 
     if(req.method !== "POST"){
 
@@ -174,13 +249,16 @@ module.exports = async function handler(req,res){
     }
 
 
+
     /*
-     * Reject unknown browser origins.
-     */
+     * -----------------------------------------------------
+     * ORIGIN
+     * -----------------------------------------------------
+ */
 
     if(
         origin &&
-        !ALLOWED_ORIGINS.includes(origin)
+        !isAllowedOrigin(origin)
     ){
 
         return res.status(403).json({
@@ -193,7 +271,15 @@ module.exports = async function handler(req,res){
     }
 
 
+
     try{
+
+
+        /*
+         * -------------------------------------------------
+         * EMAIL
+         * -------------------------------------------------
+         */
 
         const email =
             String(
@@ -215,6 +301,13 @@ module.exports = async function handler(req,res){
         }
 
 
+
+        /*
+         * -------------------------------------------------
+         * FIREBASE
+         * -------------------------------------------------
+         */
+
         const {
             auth,
             db
@@ -222,8 +315,11 @@ module.exports = async function handler(req,res){
             getFirebaseServices();
 
 
+
         /*
-         * Find Firebase Authentication user.
+         * -------------------------------------------------
+         * FIND AUTH USER
+         * -------------------------------------------------
          */
 
         const firebaseUser =
@@ -232,9 +328,11 @@ module.exports = async function handler(req,res){
             );
 
 
+
         /*
-         * Firebase must confirm
-         * that the email was verified.
+         * -------------------------------------------------
+         * VERIFY EMAIL STATUS
+         * -------------------------------------------------
          */
 
         if(
@@ -251,8 +349,11 @@ module.exports = async function handler(req,res){
         }
 
 
+
         /*
-         * Firestore user document.
+         * -------------------------------------------------
+         * FIRESTORE USER
+         * -------------------------------------------------
          */
 
         const userRef =
@@ -261,15 +362,16 @@ module.exports = async function handler(req,res){
                 .doc(email);
 
 
+
         /*
-         * Atomically activate the account.
-         *
-         * This guarantees that accountActivated
-         * is changed only on the first activation.
-         */
+         * -------------------------------------------------
+         * ATOMIC ACTIVATION
+         * -------------------------------------------------
+ */
 
         const activationResult =
             await db.runTransaction(
+
                 async transaction => {
 
                     const userSnapshot =
@@ -292,7 +394,7 @@ module.exports = async function handler(req,res){
 
 
                     /*
-                     * Already activated.
+                     * Already activated
                      */
 
                     if(
@@ -305,26 +407,36 @@ module.exports = async function handler(req,res){
 
 
                     /*
-                     * First activation.
+                     * First activation
                      */
 
                     transaction.update(
+
                         userRef,
+
                         {
-                            accountActivated: true
+
+                            accountActivated:
+                                true
+
                         }
+
                     );
 
 
                     return "activated";
 
                 }
+
             );
 
 
+
         /*
-         * Already activated.
-         */
+         * -------------------------------------------------
+         * ALREADY ACTIVATED
+         * -------------------------------------------------
+ */
 
         if(
             activationResult ===
@@ -333,28 +445,37 @@ module.exports = async function handler(req,res){
 
             return res.status(200).json({
 
-                success: true,
+                success:
+                    true,
 
-                accountActivated: true,
+                accountActivated:
+                    true,
 
-                alreadyActivated: true
+                alreadyActivated:
+                    true
 
             });
 
         }
 
 
+
         /*
-         * First successful activation.
-         */
+         * -------------------------------------------------
+         * FIRST ACTIVATION
+         * -------------------------------------------------
+ */
 
         return res.status(200).json({
 
-            success: true,
+            success:
+                true,
 
-            accountActivated: true,
+            accountActivated:
+                true,
 
-            alreadyActivated: false
+            alreadyActivated:
+                false
 
         });
 

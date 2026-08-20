@@ -4,15 +4,25 @@ const {
     getApps
 } = require("firebase-admin/app");
 
+
 const {
     getAuth
 } = require("firebase-admin/auth");
 
 
+
+/*
+ * ---------------------------------------------------------
+ * FIREBASE ADMIN
+ * ---------------------------------------------------------
+ */
+
 function getFirebaseAdmin(){
 
     if(getApps().length){
+
         return getAuth();
+
     }
 
 
@@ -36,18 +46,20 @@ function getFirebaseAdmin(){
 
     initializeApp({
 
-        credential: cert({
+        credential:
 
-            projectId:
-                process.env.FIREBASE_PROJECT_ID,
+            cert({
 
-            clientEmail:
-                process.env.FIREBASE_CLIENT_EMAIL,
+                projectId:
+                    process.env.FIREBASE_PROJECT_ID,
 
-            privateKey:
-                privateKey
+                clientEmail:
+                    process.env.FIREBASE_CLIENT_EMAIL,
 
-        })
+                privateKey:
+                    privateKey
+
+            })
 
     });
 
@@ -57,55 +69,140 @@ function getFirebaseAdmin(){
 }
 
 
+
 /*
- * Allowed frontend origins.
+ * ---------------------------------------------------------
+ * ALLOWED ORIGINS
+ * ---------------------------------------------------------
  *
- * Local development:
- *     http://127.0.0.1:5500
- *     http://localhost:5500
+ * We intentionally allow localhost and 127.0.0.1
+ * with ANY development port.
+ *
+ * Examples:
+ *
+ * http://localhost:5500
+ * http://localhost:5501
+ * http://127.0.0.1:5500
+ * http://127.0.0.1:5501
  *
  * Production:
- *     https://seasons-serials.vercel.app
+ *
+ * https://seasons-serials.vercel.app
  */
 
+function isAllowedOrigin(origin){
 
-const ALLOWED_ORIGINS = [
+    if(!origin){
 
-    "http://127.0.0.1:5500",
+        return true;
 
-    "http://localhost:5500",
-
-    "https://seasons-serials.vercel.app"
-
-];
+    }
 
 
-module.exports = async function handler(req, res){
+    try{
 
-    /*
-     * CORS
-     */
+        const url =
+            new URL(origin);
+
+
+        /*
+         * Production
+         */
+
+        if(
+            url.protocol === "https:" &&
+            url.hostname ===
+                "seasons-serials.vercel.app"
+        ){
+
+            return true;
+
+        }
+
+
+        /*
+         * Localhost
+         */
+
+        if(
+            (
+                url.protocol === "http:" &&
+                url.hostname === "localhost"
+            ) ||
+            (
+                url.protocol === "http:" &&
+                url.hostname === "127.0.0.1"
+            )
+        ){
+
+            return true;
+
+        }
+
+
+    }
+    catch{
+
+        return false;
+
+    }
+
+
+    return false;
+
+}
+
+
+
+/*
+ * ---------------------------------------------------------
+ * HANDLER
+ * ---------------------------------------------------------
+ */
+
+module.exports =
+async function handler(req,res){
+
 
     const origin =
         req.headers.origin || "";
 
 
-    if(ALLOWED_ORIGINS.includes(origin)){
+    /*
+     * -----------------------------------------------------
+     * CORS
+     * -----------------------------------------------------
+     */
 
-        res.setHeader(
-            "Access-Control-Allow-Origin",
-            origin
-        );
+    if(isAllowedOrigin(origin)){
+
+        if(origin){
+
+            res.setHeader(
+                "Access-Control-Allow-Origin",
+                origin
+            );
+
+        }
+
 
         res.setHeader(
             "Access-Control-Allow-Methods",
             "POST, OPTIONS"
         );
 
+
         res.setHeader(
             "Access-Control-Allow-Headers",
             "Content-Type, Authorization, X-App-Origin"
         );
+
+
+        res.setHeader(
+            "Access-Control-Max-Age",
+            "86400"
+        );
+
 
         res.setHeader(
             "Vary",
@@ -115,13 +212,16 @@ module.exports = async function handler(req, res){
     }
 
 
+
     /*
-     * Browser preflight request
+     * -----------------------------------------------------
+     * PREFLIGHT
+     * -----------------------------------------------------
      */
 
     if(req.method === "OPTIONS"){
 
-        if(!ALLOWED_ORIGINS.includes(origin)){
+        if(!isAllowedOrigin(origin)){
 
             return res.status(403).json({
 
@@ -138,8 +238,11 @@ module.exports = async function handler(req, res){
     }
 
 
+
     /*
-     * Only POST is allowed.
+     * -----------------------------------------------------
+     * METHOD
+     * -----------------------------------------------------
      */
 
     if(req.method !== "POST"){
@@ -154,13 +257,16 @@ module.exports = async function handler(req, res){
     }
 
 
+
     /*
-     * Reject unknown origins.
+     * -----------------------------------------------------
+     * ORIGIN SECURITY
+     * -----------------------------------------------------
      */
 
     if(
         origin &&
-        !ALLOWED_ORIGINS.includes(origin)
+        !isAllowedOrigin(origin)
     ){
 
         return res.status(403).json({
@@ -173,10 +279,14 @@ module.exports = async function handler(req, res){
     }
 
 
+
     try{
 
+
         /*
-         * Authorization header
+         * -------------------------------------------------
+         * AUTHORIZATION
+         * -------------------------------------------------
          */
 
         const authorization =
@@ -197,29 +307,32 @@ module.exports = async function handler(req, res){
         }
 
 
-        /*
-         * Firebase ID token
-         */
-
         const idToken =
             authorization.substring(7);
 
 
+
         /*
-         * Firebase Admin
+         * -------------------------------------------------
+         * FIREBASE ADMIN
+         * -------------------------------------------------
          */
 
         const auth =
             getFirebaseAdmin();
 
 
+
         /*
-         * Verify the currently signed-in
-         * Firebase user.
+         * -------------------------------------------------
+         * VERIFY USER
+         * -------------------------------------------------
          */
 
         const decodedToken =
-            await auth.verifyIdToken(idToken);
+            await auth.verifyIdToken(
+                idToken
+            );
 
 
         const email =
@@ -238,47 +351,55 @@ module.exports = async function handler(req, res){
         }
 
 
+
         /*
-         * Determine where the verification
-         * flow should return.
+         * -------------------------------------------------
+         * DETERMINE FRONTEND ORIGIN
+         * -------------------------------------------------
          *
-         * Local:
-         *     http://127.0.0.1:5500/verify-email.html
+         * Prefer X-App-Origin because it is explicitly
+         * supplied by register.js.
          *
-         * Production:
-         *     https://seasons-serials.vercel.app/verify-email.html
+         * Fall back to the browser Origin header.
          */
 
-        let verificationBaseUrl =
+        const requestedOrigin =
+            req.headers["x-app-origin"] ||
+            origin;
+
+
+        let frontendOrigin =
             "https://seasons-serials.vercel.app";
 
 
         if(
-            origin ===
-            "http://127.0.0.1:5500"
+            isAllowedOrigin(
+                requestedOrigin
+            )
         ){
 
-            verificationBaseUrl =
-                "http://127.0.0.1:5500";
-
-        }
-        else if(
-            origin ===
-            "http://localhost:5500"
-        ){
-
-            verificationBaseUrl =
-                "http://localhost:5500";
+            frontendOrigin =
+                requestedOrigin;
 
         }
 
-
-        const verificationUrl =
-            `${verificationBaseUrl}/verify-email.html?email=${encodeURIComponent(email)}`;
 
 
         /*
-         * Firebase ActionCodeSettings
+         * -------------------------------------------------
+         * VERIFICATION PAGE
+         * -------------------------------------------------
+         */
+
+        const verificationUrl =
+            `${frontendOrigin}/verify-email.html?email=${encodeURIComponent(email)}`;
+
+
+
+        /*
+         * -------------------------------------------------
+         * FIREBASE ACTION CODE SETTINGS
+         * -------------------------------------------------
          */
 
         const actionCodeSettings = {
@@ -292,19 +413,28 @@ module.exports = async function handler(req, res){
         };
 
 
+
         /*
-         * Generate Firebase verification link.
+         * -------------------------------------------------
+         * GENERATE LINK
+         * -------------------------------------------------
          */
 
         const verificationLink =
             await auth.generateEmailVerificationLink(
+
                 email,
+
                 actionCodeSettings
+
             );
 
 
+
         /*
-         * Return the generated link.
+         * -------------------------------------------------
+         * RESPONSE
+         * -------------------------------------------------
          */
 
         return res.status(200).json({

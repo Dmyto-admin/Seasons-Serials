@@ -12,20 +12,39 @@ const email =
         .trim()
         .toLowerCase();
 
+
+
 /*
- * API location.
+ * ---------------------------------------------------------
+ * API LOCATION
+ * ---------------------------------------------------------
  *
- * Local website:
+ * Local:
+ *
  *     http://127.0.0.1:5500
+ *     http://localhost:5500
  *
- * The API itself still runs on Vercel.
+ * API:
+ *
+ *     https://seasons-serials.vercel.app
+ *
+ * Production:
+ *
+ *     https://seasons-serials.vercel.app
+ *
+ * In production we can use /api directly.
  */
 
-const API_BASE_URL =
+const isLocal =
     window.location.hostname === "127.0.0.1" ||
-    window.location.hostname === "localhost"
+    window.location.hostname === "localhost";
+
+
+const API_BASE_URL =
+    isLocal
         ? "https://seasons-serials.vercel.app"
         : "";
+
 
 
 const title =
@@ -76,6 +95,7 @@ const progressBar =
     );
 
 
+
 function setIcon(type){
 
     loadingIcon?.remove();
@@ -107,12 +127,8 @@ function setIcon(type){
 }
 
 
-function redirectToLogin(){
 
-    /*
-     * Tell the main page that it should
-     * automatically open the login form.
-     */
+function redirectToLogin(){
 
     sessionStorage.setItem(
         "openLoginAfterVerification",
@@ -120,14 +136,11 @@ function redirectToLogin(){
     );
 
 
-    /*
-     * Redirect to the main page.
-     */
-
     window.location.href =
         "/index.html";
 
 }
+
 
 
 function startCountdown(seconds = 5){
@@ -135,6 +148,7 @@ function startCountdown(seconds = 5){
     countdown.classList.remove(
         "hidden"
     );
+
 
     progress.classList.remove(
         "hidden"
@@ -145,11 +159,6 @@ function startCountdown(seconds = 5){
         "animate"
     );
 
-
-    /*
-     * Force browser reflow so the
-     * animation starts again.
-     */
 
     void progressBar.offsetWidth;
 
@@ -172,6 +181,7 @@ function startCountdown(seconds = 5){
 
             remaining--;
 
+
             countdownNumber.textContent =
                 remaining;
 
@@ -189,26 +199,32 @@ function startCountdown(seconds = 5){
 }
 
 
+
 async function activateAccount(){
 
     /*
-     * The activation link must contain
-     * the user's email.
+     * -----------------------------------------------------
+     * VALIDATE EMAIL
+     * -----------------------------------------------------
      */
 
     if(!email){
 
         setIcon("error");
 
+
         title.textContent =
             "Activation Link Invalid";
+
 
         message.textContent =
             "This account activation link is missing the required information.";
 
+
         return;
 
     }
+
 
 
     try{
@@ -216,47 +232,112 @@ async function activateAccount(){
         title.textContent =
             "Activating your account...";
 
+
         message.textContent =
             "Your email has been verified. We are completing your account activation.";
 
 
+
+        /*
+         * -------------------------------------------------
+         * API REQUEST
+         * -------------------------------------------------
+         */
+
         const response =
             await fetch(
-                `${API_BASE_URL}/api/activate-account`,
-                {
-                    method:"POST",
 
-                    headers:{
+                `${API_BASE_URL}/api/activate-account`,
+
+                {
+
+                    method:
+                        "POST",
+
+                    headers: {
+
                         "Content-Type":
-                        "application/json"
+                            "application/json"
+
                     },
 
                     body:
                         JSON.stringify({
-                        email:email
-            })
+
+                            email:
+                                email
+
+                        })
 
                 }
-        );
+
+            );
 
 
-        const data =
-            await response.json();
 
+        /*
+         * -------------------------------------------------
+         * SAFELY READ RESPONSE
+         * -------------------------------------------------
+         *
+         * This prevents:
+         *
+         * "Unexpected end of JSON input"
+         *
+         * when the server returns an empty/non-JSON response.
+         */
+
+        const responseText =
+            await response.text();
+
+
+        let data = {};
+
+
+        if(responseText){
+
+            try{
+
+                data =
+                    JSON.parse(
+                        responseText
+                    );
+
+            }
+            catch{
+
+                data = {};
+
+            }
+
+        }
+
+
+
+        /*
+         * -------------------------------------------------
+         * HTTP ERROR
+         * -------------------------------------------------
+         */
 
         if(!response.ok){
 
             throw new Error(
+
                 data.error ||
-                "Unable to activate account."
+                `Unable to activate account. HTTP ${response.status}.`
+
             );
 
         }
 
 
+
         /*
-         * ACCOUNT WAS ALREADY ACTIVATED
-         */
+         * -------------------------------------------------
+         * ALREADY ACTIVATED
+         * -------------------------------------------------
+ */
 
         if(
             data.alreadyActivated === true
@@ -275,14 +356,18 @@ async function activateAccount(){
 
             startCountdown(5);
 
+
             return;
 
         }
 
 
+
         /*
-         * FIRST SUCCESSFUL ACTIVATION
-         */
+         * -------------------------------------------------
+         * FIRST ACTIVATION
+         * -------------------------------------------------
+ */
 
         setIcon("success");
 
@@ -295,10 +380,6 @@ async function activateAccount(){
             "Your email has been verified and your Seasons Serials account is now active.";
 
 
-        /*
-         * Small success pause.
-         * Then redirect to login.
-         */
 
         setTimeout(()=>{
 
@@ -307,7 +388,8 @@ async function activateAccount(){
         },3000);
 
 
-    }catch(error){
+    }
+    catch(error){
 
         console.error(
             "Account activation error:",
@@ -329,6 +411,7 @@ async function activateAccount(){
     }
 
 }
+
 
 
 activateAccount();

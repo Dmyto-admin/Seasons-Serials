@@ -254,9 +254,14 @@ module.exports = async function handler(
 
         const {
             uid,
-            suspensionUntil
+            suspensionUntil,
+            suspensionForever = false
         } = req.body || {};
 
+
+        /* -------------------------------------------------
+           VALIDATE USER
+        ------------------------------------------------- */
 
         if (
             typeof uid !== "string" ||
@@ -275,10 +280,44 @@ module.exports = async function handler(
         }
 
 
+        /* -------------------------------------------------
+           VALIDATE FOREVER FLAG
+        ------------------------------------------------- */
+
         if (
-            typeof suspensionUntil !== "number" ||
-            !Number.isFinite(
-                suspensionUntil
+            typeof suspensionForever !==
+            "boolean"
+        ) {
+
+            return sendJSON(
+                res,
+                400,
+                {
+                    error:
+                        "Invalid permanent suspension value."
+                }
+            );
+
+        }
+
+
+        /* -------------------------------------------------
+           VALIDATE SUSPENSION TIME
+           
+           A time is NOT required when the account
+           is being suspended forever.
+
+           It IS required for normal suspension and
+           for ending suspension.
+        ------------------------------------------------- */
+
+        if (
+            suspensionForever === false &&
+            (
+                typeof suspensionUntil !== "number" ||
+                !Number.isFinite(
+                    suspensionUntil
+                )
             )
         ) {
 
@@ -347,10 +386,14 @@ module.exports = async function handler(
 
         /* =================================================
            END SUSPENSION
+           
+           suspensionUntil === 0 means:
+           restore the account.
         ================================================= */
 
         if (
-            suspensionUntil === 0
+            suspensionUntil === 0 &&
+            suspensionForever === false
         ) {
 
             await admin
@@ -370,7 +413,10 @@ module.exports = async function handler(
                         false,
 
                     suspensionUntil:
-                        0
+                        0,
+
+                    suspensionForever:
+                        false
                 },
                 {
                     merge:
@@ -387,7 +433,13 @@ module.exports = async function handler(
                         true,
 
                     suspended:
-                        false
+                        false,
+
+                    suspensionForever:
+                        false,
+
+                    suspensionUntil:
+                        0
                 }
             );
 
@@ -395,7 +447,77 @@ module.exports = async function handler(
 
 
         /* =================================================
-           VALIDATE FUTURE DATE
+           SUSPEND FOREVER
+        ================================================= */
+
+        if (
+            suspensionForever === true
+        ) {
+
+            /* ---------------------------------------------
+               DISABLE FIREBASE ACCOUNT
+            --------------------------------------------- */
+
+            await admin
+                .auth()
+                .updateUser(
+                    uid,
+                    {
+                        disabled:
+                            true
+                    }
+                );
+
+
+            /* ---------------------------------------------
+               SAVE PERMANENT SUSPENSION
+            --------------------------------------------- */
+
+            await userRef.set(
+                {
+                    accountSuspended:
+                        true,
+
+                    suspensionForever:
+                        true,
+
+                    suspensionUntil:
+                        0
+                },
+                {
+                    merge:
+                        true
+                }
+            );
+
+
+            /* ---------------------------------------------
+               SUCCESS
+            --------------------------------------------- */
+
+            return sendJSON(
+                res,
+                200,
+                {
+                    success:
+                        true,
+
+                    suspended:
+                        true,
+
+                    suspensionForever:
+                        true,
+
+                    suspensionUntil:
+                        0
+                }
+            );
+
+        }
+
+
+        /* =================================================
+           NORMAL TEMPORARY SUSPENSION
         ================================================= */
 
         if (
@@ -461,13 +583,16 @@ module.exports = async function handler(
 
 
         /* =================================================
-           SAVE SUSPENSION TO FIRESTORE
+           SAVE TEMPORARY SUSPENSION
         ================================================= */
 
         await userRef.set(
             {
                 accountSuspended:
                     true,
+
+                suspensionForever:
+                    false,
 
                 suspensionUntil:
                     suspensionUntil
@@ -492,6 +617,9 @@ module.exports = async function handler(
 
                 suspended:
                     true,
+
+                suspensionForever:
+                    false,
 
                 suspensionUntil:
                     suspensionUntil

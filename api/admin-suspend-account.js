@@ -255,7 +255,7 @@ module.exports = async function handler(
         const {
             uid,
             suspensionUntil,
-            suspensionForever = false
+            suspensionForever
         } = req.body || {};
 
 
@@ -332,6 +332,21 @@ module.exports = async function handler(
 
         }
 
+        if (
+            typeof suspensionForever !== "boolean"
+        ) {
+
+            return sendJSON(
+                res,
+                400,
+                {
+                    error:
+                        "Invalid permanent suspension setting."
+                }
+            );
+
+        }
+
 
         /* -------------------------------------------------
            TARGET USER
@@ -382,7 +397,6 @@ module.exports = async function handler(
             firestore
                 .collection("users")
                 .doc(userEmail);
-
 
         /* =================================================
            END SUSPENSION

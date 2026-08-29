@@ -345,6 +345,10 @@ module.exports = async function handler(
                     profile.accountSuspended ===
                     true,
 
+                suspensionForever:
+                    profile.suspensionForever ===
+                    true,
+
                 suspensionUntil:
                     Number(
                         profile.suspensionUntil ||

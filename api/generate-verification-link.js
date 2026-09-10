@@ -4,7 +4,6 @@ const {
     getApps
 } = require("firebase-admin/app");
 
-
 const {
     getAuth
 } = require("firebase-admin/auth");
@@ -74,20 +73,6 @@ function getFirebaseAdmin(){
  * ---------------------------------------------------------
  * ALLOWED ORIGINS
  * ---------------------------------------------------------
- *
- * We intentionally allow localhost and 127.0.0.1
- * with ANY development port.
- *
- * Examples:
- *
- * http://localhost:5500
- * http://localhost:5501
- * http://127.0.0.1:5500
- * http://127.0.0.1:5501
- *
- * Production:
- *
- * https://seasons-serials.vercel.app
  */
 
 function isAllowedOrigin(origin){
@@ -121,16 +106,13 @@ function isAllowedOrigin(origin){
 
 
         /*
-         * Localhost
+         * Local development
          */
 
         if(
+            url.protocol === "http:" &&
             (
-                url.protocol === "http:" &&
-                url.hostname === "localhost"
-            ) ||
-            (
-                url.protocol === "http:" &&
+                url.hostname === "localhost" ||
                 url.hostname === "127.0.0.1"
             )
         ){
@@ -163,7 +145,6 @@ function isAllowedOrigin(origin){
 module.exports =
 async function handler(req,res){
 
-
     const origin =
         req.headers.origin || "";
 
@@ -172,7 +153,7 @@ async function handler(req,res){
      * -----------------------------------------------------
      * CORS
      * -----------------------------------------------------
-     */
+ */
 
     if(isAllowedOrigin(origin)){
 
@@ -217,7 +198,7 @@ async function handler(req,res){
      * -----------------------------------------------------
      * PREFLIGHT
      * -----------------------------------------------------
-     */
+ */
 
     if(req.method === "OPTIONS"){
 
@@ -243,7 +224,7 @@ async function handler(req,res){
      * -----------------------------------------------------
      * METHOD
      * -----------------------------------------------------
-     */
+ */
 
     if(req.method !== "POST"){
 
@@ -262,7 +243,7 @@ async function handler(req,res){
      * -----------------------------------------------------
      * ORIGIN SECURITY
      * -----------------------------------------------------
-     */
+ */
 
     if(
         origin &&
@@ -281,7 +262,6 @@ async function handler(req,res){
 
 
     try{
-
 
         /*
          * -------------------------------------------------
@@ -308,7 +288,19 @@ async function handler(req,res){
 
 
         const idToken =
-            authorization.substring(7);
+            authorization.substring(7).trim();
+
+
+        if(!idToken){
+
+            return res.status(401).json({
+
+                error:
+                    "Missing authorization token."
+
+            });
+
+        }
 
 
 
@@ -325,7 +317,7 @@ async function handler(req,res){
 
         /*
          * -------------------------------------------------
-         * VERIFY USER
+         * VERIFY FIREBASE USER
          * -------------------------------------------------
          */
 
@@ -336,7 +328,11 @@ async function handler(req,res){
 
 
         const email =
-            decodedToken.email;
+            String(
+                decodedToken.email || ""
+            )
+                .trim()
+                .toLowerCase();
 
 
         if(!email){
@@ -357,10 +353,11 @@ async function handler(req,res){
          * DETERMINE FRONTEND ORIGIN
          * -------------------------------------------------
          *
-         * Prefer X-App-Origin because it is explicitly
-         * supplied by register.js.
+         * The browser sends X-App-Origin so that a local
+         * registration can receive a verification link
+         * pointing back to the local verification page.
          *
-         * Fall back to the browser Origin header.
+         * Production registrations use the production site.
          */
 
         const requestedOrigin =
@@ -416,9 +413,9 @@ async function handler(req,res){
 
         /*
          * -------------------------------------------------
-         * GENERATE LINK
+         * GENERATE VERIFICATION LINK
          * -------------------------------------------------
-         */
+ */
 
         const verificationLink =
             await auth.generateEmailVerificationLink(
@@ -435,7 +432,7 @@ async function handler(req,res){
          * -------------------------------------------------
          * RESPONSE
          * -------------------------------------------------
-         */
+ */
 
         return res.status(200).json({
 
@@ -444,7 +441,6 @@ async function handler(req,res){
 
         });
 
-
     }
     catch(error){
 
@@ -452,6 +448,30 @@ async function handler(req,res){
             "Verification link generation error:",
             error
         );
+
+
+        /*
+         * Firebase token errors should not be reported
+         * as a generic server failure.
+         */
+
+        if(
+            error?.code ===
+                "auth/id-token-expired" ||
+            error?.code ===
+                "auth/argument-error" ||
+            error?.code ===
+                "auth/invalid-id-token"
+        ){
+
+            return res.status(401).json({
+
+                error:
+                    "Invalid or expired authorization token."
+
+            });
+
+        }
 
 
         return res.status(500).json({

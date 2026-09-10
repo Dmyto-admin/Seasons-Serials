@@ -74,6 +74,20 @@ function getFirebaseAdmin(){
  * ---------------------------------------------------------
  * ALLOWED ORIGINS
  * ---------------------------------------------------------
+ *
+ * We intentionally allow localhost and 127.0.0.1
+ * with ANY development port.
+ *
+ * Examples:
+ *
+ * http://localhost:5500
+ * http://localhost:5501
+ * http://127.0.0.1:5500
+ * http://127.0.0.1:5501
+ *
+ * Production:
+ *
+ * https://seasons-serials.vercel.app
  */
 
 function isAllowedOrigin(origin){
@@ -91,6 +105,10 @@ function isAllowedOrigin(origin){
             new URL(origin);
 
 
+        /*
+         * Production
+         */
+
         if(
             url.protocol === "https:" &&
             url.hostname ===
@@ -102,10 +120,17 @@ function isAllowedOrigin(origin){
         }
 
 
+        /*
+         * Localhost
+         */
+
         if(
-            url.protocol === "http:" &&
             (
-                url.hostname === "localhost" ||
+                url.protocol === "http:" &&
+                url.hostname === "localhost"
+            ) ||
+            (
+                url.protocol === "http:" &&
                 url.hostname === "127.0.0.1"
             )
         ){
@@ -113,6 +138,7 @@ function isAllowedOrigin(origin){
             return true;
 
         }
+
 
     }
     catch{
@@ -137,6 +163,7 @@ function isAllowedOrigin(origin){
 module.exports =
 async function handler(req,res){
 
+
     const origin =
         req.headers.origin || "";
 
@@ -145,7 +172,7 @@ async function handler(req,res){
      * -----------------------------------------------------
      * CORS
      * -----------------------------------------------------
- */
+     */
 
     if(isAllowedOrigin(origin)){
 
@@ -190,7 +217,7 @@ async function handler(req,res){
      * -----------------------------------------------------
      * PREFLIGHT
      * -----------------------------------------------------
- */
+     */
 
     if(req.method === "OPTIONS"){
 
@@ -216,7 +243,7 @@ async function handler(req,res){
      * -----------------------------------------------------
      * METHOD
      * -----------------------------------------------------
- */
+     */
 
     if(req.method !== "POST"){
 
@@ -233,9 +260,9 @@ async function handler(req,res){
 
     /*
      * -----------------------------------------------------
-     * ORIGIN
+     * ORIGIN SECURITY
      * -----------------------------------------------------
- */
+     */
 
     if(
         origin &&
@@ -255,6 +282,7 @@ async function handler(req,res){
 
     try{
 
+
         /*
          * -------------------------------------------------
          * AUTHORIZATION
@@ -266,15 +294,13 @@ async function handler(req,res){
 
 
         if(
-            !authorization.startsWith(
-                "Bearer "
-            )
+            !authorization.startsWith("Bearer ")
         ){
 
             return res.status(401).json({
 
                 error:
-                    "GENERATE LINK: Missing Firebase authorization token."
+                    "Missing authorization token."
 
             });
 
@@ -282,19 +308,7 @@ async function handler(req,res){
 
 
         const idToken =
-            authorization.substring(7).trim();
-
-
-        if(!idToken){
-
-            return res.status(401).json({
-
-                error:
-                    "GENERATE LINK: Authorization header exists, but Firebase ID token is empty."
-
-            });
-
-        }
+            authorization.substring(7);
 
 
 
@@ -304,77 +318,25 @@ async function handler(req,res){
          * -------------------------------------------------
          */
 
-        let auth;
-
-        try{
-
-            auth =
-                getFirebaseAdmin();
-
-        }
-        catch(error){
-
-            return res.status(500).json({
-
-                error:
-                    "GENERATE LINK: Firebase Admin initialization failed: " +
-                    error.message
-
-            });
-
-        }
+        const auth =
+            getFirebaseAdmin();
 
 
 
         /*
          * -------------------------------------------------
-         * VERIFY FIREBASE TOKEN
+         * VERIFY USER
          * -------------------------------------------------
          */
 
-        let decodedToken;
-
-
-        try{
-
-            decodedToken =
-                await auth.verifyIdToken(
-                    idToken
-                );
-
-        }
-        catch(error){
-
-            console.error(
-                "Firebase ID token verification failed:",
-                error
+        const decodedToken =
+            await auth.verifyIdToken(
+                idToken
             );
 
 
-            return res.status(401).json({
-
-                error:
-                    "GENERATE LINK: Firebase rejected the ID token: " +
-                    error.message
-
-            });
-
-        }
-
-
-
-        /*
-         * -------------------------------------------------
-         * EMAIL
-         * -------------------------------------------------
-         */
-
         const email =
-            String(
-                decodedToken.email || ""
-            )
-                .trim()
-                .toLowerCase();
+            decodedToken.email;
 
 
         if(!email){
@@ -382,7 +344,7 @@ async function handler(req,res){
             return res.status(400).json({
 
                 error:
-                    "GENERATE LINK: Firebase token is valid, but it contains no email."
+                    "Firebase user has no email address."
 
             });
 
@@ -392,8 +354,13 @@ async function handler(req,res){
 
         /*
          * -------------------------------------------------
-         * FRONTEND ORIGIN
+         * DETERMINE FRONTEND ORIGIN
          * -------------------------------------------------
+         *
+         * Prefer X-App-Origin because it is explicitly
+         * supplied by register.js.
+         *
+         * Fall back to the browser Origin header.
          */
 
         const requestedOrigin =
@@ -420,7 +387,7 @@ async function handler(req,res){
 
         /*
          * -------------------------------------------------
-         * VERIFICATION URL
+         * VERIFICATION PAGE
          * -------------------------------------------------
          */
 
@@ -431,7 +398,7 @@ async function handler(req,res){
 
         /*
          * -------------------------------------------------
-         * FIREBASE ACTION SETTINGS
+         * FIREBASE ACTION CODE SETTINGS
          * -------------------------------------------------
          */
 
@@ -451,62 +418,34 @@ async function handler(req,res){
          * -------------------------------------------------
          * GENERATE LINK
          * -------------------------------------------------
- */
+         */
 
-        let verificationLink;
+        const verificationLink =
+            await auth.generateEmailVerificationLink(
 
+                email,
 
-        try{
+                actionCodeSettings
 
-            verificationLink =
-                await auth.generateEmailVerificationLink(
-
-                    email,
-
-                    actionCodeSettings
-
-                );
-
-        }
-        catch(error){
-
-            console.error(
-                "Firebase verification-link generation failed:",
-                error
             );
-
-
-            return res.status(500).json({
-
-                error:
-                    "GENERATE LINK: Firebase could not generate the verification link: " +
-                    error.message
-
-            });
-
-        }
 
 
 
         /*
          * -------------------------------------------------
-         * SUCCESS
+         * RESPONSE
          * -------------------------------------------------
          */
 
         return res.status(200).json({
-
-            success:
-                true,
 
             verificationLink:
                 verificationLink
 
         });
 
+
     }
-
-
     catch(error){
 
         console.error(
@@ -518,11 +457,8 @@ async function handler(req,res){
         return res.status(500).json({
 
             error:
-                "GENERATE LINK: Unexpected server error: " +
-                (
-                    error.message ||
-                    "Unable to generate verification link."
-                )
+                error.message ||
+                "Unable to generate verification link."
 
         });
 

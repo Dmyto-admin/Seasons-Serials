@@ -4,6 +4,7 @@ const {
     getApps
 } = require("firebase-admin/app");
 
+
 const {
     getAuth
 } = require("firebase-admin/auth");
@@ -90,10 +91,6 @@ function isAllowedOrigin(origin){
             new URL(origin);
 
 
-        /*
-         * Production
-         */
-
         if(
             url.protocol === "https:" &&
             url.hostname ===
@@ -104,10 +101,6 @@ function isAllowedOrigin(origin){
 
         }
 
-
-        /*
-         * Local development
-         */
 
         if(
             url.protocol === "http:" &&
@@ -120,7 +113,6 @@ function isAllowedOrigin(origin){
             return true;
 
         }
-
 
     }
     catch{
@@ -241,7 +233,7 @@ async function handler(req,res){
 
     /*
      * -----------------------------------------------------
-     * ORIGIN SECURITY
+     * ORIGIN
      * -----------------------------------------------------
  */
 
@@ -274,13 +266,15 @@ async function handler(req,res){
 
 
         if(
-            !authorization.startsWith("Bearer ")
+            !authorization.startsWith(
+                "Bearer "
+            )
         ){
 
             return res.status(401).json({
 
                 error:
-                    "Missing authorization token."
+                    "GENERATE LINK: Missing Firebase authorization token."
 
             });
 
@@ -296,7 +290,7 @@ async function handler(req,res){
             return res.status(401).json({
 
                 error:
-                    "Missing authorization token."
+                    "GENERATE LINK: Authorization header exists, but Firebase ID token is empty."
 
             });
 
@@ -310,22 +304,70 @@ async function handler(req,res){
          * -------------------------------------------------
          */
 
-        const auth =
-            getFirebaseAdmin();
+        let auth;
+
+        try{
+
+            auth =
+                getFirebaseAdmin();
+
+        }
+        catch(error){
+
+            return res.status(500).json({
+
+                error:
+                    "GENERATE LINK: Firebase Admin initialization failed: " +
+                    error.message
+
+            });
+
+        }
 
 
 
         /*
          * -------------------------------------------------
-         * VERIFY FIREBASE USER
+         * VERIFY FIREBASE TOKEN
          * -------------------------------------------------
          */
 
-        const decodedToken =
-            await auth.verifyIdToken(
-                idToken
+        let decodedToken;
+
+
+        try{
+
+            decodedToken =
+                await auth.verifyIdToken(
+                    idToken
+                );
+
+        }
+        catch(error){
+
+            console.error(
+                "Firebase ID token verification failed:",
+                error
             );
 
+
+            return res.status(401).json({
+
+                error:
+                    "GENERATE LINK: Firebase rejected the ID token: " +
+                    error.message
+
+            });
+
+        }
+
+
+
+        /*
+         * -------------------------------------------------
+         * EMAIL
+         * -------------------------------------------------
+         */
 
         const email =
             String(
@@ -340,7 +382,7 @@ async function handler(req,res){
             return res.status(400).json({
 
                 error:
-                    "Firebase user has no email address."
+                    "GENERATE LINK: Firebase token is valid, but it contains no email."
 
             });
 
@@ -350,14 +392,8 @@ async function handler(req,res){
 
         /*
          * -------------------------------------------------
-         * DETERMINE FRONTEND ORIGIN
+         * FRONTEND ORIGIN
          * -------------------------------------------------
-         *
-         * The browser sends X-App-Origin so that a local
-         * registration can receive a verification link
-         * pointing back to the local verification page.
-         *
-         * Production registrations use the production site.
          */
 
         const requestedOrigin =
@@ -384,7 +420,7 @@ async function handler(req,res){
 
         /*
          * -------------------------------------------------
-         * VERIFICATION PAGE
+         * VERIFICATION URL
          * -------------------------------------------------
          */
 
@@ -395,7 +431,7 @@ async function handler(req,res){
 
         /*
          * -------------------------------------------------
-         * FIREBASE ACTION CODE SETTINGS
+         * FIREBASE ACTION SETTINGS
          * -------------------------------------------------
          */
 
@@ -413,28 +449,55 @@ async function handler(req,res){
 
         /*
          * -------------------------------------------------
-         * GENERATE VERIFICATION LINK
+         * GENERATE LINK
          * -------------------------------------------------
  */
 
-        const verificationLink =
-            await auth.generateEmailVerificationLink(
+        let verificationLink;
 
-                email,
 
-                actionCodeSettings
+        try{
 
+            verificationLink =
+                await auth.generateEmailVerificationLink(
+
+                    email,
+
+                    actionCodeSettings
+
+                );
+
+        }
+        catch(error){
+
+            console.error(
+                "Firebase verification-link generation failed:",
+                error
             );
+
+
+            return res.status(500).json({
+
+                error:
+                    "GENERATE LINK: Firebase could not generate the verification link: " +
+                    error.message
+
+            });
+
+        }
 
 
 
         /*
          * -------------------------------------------------
-         * RESPONSE
+         * SUCCESS
          * -------------------------------------------------
- */
+         */
 
         return res.status(200).json({
+
+            success:
+                true,
 
             verificationLink:
                 verificationLink
@@ -442,6 +505,8 @@ async function handler(req,res){
         });
 
     }
+
+
     catch(error){
 
         console.error(
@@ -450,35 +515,14 @@ async function handler(req,res){
         );
 
 
-        /*
-         * Firebase token errors should not be reported
-         * as a generic server failure.
-         */
-
-        if(
-            error?.code ===
-                "auth/id-token-expired" ||
-            error?.code ===
-                "auth/argument-error" ||
-            error?.code ===
-                "auth/invalid-id-token"
-        ){
-
-            return res.status(401).json({
-
-                error:
-                    "Invalid or expired authorization token."
-
-            });
-
-        }
-
-
         return res.status(500).json({
 
             error:
-                error.message ||
-                "Unable to generate verification link."
+                "GENERATE LINK: Unexpected server error: " +
+                (
+                    error.message ||
+                    "Unable to generate verification link."
+                )
 
         });
 

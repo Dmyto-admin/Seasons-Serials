@@ -1,11 +1,27 @@
-import {
-    auth
-} from "./store-system/firebase-config.js";
+/*
+ * =========================================================
+ * SEASONS SERIALS
+ * ACCOUNT ACTIVATION
+ * =========================================================
+ *
+ * This page:
+ *
+ * 1. Reads the email from the URL.
+ * 2. Sends the activation request to /api/activate-account.
+ * 3. Displays the normal activation result.
+ * 4. Displays a detailed diagnostic if activation fails.
+ *
+ * IMPORTANT:
+ *
+ * This file does NOT create Firebase accounts.
+ * Registration is handled by register.js.
+ *
+ * This file does NOT handle Firebase Auth sessions.
+ *
+ * This file only completes account activation.
+ * =========================================================
+ */
 
-
-import {
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 
 /*
  * ---------------------------------------------------------
@@ -227,52 +243,6 @@ function startCountdown(seconds = 5){
 
 /*
  * ---------------------------------------------------------
- * WAIT FOR FIREBASE AUTH
- * ---------------------------------------------------------
- */
-
-function waitForCurrentUser(){
-
-    return new Promise(
-        (resolve) => {
-
-            let finished =
-                false;
-
-
-            const unsubscribe =
-                onAuthStateChanged(
-                    auth,
-                    (user) => {
-
-                        if(finished){
-
-                            return;
-
-                        }
-
-
-                        finished =
-                            true;
-
-
-                        unsubscribe();
-
-
-                        resolve(user);
-
-                    }
-                );
-
-        }
-    );
-
-}
-
-
-
-/*
- * ---------------------------------------------------------
  * CREATE DETAILED DIAGNOSTIC
  * ---------------------------------------------------------
  */
@@ -286,10 +256,6 @@ function createDiagnostic({
     responseText = "",
 
     data = {},
-
-    currentUser = null,
-
-    idTokenSent = false,
 
     error = null,
 
@@ -332,41 +298,13 @@ function createDiagnostic({
 
         `EMAIL FROM URL: ${email || "(missing)"}`,
 
-        `CURRENT FIREBASE USER: ${
-            currentUser
-                ? (
-                    currentUser.email ||
-                    "(Firebase user has no email)"
-                )
-                : "(NO CURRENT FIREBASE USER)"
-        }`,
-
-        `FIREBASE UID: ${
-            currentUser?.uid ||
-            "(none)"
-        }`,
-
-        `FIREBASE EMAIL VERIFIED: ${
-            currentUser
-                ? String(
-                    currentUser.emailVerified
-                )
-                : "(unknown)"
-        }`,
-
         "",
 
-        "---------------- AUTHORIZATION ----------------",
+        "---------------- REQUEST HEADERS ----------------",
 
-        `AUTHORIZATION HEADER SENT: ${
-            idTokenSent
-                ? "YES"
-                : "NO"
-        }`,
+        "Content-Type: application/json",
 
-        idTokenSent
-            ? "A Firebase ID token was obtained and sent to the activation API."
-            : "NO Firebase ID token was available for the activation request.",
+        "Authorization header: NOT SENT BY verify-email.js",
 
         "",
 
@@ -436,13 +374,19 @@ function createDiagnostic({
 
         "---------------- IMPORTANT ----------------",
 
-        "activate-account.js requires:",
+        "verify-email.js is currently using the original activation request.",
+
+        "It does NOT obtain or send a Firebase ID token.",
+
+        "",
+
+        "If activate-account.js requires:",
 
         "Authorization: Bearer <Firebase ID token>",
 
         "",
 
-        "The activation request must therefore contain a valid Firebase ID token.",
+        "then the server can return HTTP 401 because this request does not contain that header.",
 
         "",
 
@@ -459,23 +403,19 @@ function createDiagnostic({
 
             "",
 
-            "activate-account.js explicitly returns 401 when the Authorization header does not start with 'Bearer '.",
+            "activate-account.js currently requires an Authorization header beginning with 'Bearer '.",
 
             "",
 
-            "Possible causes:",
+            "verify-email.js intentionally does NOT send a Firebase Authorization token.",
 
-            "1. Firebase Auth has not restored the current user.",
+            "",
 
-            "2. There is no signed-in Firebase user in this browser.",
+            "Therefore the activation API will reject this request with HTTP 401 unless the server-side authentication requirement is changed.",
 
-            "3. The Firebase user belongs to a different email address than the activation link.",
+            "",
 
-            "4. A Firebase ID token could not be obtained.",
-
-            "5. The Authorization header was not sent.",
-
-            "6. The server rejected the token after receiving it."
+            "This is a server/client activation-flow mismatch, not a GitHub filename conflict."
 
         );
 
@@ -497,6 +437,63 @@ function createDiagnostic({
     }
 
 
+    else if(status === 404){
+
+        lines.push(
+
+            "The server returned HTTP 404.",
+
+            "",
+
+            "The /api/activate-account route could not be found.",
+
+            "",
+
+            "Check that activate-account.js exists in the correct Vercel API location and that the deployment contains it."
+
+        );
+
+    }
+
+
+    else if(status === 409){
+
+        lines.push(
+
+            "The server returned HTTP 409.",
+
+            "",
+
+            "The server reported a conflict.",
+
+            "",
+
+            "If the server is attempting to create a file, document, account, or other resource that already exists, an existing resource may be responsible."
+
+        );
+
+    }
+
+
+    else if(status === 400){
+
+        lines.push(
+
+            "The server returned HTTP 400.",
+
+            "",
+
+            "The activation API rejected the supplied activation information.",
+
+            "",
+
+            "Check the email parameter and the request body expected by activate-account.js."
+
+        );
+
+    }
+
+
     else if(status === 500){
 
         lines.push(
@@ -509,7 +506,7 @@ function createDiagnostic({
 
             "",
 
-            "The server response above should contain the actual Firebase Admin error."
+            "The server response above should contain the actual error returned by the API."
 
         );
 
@@ -528,7 +525,7 @@ function createDiagnostic({
 
             "",
 
-            "This can indicate a network, CORS, JavaScript, or Firebase Auth problem."
+            "This can indicate a network, CORS, JavaScript, or deployment problem."
 
         );
 
@@ -658,230 +655,9 @@ async function activateAccount(){
 
         /*
          * -------------------------------------------------
-         * WAIT FOR FIREBASE AUTH
-         * -------------------------------------------------
- */
-
-        title.textContent =
-            "Checking your account...";
-
-
-        message.textContent =
-            "Waiting for Firebase to restore your account session.";
-
-
-        const currentUser =
-            await waitForCurrentUser();
-
-
-
-        /*
-         * -------------------------------------------------
-         * NO USER
-         * -------------------------------------------------
- */
-
-        if(!currentUser){
-
-            const diagnostic =
-                createDiagnostic({
-
-                    stage:
-                        "Restoring Firebase Auth session",
-
-                    currentUser:
-                        null,
-
-                    idTokenSent:
-                        false
-
-                });
-
-
-            console.error(
-                diagnostic
-            );
-
-
-            displayDiagnostic(
-                diagnostic
-            );
-
-
-            return;
-
-        }
-
-
-
-        /*
-         * -------------------------------------------------
-         * EMAIL MATCH
-         * -------------------------------------------------
- */
-
-        const currentUserEmail =
-            (
-                currentUser.email ||
-                ""
-            )
-                .trim()
-                .toLowerCase();
-
-
-
-        if(!currentUserEmail){
-
-            const diagnostic =
-                createDiagnostic({
-
-                    stage:
-                        "Checking Firebase user email",
-
-                    currentUser:
-                        currentUser,
-
-                    idTokenSent:
-                        false,
-
-                    error:
-                        new Error(
-                            "The current Firebase user has no email address."
-                        )
-
-                });
-
-
-            console.error(
-                diagnostic
-            );
-
-
-            displayDiagnostic(
-                diagnostic
-            );
-
-
-            return;
-
-        }
-
-
-
-        if(
-            currentUserEmail !== email
-        ){
-
-            const diagnostic =
-                createDiagnostic({
-
-                    stage:
-                        "Matching activation email to Firebase user",
-
-                    currentUser:
-                        currentUser,
-
-                    idTokenSent:
-                        false,
-
-                    error:
-                        new Error(
-
-                            `Email mismatch. Activation link belongs to "${email}", but Firebase Auth is currently signed in as "${currentUserEmail}".`
-
-                        )
-
-                });
-
-
-            console.error(
-                diagnostic
-            );
-
-
-            displayDiagnostic(
-                diagnostic
-            );
-
-
-            return;
-
-        }
-
-
-
-        /*
-         * -------------------------------------------------
-         * GET FRESH FIREBASE ID TOKEN
-         * -------------------------------------------------
- */
-
-        title.textContent =
-            "Authenticating activation...";
-
-
-        message.textContent =
-            "Obtaining a fresh Firebase authorization token.";
-
-
-        const idToken =
-            await currentUser.getIdToken(
-                true
-            );
-
-
-
-        if(!idToken){
-
-            const diagnostic =
-                createDiagnostic({
-
-                    stage:
-                        "Obtaining Firebase ID token",
-
-                    currentUser:
-                        currentUser,
-
-                    idTokenSent:
-                        false,
-
-                    error:
-                        new Error(
-                            "Firebase returned an empty ID token."
-                        )
-
-                });
-
-
-            console.error(
-                diagnostic
-            );
-
-
-            displayDiagnostic(
-                diagnostic
-            );
-
-
-            return;
-
-        }
-
-
-
-        /*
-         * -------------------------------------------------
          * API REQUEST
          * -------------------------------------------------
  */
-
-        title.textContent =
-            "Activating your account...";
-
-
-        message.textContent =
-            "Firebase authentication succeeded. Sending the activation request.";
-
 
         const apiUrl =
             `${API_BASE_URL}/api/activate-account`;
@@ -900,10 +676,7 @@ async function activateAccount(){
                     headers: {
 
                         "Content-Type":
-                            "application/json",
-
-                        "Authorization":
-                            `Bearer ${idToken}`
+                            "application/json"
 
                     },
 
@@ -978,12 +751,6 @@ async function activateAccount(){
 
                     data:
                         data,
-
-                    currentUser:
-                        currentUser,
-
-                    idTokenSent:
-                        true,
 
                     stage:
                         "Activation API request",
@@ -1101,13 +868,7 @@ async function activateAccount(){
             createDiagnostic({
 
                 stage:
-                    "Unexpected JavaScript, Firebase, or network error",
-
-                currentUser:
-                    auth.currentUser,
-
-                idTokenSent:
-                    false,
+                    "Unexpected JavaScript or network error",
 
                 error:
                     error

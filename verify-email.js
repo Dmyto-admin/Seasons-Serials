@@ -1,214 +1,37 @@
-const params =
-    new URLSearchParams(
-        window.location.search
-    );
-
-
-const email =
-    (
-        params.get("email") ||
-        ""
-    )
-        .trim()
-        .toLowerCase();
-
-
-
-/*
- * ---------------------------------------------------------
- * API LOCATION
- * ---------------------------------------------------------
- *
- * Local:
- *
- *     http://127.0.0.1:5500
- *     http://localhost:5500
- *
- * API:
- *
- *     https://seasons-serials.vercel.app
- *
- * Production:
- *
- *     https://seasons-serials.vercel.app
- *
- * In production we can use /api directly.
- */
-
-const isLocal =
-    window.location.hostname === "127.0.0.1" ||
-    window.location.hostname === "localhost";
-
-
-const API_BASE_URL =
-    isLocal
-        ? "https://seasons-serials.vercel.app"
-        : "";
-
-
-
-const title =
-    document.getElementById(
-        "verificationTitle"
-    );
-
-
-const message =
-    document.getElementById(
-        "verificationMessage"
-    );
-
-
-const iconWrapper =
-    document.getElementById(
-        "iconWrapper"
-    );
-
-
-const loadingIcon =
-    document.getElementById(
-        "loadingIcon"
-    );
-
-
-const countdown =
-    document.getElementById(
-        "countdown"
-    );
-
-
-const countdownNumber =
-    document.getElementById(
-        "countdownNumber"
-    );
-
-
-const progress =
-    document.getElementById(
-        "progress"
-    );
-
-
-const progressBar =
-    document.getElementById(
-        "progressBar"
-    );
-
-
-
-function setIcon(type){
-
-    loadingIcon?.remove();
-
-
-    if(type === "success"){
-
-        iconWrapper.innerHTML =
-            `<div class="icon success-icon">✓</div>`;
-
-    }
-
-
-    else if(type === "already"){
-
-        iconWrapper.innerHTML =
-            `<div class="icon already-icon">✓</div>`;
-
-    }
-
-
-    else if(type === "error"){
-
-        iconWrapper.innerHTML =
-            `<div class="icon error-icon">!</div>`;
-
-    }
-
-}
-
-
-
-function redirectToLogin(){
-
-    sessionStorage.setItem(
-        "openLoginAfterVerification",
-        "true"
-    );
-
-
-    window.location.href =
-        "/index.html";
-
-}
-
-
-
-function startCountdown(seconds = 5){
-
-    countdown.classList.remove(
-        "hidden"
-    );
-
-
-    progress.classList.remove(
-        "hidden"
-    );
-
-
-    progressBar.classList.remove(
-        "animate"
-    );
-
-
-    void progressBar.offsetWidth;
-
-
-    progressBar.classList.add(
-        "animate"
-    );
-
-
-    let remaining =
-        seconds;
-
-
-    countdownNumber.textContent =
-        remaining;
-
-
-    const timer =
-        setInterval(()=>{
-
-            remaining--;
-
-
-            countdownNumber.textContent =
-                remaining;
-
-
-            if(remaining <= 0){
-
-                clearInterval(timer);
-
-                redirectToLogin();
-
-            }
-
-        },1000);
-
-}
-
-
-
 async function activateAccount(){
+
+    alert(
+        "ACTIVATION DEBUG 1/9\n\n" +
+        "verify-email.js started."
+    );
+
 
     /*
      * -----------------------------------------------------
-     * VALIDATE EMAIL
+     * EMAIL
      * -----------------------------------------------------
      */
 
+    alert(
+        "ACTIVATION DEBUG 2/9\n\n" +
+        "Email from URL:\n" +
+        (
+            email ||
+            "[MISSING]"
+        ) +
+        "\n\n" +
+        "Current page:\n" +
+        window.location.href
+    );
+
+
     if(!email){
+
+        alert(
+            "ACTIVATION ERROR\n\n" +
+            "The activation URL does not contain ?email=..."
+        );
+
 
         setIcon("error");
 
@@ -240,55 +63,120 @@ async function activateAccount(){
 
         /*
          * -------------------------------------------------
-         * API REQUEST
+         * API URL
          * -------------------------------------------------
          */
 
-        const response =
-            await fetch(
+        const apiUrl =
+            `${API_BASE_URL}/api/activate-account`;
 
-                `${API_BASE_URL}/api/activate-account`,
 
-                {
-
-                    method:
-                        "POST",
-
-                    headers: {
-
-                        "Content-Type":
-                            "application/json"
-
-                    },
-
-                    body:
-                        JSON.stringify({
-
-                            email:
-                                email
-
-                        })
-
-                }
-
-            );
+        alert(
+            "ACTIVATION DEBUG 3/9\n\n" +
+            "Calling:\n" +
+            apiUrl +
+            "\n\n" +
+            "Method: POST\n\n" +
+            "Email:\n" +
+            email
+        );
 
 
 
         /*
          * -------------------------------------------------
-         * SAFELY READ RESPONSE
+         * REQUEST
          * -------------------------------------------------
-         *
-         * This prevents:
-         *
-         * "Unexpected end of JSON input"
-         *
-         * when the server returns an empty/non-JSON response.
+         */
+
+        let response;
+
+
+        try{
+
+            response =
+                await fetch(
+
+                    apiUrl,
+
+                    {
+
+                        method:
+                            "POST",
+
+                        headers: {
+
+                            "Content-Type":
+                                "application/json",
+
+                            "X-App-Origin":
+                                window.location.origin
+
+                        },
+
+                        body:
+                            JSON.stringify({
+
+                                email:
+                                    email
+
+                            })
+
+                    }
+
+                );
+
+        }
+        catch(fetchError){
+
+            alert(
+                "ACTIVATION ERROR — FETCH\n\n" +
+                "The browser could not complete the request.\n\n" +
+                fetchError.message
+            );
+
+            throw fetchError;
+
+        }
+
+
+
+        /*
+         * -------------------------------------------------
+         * RESPONSE
+         * -------------------------------------------------
+         */
+
+        alert(
+            "ACTIVATION DEBUG 4/9\n\n" +
+            "Vercel responded.\n\n" +
+            "HTTP status:\n" +
+            response.status +
+            "\n\n" +
+            "OK:\n" +
+            response.ok
+        );
+
+
+
+        /*
+         * -------------------------------------------------
+         * RAW RESPONSE
+         * -------------------------------------------------
          */
 
         const responseText =
             await response.text();
+
+
+        alert(
+            "ACTIVATION DEBUG 5/9\n\n" +
+            "Raw response:\n\n" +
+            (
+                responseText ||
+                "[EMPTY RESPONSE]"
+            )
+        );
 
 
         let data = {};
@@ -306,6 +194,11 @@ async function activateAccount(){
             }
             catch{
 
+                alert(
+                    "ACTIVATION ERROR\n\n" +
+                    "Vercel returned something that is not JSON."
+                );
+
                 data = {};
 
             }
@@ -316,11 +209,23 @@ async function activateAccount(){
 
         /*
          * -------------------------------------------------
-         * HTTP ERROR
+         * SERVER ERROR
          * -------------------------------------------------
          */
 
         if(!response.ok){
+
+            alert(
+                "ACTIVATION ERROR — SERVER\n\n" +
+                "HTTP " +
+                response.status +
+                "\n\n" +
+                (
+                    data.error ||
+                    "Unknown activation error."
+                )
+            );
+
 
             throw new Error(
 
@@ -335,13 +240,33 @@ async function activateAccount(){
 
         /*
          * -------------------------------------------------
+         * SERVER SUCCESS
+         * -------------------------------------------------
+         */
+
+        alert(
+            "ACTIVATION DEBUG 6/9\n\n" +
+            "activate-account.js succeeded."
+        );
+
+
+
+        /*
+         * -------------------------------------------------
          * ALREADY ACTIVATED
          * -------------------------------------------------
- */
+         */
 
         if(
             data.alreadyActivated === true
         ){
+
+            alert(
+                "ACTIVATION DEBUG 7/9\n\n" +
+                "Firebase/Firestore says:\n" +
+                "Account was already activated."
+            );
+
 
             setIcon("already");
 
@@ -369,6 +294,14 @@ async function activateAccount(){
          * -------------------------------------------------
  */
 
+        alert(
+            "ACTIVATION DEBUG 8/9\n\n" +
+            "ACCOUNT ACTIVATION SUCCESSFUL!\n\n" +
+            "The account was activated in Firestore.\n" +
+            "The user page was created/confirmed."
+        );
+
+
         setIcon("success");
 
 
@@ -383,17 +316,34 @@ async function activateAccount(){
 
         setTimeout(()=>{
 
+            alert(
+                "ACTIVATION DEBUG 9/9\n\n" +
+                "Activation flow completed.\n\n" +
+                "Redirecting to login."
+            );
+
+
             redirectToLogin();
 
         },3000);
 
-
     }
+
+
     catch(error){
 
         console.error(
             "Account activation error:",
             error
+        );
+
+
+        alert(
+            "ACTIVATION FINAL ERROR\n\n" +
+            (
+                error.message ||
+                "Unknown activation error."
+            )
         );
 
 
@@ -411,7 +361,3 @@ async function activateAccount(){
     }
 
 }
-
-
-
-activateAccount();

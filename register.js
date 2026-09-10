@@ -15,81 +15,57 @@ import {
 
 async function generateVerificationLink(firebaseUser){
 
-    const idToken = await firebaseUser.getIdToken(true);
-
-    const currentOrigin = window.location.origin;
+    const idToken =
+        await firebaseUser.getIdToken();
 
     const isLocal =
-        window.location.hostname === "127.0.0.1" ||
-        window.location.hostname === "localhost";
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1";
 
-
-    const apiBase =
+    const apiBaseUrl =
         isLocal
             ? "https://seasons-serials.vercel.app"
             : "";
 
-
     const response =
         await fetch(
-            `${apiBase}/api/generate-verification-link`,
+            `${apiBaseUrl}/api/generate-verification-link`,
             {
-
                 method: "POST",
 
                 headers: {
-
-                    "Content-Type":
-                        "application/json",
-
-                    "Authorization":
-                        `Bearer ${idToken}`,
-
-                    /*
-                     * Explicitly tell the API the
-                     * frontend origin.
-                     */
-
-                    "X-App-Origin":
-                        currentOrigin
-
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${idToken}`,
+                    "X-App-Origin": window.location.origin
                 }
-
             }
         );
 
-
-    /*
-     * Do not assume that every error response
-     * contains valid JSON.
-     */
-
-    let data = {};
-
-    try{
-
-        data =
-            await response.json();
-
-    }
-    catch{
-
-        data = {};
-
-    }
-
-
     if(!response.ok){
 
-        throw new Error(
+        const responseText =
+            await response.text();
 
+        let data = {};
+
+        try{
+            data = responseText
+                ? JSON.parse(responseText)
+                : {};
+        }
+        catch{
+            data = {};
+        }
+
+        throw new Error(
             data.error ||
             `Unable to generate verification link. HTTP ${response.status}.`
-
         );
 
     }
 
+    const data =
+        await response.json();
 
     if(!data.verificationLink){
 
@@ -98,7 +74,6 @@ async function generateVerificationLink(firebaseUser){
         );
 
     }
-
 
     return data.verificationLink;
 
